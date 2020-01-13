@@ -6,7 +6,8 @@
     <br>
 <p>
 
-Better practice for deep model development and deployment For Tensorflow 2.
+AiSpace provides highly configurable framework for deep learning model development, deployment and 
+convenient use of pre-trained models. 
 
 Table of Contents
 =================
