@@ -7,7 +7,7 @@
 <p>
 
 AiSpace provides highly configurable framework for deep learning model development, deployment and 
-convenient use of pre-trained models. 
+convenient use of pre-trained models (bert, albert, opt, etc.). 
 
 Table of Contents
 =================
@@ -97,7 +97,7 @@ We use [BentoML](https://github.com/bentoml/BentoML) as deploy tool, so your mus
 
 ## Experiments
 
-### Tnews
+### glue_zh/tnews
 
 Run Tnews classification
 ```
@@ -113,7 +113,9 @@ python -u aispace/trainer.py \
 Specify different pretrained model, please change *includes* and *pretrained.name* in config file.
 
 
-|Model|Accuracy|Macro_precision|Macro_recall|Macro_f1|Micro_precision|Micro_recall|Micro_f1|
-|---|---|---|---|---|---|---|---|
-|bert-base-chinese-huggingface|55.320|52.011|51.626|51.742|55.320|55.320|55.320|
-|albert_base_zh|
+|Model|Accuracy|Macro_precision|Macro_recall|Macro_f1|
+|---|---|---|---|---|
+|bert-base-chinese-huggingface|65.020|64.987|62.484|63.017|
+|albert_base_zh|62.160|62.514|59.267|60.377|
+|albert_base_zh_additional_36k_steps|61.760|61.723|58.534|59.273|
+|albert_small_zh_google|62.620|63.819|58.992|59.387|
