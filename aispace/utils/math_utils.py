@@ -1,0 +1,86 @@
+# !/usr/bin/env python
+# coding=utf-8
+# @Time    : 2019-07-02 21:14
+# @Author  : yingyuankai@aliyun.com
+# @File    : math_utils.py
+
+import math
+import numpy as np
+
+
+def jaccard(sorted_list_1, sorted_list_2):
+    max_jaccard_score = 0
+    for path1 in sorted_list_1:
+        for path2 in sorted_list_2:
+            size_set_1 = len(path1)
+            size_set_2 = len(path2)
+
+            intersection = 0
+            for i in range(min(size_set_1, size_set_2)):
+                last_p1 = path1[-(i + 1)]
+                last_p2 = path2[-(i + 1)]
+                if last_p1 == last_p2:
+                    intersection += 1
+                else:
+                    break
+
+            jaccard_score = intersection / (
+                    size_set_1 + size_set_2 - intersection)
+            if jaccard_score > max_jaccard_score:
+                max_jaccard_score = jaccard_score
+
+    return max_jaccard_score
+
+
+def softmax(x, temperature=1.0):
+    e_x = np.exp((x - np.max(x)) / temperature)
+    return e_x / e_x.sum()
+
+
+def int_type(num_distinct):
+    if num_distinct < 128:
+        return np.int8
+    elif num_distinct < 32768:
+        return np.int16
+    elif num_distinct < 2147483648:
+        return np.int32
+    else:
+        return np.int64
+
+
+def convert_size(size_bytes):
+    if size_bytes == 0:
+        return '0B'
+    size_name = ('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')
+    i = int(math.floor(math.log(size_bytes, 1024)))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 2)
+    return '{} {}'.format(s, size_name[i])
+
+
+def learning_rate_warmup(learning_rate, epoch, warmup_epochs, num_workers,
+                         steps_per_epoch):
+    """Implements gradual learning rate warmup:
+    `lr = initial_lr / hvd.size()` ---> `lr = initial_lr`
+     `initial_lr` is the learning rate of the model optimizer at the start
+     of the training. This technique was described in the paper
+     "Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour".
+     See https://arxiv.org/pdf/1706.02677.pdf for details.
+
+     Inspired by Horovod's implementation:
+     https://github.com/uber/horovod/blob/master/horovod/keras/callbacks.py#L202
+     Math recap:
+                                                     batch
+            epoch               = full_epochs + ---------------
+                                                steps_per_epoch
+                                   lr     size - 1
+            lr'(epoch)          = ---- * (-------- * epoch + 1)
+                                  size     warmup
+                                   lr
+            lr'(epoch = 0)      = ----
+                                  size
+            lr'(epoch = warmup) = lr
+    """
+    epoch_adjusted = float(epoch) + (1. / steps_per_epoch)
+    return learning_rate / num_workers * \
+           (epoch_adjusted * (num_workers - 1) / warmup_epochs + 1)

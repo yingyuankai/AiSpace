@@ -1,0 +1,187 @@
+# ###################
+# Default config
+# ###################
+
+# Name of the experiment, will be used while saving checkpoints
+# and generating reports
+experiment_name: experiment
+model_name: run
+# Type of run, train+inference by default means both training and inference
+# (test) stage will be run, if run_type contains 'val',
+# inference will be run on val set also.
+#schedule: train_and_eval
+# Level of logging, only logs which are >= to current level will be logged
+logging_level: info
+# Directory for saving checkpoints and other metadata
+save_dir: "./save"
+# Directory for saving logs
+#log_dir: null
+# Seed to be used for training. -1 means random seed.
+# Either pass fixed through your config or command line arguments
+random_seed: 34
+
+# Configuration for training
+training:
+    # Maximum epochs in case you don't want to use iterations
+    # Can be mixed with max iterations, so it will stop whichever is
+    # completed first. Default: null means epochs won't be used
+    max_epochs: 100
+    # Size of each batch. If distributed or data_parallel
+    # is used, this will be divided equally among GPUs
+    batch_size: 64
+
+    shuffle_size: 1024
+
+    optimizer:
+      name: adam_weight_decay_with_warm_up
+
+    # Callbacks
+    callbacks:
+        # callback name
+        early_stopping:
+            # Whether to use early stopping, (Default: false)
+            switch: false
+            config:
+                patience: 2 # Patience for early stopping
+                monitor: 'val_loss'
+                min_delta: 0
+                verbose: 0
+                mode: 'auto'
+                baseline: null
+                restore_best_weights: false
+        checkpoint:
+            switch: false
+            config:
+                filepath: "{{workspace_dir}}/checkpoint/ckpt_{epoch}"
+                monitor: 'val_loss'
+                verbose: 0
+                save_best_only: False
+                save_weights_only: False
+                mode: 'auto'
+                save_freq: 'epoch'
+        tensorboard:
+            switch: false
+            config:
+                log_dir: '{{workspace_dir}}/logs'
+                histogram_freq: 0
+                write_graph: True
+                write_images: False
+                update_freq: 'epoch'
+                profile_batch: 0   # if set nonzero, will very slow to start loading data and training.
+                embeddings_freq: 0
+                embeddings_metadata: null
+        swa:
+            switch: false
+            config:
+                start_epoch: 1          # Starting epoch for SWA.
+                lr_schedule: manual   # Learning rate schedule. 'manual' , 'constant' or 'cyclic'.
+                swa_lr: 0.001          # Learning rate used when averaging weights.
+                swa_lr2: 0.003         # Upper bound of learning rate for the cyclic schedule.
+                swa_freq: 1          # Frequency of weight averagining. Used with cyclic schedules.
+                verbose: 0              # Verbosity mode, 0 or 1.
+
+    # Should a lr scheduler be used
+    lr_scheduler: false
+    # Steps for LR scheduler, will be an array of iteration count
+    # when lr should be decreased
+    lr_steps: []
+    # Ratio for each lr step
+    lr_ratio: 0.1
+
+    # Should use warmup for lr
+    use_warmup: false
+    # Warmup factor learning rate warmup
+    warmup_factor: 0.2
+    # Iteration until which warnup should be done
+    num_warmup_steps: -1
+
+    steps_per_epoch: -1
+    validation_steps: -1
+
+# Attributes for model, default configuration files for various models
+# included in aispace can be found under configs directory in root folder
+model_attributes: {}
+
+# Attributes for tasks which encapsulates datasets. Separate configuration
+# for different datasets included in aispace are included in tasks folder
+# which can be mixed and matched to train multiple datasets together
+# An example for mixing all vqa datasets is present under vqa folder
+task_attributes: {}
+
+# Defines which task to train for, can be used to train multiple tasks
+# together
+tasks: []
+
+# Defines which datasets from the above tasks you want to train on
+dataset:
+    name: base
+    # Split strategy when dataset transforming
+    split_strategy:
+        train: 0.8
+        validation: 0.1
+        test: 0.1
+
+    # Dataset split projects when loading data
+    # ref: https://www.tensorflow.org/datasets/splits
+    source:
+        train: "train"
+        validation: "validation"
+        test: "test"
+
+    tokenizer:
+        name: base
+        vocab:
+            filename: null
+            special_tokens: {}
+        max_len: 100
+# Defines which model you want to train on
+model: {}
+
+# Attributes for optimizer, examples can be found in models' configs in
+# configs folder
+optimizer_attributes: {}
+
+performance: null
+
+# Logging config
+logging:
+    version: 1
+    disable_existing_loggers: False
+    formatters:
+        simple:
+            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+    handlers:
+        console:
+            class: logging.StreamHandler
+            level: DEBUG
+            formatter: simple
+            stream: ext://sys.stdout
+
+        info_file_handler:
+            class: logging.handlers.RotatingFileHandler
+            level: INFO
+            formatter: simple
+            filename: info.log
+            maxBytes: 10485760 # 10MB
+            backupCount: 20
+            encoding: utf8
+
+        error_file_handler:
+            class: logging.handlers.RotatingFileHandler
+            level: ERROR
+            formatter: simple
+            filename: errors.log
+            maxBytes: 10485760 # 10MB
+            backupCount: 20
+            encoding: utf8
+
+    loggers:
+        my_module:
+            level: ERROR
+            handlers: [console]
+            propagate: no
+
+    root:
+        level: INFO
+        handlers: [console, info_file_handler, error_file_handler]

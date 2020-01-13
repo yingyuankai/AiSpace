@@ -1,0 +1,166 @@
+# config for albert
+# TODO
+includes:
+  - "../base.yml"
+
+dataset:
+    tokenizer:
+        name: albert_tokenizer
+        vocab:
+            filename: null
+            special_tokens:
+                BOS: "[CLS]"
+                EOS: "[SEP]"
+                PAD: "<pad>"
+                UNK: "<unk>"
+                SEP: "[SEP]"
+                CLS: "[CLS]"
+                MASK: "[MASK]"
+        do_lower_case: true
+        remove_space: true
+        keep_accents: false
+        max_len: 512
+
+pretrained:
+    norm_name: albert
+    name: albert-base-v1
+    adapter: tf_huggingface_bert_adapter
+    force_download: false
+    init_from_pretrained: true
+    cache_dir: /search/data1/yyk/data/pretrained/albert
+    model_path: null
+    vocab_path: null
+    config_path: null
+    config:
+        output_attentions: false
+        output_hidden_states: false
+        layer_norm_eps: 1e-12
+    family:
+        albert-base-v1:
+#            model:
+#                url: https://s3.amazonaws.com/models.huggingface.co/bert/albert-base-tf_model.h5
+#                to_insert_paths:
+#                    - pretrained.model_path
+            vocab:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/albert-base-spiece.model
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/albert-base-config.json
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+        albert-large-v1:
+            model:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-large-tf_model.h5"
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-large-spiece.model"
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-large-config.json"
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+        albert-xlarge-v1:
+            model:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-xlarge-tf_model.h5"
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-xlarge-spiece.model"
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-xlarge-config.json"
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+        albert-xxlarge-v1:
+            model:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-xxlarge-tf_model.h5"
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-xxlarge-spiece.model"
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-xxlarge-config.json"
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+        albert-base-v2:
+            model:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-base-v2-tf_model.h5"
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-base-v2-spiece.model"
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-base-v2-config.json"
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+        albert-large-v2:
+            model:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-large-v2-tf_model.h5"
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-large-v2-spiece.model"
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-large-v2-config.json"
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+        albert-xlarge-v2:
+            model:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-xlarge-v2-tf_model.h5"
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-xlarge-v2-spiece.model"
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-xlarge-v2-config.json"
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+        albert-xxlarge-v2:
+            model:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-xxlarge-v2-tf_model.h5"
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-xxlarge-v2-spiece.model"
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: "https://s3.amazonaws.com/models.huggingface.co/bert/albert-xxlarge-v2-config.json"
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config

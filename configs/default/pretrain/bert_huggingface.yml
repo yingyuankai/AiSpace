@@ -1,0 +1,310 @@
+# config for huggingface bert
+
+includes:
+  - "../base.yml"
+
+dataset:
+    tokenizer:
+        name: bert_tokenizer
+        vocab:
+            filename: null
+            special_tokens:
+                PAD: "[PAD]"
+                UNK: "[UNK]"
+                SEP: "[SEP]"
+                CLS: "[CLS]"
+                MASK: "[MASK]"
+        tokenize_chinese_chars: True
+        do_lower_case: True
+        do_basic_tokenize: True
+        non_split_tokens: null
+        max_len: 512
+
+pretrained:
+    norm_name: bert
+    name: bert-base-chinese-huggingface
+    force_download: false
+    init_from_pretrained: true
+    cache_dir: /search/data1/yyk/data/pretrained/bert
+    model_path: null
+    vocab_path: null
+    config_path: null
+    config:
+        output_attentions: false
+        output_hidden_states: false
+        layer_norm_eps: 1e-12
+
+    family:
+        bert-base-chinese-huggingface:
+            model:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-chinese-tf_model.h5
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-chinese-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-chinese-config.json
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+                others:
+                    do_lower_case:
+                        to_replaces:
+                            - dataset.tokenizer.do_lower_case
+                        value: false
+        bert-base-uncased-huggingface:
+            model:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-uncased-tf_model.h5
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-uncased-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-uncased-config.json
+                to_insert_paths:
+                    - pretrained.config_path
+                to_replaces:
+                    - pretrained.config
+                others:
+                    do_lower_case:
+                        to_replaces:
+                            - dataset.tokenizer.do_lower_case
+                        value: true
+        bert-large-uncased-huggingface:
+            model:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-uncased-tf_model.h5
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-uncased-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-uncased-config.json
+                to_insert_paths:
+                    - pretrained.config_path
+                to_replaces:
+                    - pretrained.config
+                others:
+                    do_lower_case:
+                        to_replaces:
+                            - dataset.tokenizer.do_lower_case
+                        value: true
+        bert-base-cased-huggingface:
+            model:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-cased-tf_model.h5
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-cased-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-cased-config.json
+                to_insert_paths:
+                    - pretrained.config_path
+                to_replaces:
+                    - pretrained.config
+                others:
+                    do_lower_case:
+                        to_replaces:
+                            - dataset.tokenizer.do_lower_case
+                        value: false
+        bert-large-cased-huggingface:
+            model:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-cased-tf_model.h5
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-cased-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-cased-config.json
+                to_insert_paths:
+                    - pretrained.config_path
+                to_replaces:
+                    - pretrained.config
+                others:
+                    do_lower_case:
+                        to_replaces:
+                            - dataset.tokenizer.do_lower_case
+                        value: false
+        bert-base-multilingual-uncased-huggingface:
+            model:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-multilingual-uncased-tf_model.h5
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-multilingual-uncased-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-multilingual-uncased-config.json
+                to_insert_paths:
+                    - pretrained.config_path
+                to_replaces:
+                    - pretrained.config
+                others:
+                    do_lower_case:
+                        to_replaces:
+                            - dataset.tokenizer.do_lower_case
+                        value: true
+        bert-base-multilingual-cased-huggingface:
+            model:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-multilingual-cased-tf_model.h5
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-multilingual-cased-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-multilingual-cased-config.json
+                to_insert_paths:
+                    - pretrained.config_path
+                to_replaces:
+                    - pretrained.config
+                others:
+                    do_lower_case:
+                        to_replaces:
+                            - dataset.tokenizer.do_lower_case
+                        value: false
+        bert-base-german-cased-huggingface:
+            model:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-german-cased-tf_model.h5
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-german-cased-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-german-cased-config.json
+                to_insert_paths:
+                    - pretrained.config_path
+                to_replaces:
+                    - pretrained.config
+                others:
+                    do_lower_case:
+                        to_replaces:
+                            - dataset.tokenizer.do_lower_case
+                        value: false
+        bert-large-uncased-whole-word-masking-huggingface:
+            model:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-uncased-whole-word-masking-tf_model.h5
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-uncased-whole-word-masking-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-uncased-whole-word-masking-config.json
+                to_insert_paths:
+                    - pretrained.config_path
+                to_replaces:
+                    - pretrained.config
+                others:
+                    do_lower_case:
+                        to_replaces:
+                            - dataset.tokenizer.do_lower_case
+                        value: false
+        bert-large-cased-whole-word-masking-huggingface:
+            model:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-cased-whole-word-masking-tf_model.h5
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-cased-whole-word-masking-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-cased-whole-word-masking-config.json
+                to_insert_paths:
+                    - pretrained.config_path
+                to_replaces:
+                    - pretrained.config
+                others:
+                    do_lower_case:
+                        to_replaces:
+                            - dataset.tokenizer.do_lower_case
+                        value: false
+        bert-large-uncased-whole-word-masking-finetuned-squad-huggingface:
+            model:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-uncased-whole-word-masking-finetuned-squad-tf_model.h5
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-uncased-whole-word-masking-finetuned-squad-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-uncased-whole-word-masking-finetuned-squad-config.json
+                to_insert_paths:
+                    - pretrained.config_path
+                to_replaces:
+                    - pretrained.config
+                others:
+                    do_lower_case:
+                        to_replaces:
+                            - dataset.tokenizer.do_lower_case
+                        value: true
+        bert-large-cased-whole-word-masking-finetuned-squad-huggingface:
+            model:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-cased-whole-word-masking-finetuned-squad-tf_model.h5
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-cased-whole-word-masking-finetuned-squad-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-cased-whole-word-masking-finetuned-squad-config.json
+                to_insert_paths:
+                    - pretrained.config_path
+                to_replaces:
+                    - pretrained.config
+                others:
+                    do_lower_case:
+                        to_replaces:
+                            - dataset.tokenizer.do_lower_case
+                        value: false
+        bert-base-cased-finetuned-mrpc-huggingface:
+            model:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-cased-finetuned-mrpc-tf_model.h5
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-cased-finetuned-mrpc-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-cased-finetuned-mrpc-config.json
+                to_insert_paths:
+                    - pretrained.config_path
+                to_replaces:
+                    - pretrained.config
+                others:
+                    do_lower_case:
+                        to_replaces:
+                            - dataset.tokenizer.do_lower_case
+                        value: false

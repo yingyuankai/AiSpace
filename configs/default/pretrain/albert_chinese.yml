@@ -1,0 +1,248 @@
+# config for albert chinese
+# TODO
+includes:
+  - "../base.yml"
+
+dataset:
+    tokenizer:
+        name: bert_tokenizer
+        vocab:
+            filename: null
+            special_tokens:
+                PAD: "[PAD]"
+                UNK: "[UNK]"
+                SEP: "[SEP]"
+                CLS: "[CLS]"
+                MASK: "[MASK]"
+        tokenize_chinese_chars: True
+        do_lower_case: True
+        do_basic_tokenize: True
+        non_split_tokens: null
+        max_len: 512
+
+pretrained:
+    norm_name: albert
+    name: albert_small_zh_google
+    adapter: tf_huggingface_albert_chinese_adapter
+    force_download: false
+    init_from_pretrained: true
+    cache_dir: /search/data1/yyk/data/pretrained/albert
+    model_path: null
+    vocab_path: null
+    config_path: null
+    config:
+        output_attentions: false
+        output_hidden_states: false
+        layer_norm_eps: 1e-12
+        num_hidden_groups: 1
+        inner_group_num: 1
+
+    ref: https://github.com/brightmart/albert_zh
+    family:
+        albert_base_zh:
+            model:
+                url: /search/data1/yyk/data/pretrained/albert/albert_base_zh
+                suffix: albert_model.ckpt
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+#                url: /search/data1/yyk/data/pretrained/albert/albert_base_zh/vocab.txt
+                url: /search/data1/yyk/data/pretrained/bert/bert-base-chinese-huggingface/bert-base-chinese-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: /search/data1/yyk/data/pretrained/albert/albert_base_zh/albert_config_base.json
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+                others:
+                    norm_name:
+                        to_replaces:
+                            - pretrained.norm_name
+                        value: albert_brightmart
+        albert_base_zh_additional_36k_steps:
+            model:
+                url: /search/data1/yyk/data/pretrained/albert/albert_base_zh_additional_36k_steps
+                suffix: albert_model.ckpt
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+#                url: /search/data1/yyk/data/pretrained/albert/albert_base_zh_additional_36k_steps/vocab.txt
+                url: /search/data1/yyk/data/pretrained/bert/bert-base-chinese-huggingface/bert-base-chinese-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: /search/data1/yyk/data/pretrained/albert/albert_base_zh_additional_36k_steps/albert_config_base.json
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+                others:
+                    norm_name:
+                        to_replaces:
+                            - pretrained.norm_name
+                        value: albert_brightmart
+        albert_small_zh_google:
+            model:
+                url: /search/data1/yyk/data/pretrained/albert/albert_small_zh_google
+                suffix: albert_model.ckpt
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+#                url: /search/data1/yyk/data/pretrained/albert/albert_small_zh_google/vocab.txt
+                url: /search/data1/yyk/data/pretrained/bert/bert-base-chinese-huggingface/bert-base-chinese-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: /search/data1/yyk/data/pretrained/albert/albert_small_zh_google/albert_config_small_google.json
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+                others:
+                    adapter:
+                        to_replaces:
+                            - pretrained.adapter
+                        value: tf_huggingface_albert_chinese_google_adapter
+        albert_large_zh:
+            model:
+                url: /search/data1/yyk/data/pretrained/albert/albert_large_zh
+                suffix: albert_model.ckpt
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+#                url: /search/data1/yyk/data/pretrained/albert/albert_large_zh/vocab.txt
+                url: /search/data1/yyk/data/pretrained/bert/bert-base-chinese-huggingface/bert-base-chinese-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: /search/data1/yyk/data/pretrained/albert/albert_large_zh/albert_config_large.json
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+                others:
+                    norm_name:
+                        to_replaces:
+                            - pretrained.norm_name
+                        value: albert_brightmart
+        albert_tiny:
+            model:
+                url: /search/data1/yyk/data/pretrained/albert/albert_tiny
+                suffix: albert_model.ckpt
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+#                url: /search/data1/yyk/data/pretrained/albert/albert_tiny/vocab.txt
+                url: /search/data1/yyk/data/pretrained/bert/bert-base-chinese-huggingface/bert-base-chinese-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: /search/data1/yyk/data/pretrained/albert/albert_tiny/albert_config_tiny.json
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+                others:
+                    norm_name:
+                        to_replaces:
+                            - pretrained.norm_name
+                        value: albert_brightmart
+        albert_tiny_489k:
+            model:
+                url: /search/data1/yyk/data/pretrained/albert/albert_tiny_489k
+                suffix: albert_model.ckpt
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+#                url: /search/data1/yyk/data/pretrained/albert/albert_tiny_489k/vocab.txt
+                url: /search/data1/yyk/data/pretrained/bert/bert-base-chinese-huggingface/bert-base-chinese-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: /search/data1/yyk/data/pretrained/albert/albert_tiny_489k/albert_config_tiny.json
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+                others:
+                    norm_name:
+                        to_replaces:
+                            - pretrained.norm_name
+                        value: albert_brightmart
+        albert_tiny_zh_google:
+            model:
+                url: /search/data1/yyk/data/pretrained/albert/albert_tiny_zh_google
+                suffix: albert_model.ckpt
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+#                url: /search/data1/yyk/data/pretrained/albert/albert_tiny_zh_google/vocab.txt
+                url: /search/data1/yyk/data/pretrained/bert/bert-base-chinese-huggingface/bert-base-chinese-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: /search/data1/yyk/data/pretrained/albert/albert_tiny_zh_google/albert_config_tiny_g.json
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+                others:
+                    adapter:
+                        to_replaces:
+                            - pretrained.adapter
+                        value: tf_huggingface_albert_chinese_google_adapter
+        albert_xlarge_zh_177k:
+            model:
+                url: /search/data1/yyk/data/pretrained/albert/albert_xlarge_zh_177k
+                suffix: albert_model.ckpt
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+#                url: /search/data1/yyk/data/pretrained/albert/albert_xlarge_zh_177k/vocab.txt
+                url: /search/data1/yyk/data/pretrained/bert/bert-base-chinese-huggingface/bert-base-chinese-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: /search/data1/yyk/data/pretrained/albert/albert_xlarge_zh_177k/albert_config_xlarge.json
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+                others:
+                    norm_name:
+                        to_replaces:
+                            - pretrained.norm_name
+                        value: albert_brightmart
+        albert_xlarge_zh_183k:
+            model:
+                url: /search/data1/yyk/data/pretrained/albert/albert_xlarge_zh_183k
+                suffix: albert_model.ckpt
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+#                url: /search/data1/yyk/data/pretrained/albert/albert_xlarge_zh_183k/vocab.txt
+                url: /search/data1/yyk/data/pretrained/bert/bert-base-chinese-huggingface/bert-base-chinese-vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: /search/data1/yyk/data/pretrained/albert/albert_xlarge_zh_183k/albert_config_xlarge.json
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+                others:
+                    norm_name:
+                        to_replaces:
+                            - pretrained.norm_name
+                        value: albert_brightmart

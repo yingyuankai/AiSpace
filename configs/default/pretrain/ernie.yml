@@ -1,0 +1,113 @@
+# config for huggingface bert
+
+includes:
+  - "../base.yml"
+
+dataset:
+    tokenizer:
+        name: bert_tokenizer
+        vocab:
+            filename: null
+            special_tokens:
+                PAD: "[PAD]"
+                UNK: "[UNK]"
+                SEP: "[SEP]"
+                CLS: "[CLS]"
+                MASK: "[MASK]"
+        tokenize_chinese_chars: True
+        do_lower_case: True
+        do_basic_tokenize: True
+        non_split_tokens: null
+        max_len: 512
+
+pretrained:
+    norm_name: ernie
+    name: ERNIE_stable-1.0.1
+    adapter: tf_huggingface_ernie_adapter
+    force_download: falsecle
+    init_from_pretrained: true
+    cache_dir: /search/data1/yyk/data/pretrained/bert
+    model_path: null
+    vocab_path: null
+    config_path: null
+    config:
+        output_attentions: false
+        output_hidden_states: false
+        layer_norm_eps: 1e-12
+        intermediate_size: 3072
+        use_task_id: true
+
+    family:
+        ERNIE_stable-1.0.1:
+            model:
+                url: /search/data1/yyk/data/pretrained/ernie/ERNIE_stable-1.0.1
+                suffix: bert_model.ckpt
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: /search/data1/yyk/data/pretrained/ernie/ERNIE_stable-1.0.1/vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: /search/data1/yyk/data/pretrained/ernie/ERNIE_stable-1.0.1/ernie_config.json
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+        ERNIE_1.0_max-len-512:
+            model:
+                url: /search/data1/yyk/data/pretrained/ernie/ERNIE_1.0_max-len-512
+                suffix: bert_model.ckpt
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: /search/data1/yyk/data/pretrained/ernie/ERNIE_1.0_max-len-512/vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: /search/data1/yyk/data/pretrained/ernie/ERNIE_1.0_max-len-512/ernie_config.json
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+        ERNIE_Base_en_stable-2.0.0:
+            model:
+                url: /search/data1/yyk/data/pretrained/ernie/ERNIE_Base_en_stable-2.0.0
+                suffix: bert_model.ckpt
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: /search/data1/yyk/data/pretrained/ernie/ERNIE_Base_en_stable-2.0.0/vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: /search/data1/yyk/data/pretrained/ernie/ERNIE_Base_en_stable-2.0.0/ernie_config.json
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+        ERNIE_Large_en_stable-2.0.0:
+            model:
+                url: /search/data1/yyk/data/pretrained/ernie/ERNIE_Large_en_stable-2.0.0
+                suffix: bert_model.ckpt
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                url: /search/data1/yyk/data/pretrained/ernie/ERNIE_Large_en_stable-2.0.0/vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                url: /search/data1/yyk/data/pretrained/ernie/ERNIE_Large_en_stable-2.0.0/ernie_config.json
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+                others:
+                    intermediate_size:
+                        to_replaces:
+                            - pretrained.config.intermediate_size
+                        value: 4096
