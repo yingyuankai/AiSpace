@@ -108,7 +108,7 @@ class GlueZh(BaseDataset):
             description="""
             TNEWS 今日头条中文新闻（短文）分类。
             每一条数据有三个属性，从前往后分别是 分类ID，分类名称，新闻字符串（仅含标题）。""",
-            text_features={"sentence": "sentence"},
+            text_features={"sentence": "sentence", "keywords": "keywords"},
             label_classes=["news_story", "news_culture", "news_entertainment", "news_sports", "news_finance",
                            "news_house", "news_car", "news_edu", "news_tech", "news_military", "news_travel",
                            "news_world", "news_stock", "news_agriculture", "news_game"],
@@ -309,7 +309,27 @@ class GlueZh(BaseDataset):
     ]
 
     def __init__(self, data_dir, **kwargs):
+        kwargs = self._reset_builder_configs_name(**kwargs)
         super(GlueZh, self).__init__(data_dir, **kwargs)
+
+    def _reset_builder_configs_name(self, **kwargs):
+        tmp_builder_configs = list()
+        for itm in self.BUILDER_CONFIGS:
+            if itm.name != kwargs.get("config"):
+                tmp_builder_configs.append(itm)
+                continue
+            tmp_kvs = itm.__dict__
+            tmp_kvs['name'] = tmp_kvs['_name'] + f"_{kwargs.get('hparams').dataset.tokenizer.name}"
+            tmp_kvs['description'] = tmp_kvs['_description']
+            del tmp_kvs["_name"]
+            del tmp_kvs["_version"]
+            del tmp_kvs["_supported_versions"]
+            del tmp_kvs["_description"]
+            tmp = GlueConfig(**tmp_kvs)
+            tmp_builder_configs.append(tmp)
+        self.BUILDER_CONFIGS = tmp_builder_configs
+        kwargs['config'] += f"_{kwargs.get('hparams').dataset.tokenizer.name}"
+        return kwargs
 
     def _info(self):
         features = self._get_feature_dict()

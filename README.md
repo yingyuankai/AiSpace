@@ -7,7 +7,7 @@
 <p>
 
 AiSpace provides highly configurable framework for deep learning model development, deployment and 
-convenient use of pre-trained models (bert, albert, opt, etc.). 
+conveniently use of pre-trained models (bert, albert, opt, etc.). 
 
 Table of Contents
 =================
@@ -110,7 +110,7 @@ python -u aispace/trainer.py \
     --gpus 0 1 2 3  \
 ```
 
-Specify different pretrained model, please change *includes* and *pretrained.name* in config file.
+Specify different pretrained model, please change ***includes*** and ***pretrained.name*** in config file.
 
 
 |Model|Accuracy|Macro_precision|Macro_recall|Macro_f1|
@@ -119,3 +119,7 @@ Specify different pretrained model, please change *includes* and *pretrained.nam
 |albert_base_zh|62.160|62.514|59.267|60.377|
 |albert_base_zh_additional_36k_steps|61.760|61.723|58.534|59.273|
 |albert_small_zh_google|62.620|63.819|58.992|59.387|
+|albert_large_zh|61.830|61.980|59.843|60.200|
+|albert_tiny|60.110|57.118|55.559|56.077|
+|albert_tiny_489k|61.130|57.875|57.200|57.332|
+|albert_tiny_zh_google|60.860|59.500|57.556|57.702|

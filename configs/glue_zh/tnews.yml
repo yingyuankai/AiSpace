@@ -1,5 +1,6 @@
 includes:
-  - "../default/pretrain/bert_huggingface.yml"
+#  - "../default/pretrain/bert_huggingface.yml"
+  - "../default/pretrain/albert_chinese.yml"
 
 model_name: bert_for_classification
 
@@ -9,9 +10,13 @@ model_attributes:
     hidden_size: 1024
 
 training:
-  learning_rate: 3e-6
-  max_epochs: 5
+  learning_rate: 3e-5
+  max_epochs: 30
   batch_size: 64
+  callbacks:
+    # callback name
+    early_stopping:
+      switch: true
 
 dataset:
   name: glue_zh/tnews
@@ -56,7 +61,10 @@ dataset:
         - name: sparse_categorical_accuracy
 
 pretrained:
-    name: bert-base-chinese-huggingface
+#    name: bert-base-chinese-huggingface
+#    name: albert_base_zh
+#    name: albert_base_zh_additional_36k_steps
+    name: albert_xlarge_zh_177k
     init_from_pretrained: true
 
 

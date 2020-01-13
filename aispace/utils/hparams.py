@@ -512,7 +512,7 @@ def client(sys_argv):
     )
     parser.add_argument(
         '-cps',
-        '--prefix_or_checkpints',
+        '--prefix_or_checkpoints',
         help="Comma-separated list of checkpoints to average, "
              "or prefix (e.g., directory) to append to each checkpoint."
     )

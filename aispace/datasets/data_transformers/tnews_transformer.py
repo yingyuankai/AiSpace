@@ -44,8 +44,9 @@ class TnewsTransformer(BaseTransformer):
                     if len(line) == 0: continue
                     line_json = json.loads(line)
                     sentence = line_json.get("sentence", "").strip()
-                    if len(sentence) == 0: continue
-                    input_ids, token_type_ids, attention_mask = self.tokenizer.encode(sentence)
+                    keywords = line_json.get("keywords", "").strip()
+                    if len(sentence) == 0 and len(keywords) == 0: continue
+                    input_ids, token_type_ids, attention_mask = self.tokenizer.encode(sentence, keywords)
                     label = line_json.get("label_desc", "news_story")
                     item = {
                         "input_ids": input_ids,
