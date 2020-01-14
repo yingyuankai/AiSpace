@@ -33,7 +33,7 @@ pretrained:
         output_attentions: false
         output_hidden_states: false
         layer_norm_eps: 1e-12
-
+    ref: https://github.com/huggingface/transformers
     family:
         bert-base-chinese-huggingface:
             model:

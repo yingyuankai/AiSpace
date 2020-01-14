@@ -36,7 +36,7 @@ pretrained:
         layer_norm_eps: 1e-12
         intermediate_size: 3072
         use_task_id: true
-
+    ref: https://github.com/PaddlePaddle/ERNIE
     family:
         ERNIE_stable-1.0.1:
             model:

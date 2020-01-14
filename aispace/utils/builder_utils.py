@@ -27,6 +27,14 @@ def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, 
     if ret_test:
         test_dataset, dataset_info = build_dataset(hparams, hparams.dataset.source.test, with_info=True)
 
+    # check the consistence of tokenizer using in building dataset and now using.
+    if hparams.get("dataset", {}).get("tokenizer", {}).get("name", "") != "" and \
+            (dataset_info.metadata is None or
+             hparams.get("dataset", {}).get("tokenizer", {}).get("name", "") != dataset_info.metadata.get("tokenizer", "")):
+        raise ValueError(f'The dataset is built using tokenizer {dataset_info.metadata.get("tokenizer", "")}, '
+                         f'however, now is using tokenizer '
+                         f'{hparams.get("dataset", {}).get("tokenizer", {}).get("name", "")}!')
+
     # data mapping
     def build_generator(fields):
         input_names = [itm.get('name') for itm in hparams.dataset.inputs]
@@ -109,15 +117,15 @@ def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, 
 def build_dataset(hparams: Hparams, split=None, with_info=False):
     checksum_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../datasets/url_checksums")
     tfds.download.add_checksums_dir(checksum_dir)
-    # download_mode = tfds.core.download.GenerateMode.FORCE_REDOWNLOAD \
-    #     if hparams.force_rebuild_data else tfds.core.download.GenerateMode.REUSE_DATASET_IF_EXISTS
-    # download_config = DownloadConfig(download_mode=download_mode)
+    download_mode = tfds.core.download.GenerateMode.FORCE_REDOWNLOAD \
+        if hparams.force_rebuild_data else tfds.core.download.GenerateMode.REUSE_DATASET_IF_EXISTS
+    download_config = DownloadConfig(download_mode=download_mode)
     return tfds.load(hparams.dataset.name, split=split,
                      with_info=with_info,
                      # as_supervised=as_supervised,
                      data_dir=hparams.dataset.data_dir,
                      builder_kwargs={'hparams': hparams},
-                     # download_and_prepare_kwargs={'download_config': download_config}
+                     download_and_prepare_kwargs={'download_config': download_config}
                      )
 
 

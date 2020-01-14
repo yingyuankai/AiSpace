@@ -309,27 +309,7 @@ class GlueZh(BaseDataset):
     ]
 
     def __init__(self, data_dir, **kwargs):
-        kwargs = self._reset_builder_configs_name(**kwargs)
         super(GlueZh, self).__init__(data_dir, **kwargs)
-
-    def _reset_builder_configs_name(self, **kwargs):
-        tmp_builder_configs = list()
-        for itm in self.BUILDER_CONFIGS:
-            if itm.name != kwargs.get("config"):
-                tmp_builder_configs.append(itm)
-                continue
-            tmp_kvs = itm.__dict__
-            tmp_kvs['name'] = tmp_kvs['_name'] + f"_{kwargs.get('hparams').dataset.tokenizer.name}"
-            tmp_kvs['description'] = tmp_kvs['_description']
-            del tmp_kvs["_name"]
-            del tmp_kvs["_version"]
-            del tmp_kvs["_supported_versions"]
-            del tmp_kvs["_description"]
-            tmp = GlueConfig(**tmp_kvs)
-            tmp_builder_configs.append(tmp)
-        self.BUILDER_CONFIGS = tmp_builder_configs
-        kwargs['config'] += f"_{kwargs.get('hparams').dataset.tokenizer.name}"
-        return kwargs
 
     def _info(self):
         features = self._get_feature_dict()
@@ -341,10 +321,7 @@ class GlueZh(BaseDataset):
             builder=self,
             description=self.builder_config.description,
             features=tfds.features.FeaturesDict(features),
-            # urls=[
-            #     self.builder_config.url,
-            #     "https://www.cluebenchmarks.com",
-            # ],
+            metadata=tfds.core.MetadataDict({"tokenizer": self.hparams.dataset.tokenizer.name}),
             homepage="https://www.cluebenchmarks.com",
             citation=self.builder_config.citation + "\n" + _GLUE_CITATION,
         )
