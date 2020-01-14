@@ -14,6 +14,7 @@ Table of Contents
   * [Features](#features)
   * [Requirements](#requirements)
   * [Instructions](#instructions)
+  * [Configuration](#Configuration)
   * [Experiments](#experiments)
   
 
@@ -95,6 +96,21 @@ python -u aispace/trainer.py \
 
 We use [BentoML](https://github.com/bentoml/BentoML) as deploy tool, so your must implement the *deploy* function in your model class.
 
+## Configuration
+
+All the configurations are in ***configs***, in which ***base*** (./configs/default/base.yml) is the most basic, any configuration downstream includes this configuration directly or indirectly. 
+Before you start, it is best to read this configuration carefully.
+
+Your can use ***includes*** field to load other configurations, then the current configuration inherits the configurations and overrides the same configuration fields. Just like class inheritance, a function of the same name in a subclass overrides a function of the parent class.
+
+The syntax is like this:
+
+merge configuration of bert_huggingface into current.
+```yaml
+includes:
+  - "../default/pretrain/bert_huggingface.yml"     # relative path
+```
+
 ## Experiments
 
 ### glue_zh/tnews
@@ -123,3 +139,4 @@ Specify different pretrained model, please change ***includes*** and ***pretrain
 |albert_tiny|60.110|57.118|55.559|56.077|
 |albert_tiny_489k|61.130|57.875|57.200|57.332|
 |albert_tiny_zh_google|60.860|59.500|57.556|57.702|
+|albert_xlarge_zh_177k|63.380|63.603|60.168|60.596|
