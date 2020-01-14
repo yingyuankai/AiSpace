@@ -15,7 +15,9 @@ Table of Contents
   * [Requirements](#requirements)
   * [Instructions](#instructions)
   * [Configuration](#Configuration)
+  * [Pretrained](#Pretrained)
   * [Experiments](#experiments)
+  * [Todos](#Todos)
   
 
 ## Features
@@ -94,7 +96,7 @@ python -u aispace/trainer.py \
     [--gpus GPUS] 
 ```
 
-We use [BentoML](https://github.com/bentoml/BentoML) as deploy tool, so your must implement the *deploy* function in your model class.
+We use [BentoML](https://github.com/bentoml/BentoML) as deploy tool, so your must implement the ***deploy*** function in your model class.
 
 ## Configuration
 
@@ -110,6 +112,22 @@ merge configuration of bert_huggingface into current.
 includes:
   - "../default/pretrain/bert_huggingface.yml"     # relative path
 ```
+
+## Pretrained
+
+We have integrated multiple pre-trained language models and are constantly expanding。
+
+|Model|Count|Chinese count|Download manually？|Refs|
+|---|---|---|---|---|
+|bert|13|1|no|[transformers](https://github.com/huggingface/transformers)|
+|albert|8|0|no|[transformers](https://github.com/huggingface/transformers)|
+|albert_chinese|9|9|yes|[albert_zh](https://github.com/brightmart/albert_zh)|
+|bert_wwm|4|4|yes|[Chinese-BERT-wwm](https://github.com/ymcui/Chinese-BERT-wwm)|
+|xlnet|2|0|no|[transformers](https://github.com/huggingface/transformers)|
+|xlnet_chinese|2|2|yes|[transformers](https://github.com/huggingface/transformers)|
+|ernie|4|2|todo|[ERNIE](https://github.com/PaddlePaddle/ERNIE)|
+
+For those models that need to be downloaded manually, download, unzip them and modify the path in the corresponding configuration.
 
 ## Experiments
 
@@ -140,3 +158,4 @@ Specify different pretrained model, please change ***includes*** and ***pretrain
 |albert_tiny_489k|61.130|57.875|57.200|57.332|
 |albert_tiny_zh_google|60.860|59.500|57.556|57.702|
 |albert_xlarge_zh_177k|63.380|63.603|60.168|60.596|
+|albert_xlarge_zh_183k|63.210|67.161|59.220|59.599|
