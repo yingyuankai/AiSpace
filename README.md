@@ -110,7 +110,7 @@ The syntax is like this:
 merge configuration of bert_huggingface into current.
 ```yaml
 includes:
-  - "../default/pretrain/bert_huggingface.yml"     # relative path
+  - "../pretrain/bert_huggingface.yml"     # relative path
 ```
 
 ## Pretrained
@@ -159,3 +159,4 @@ Specify different pretrained model, please change ***includes*** and ***pretrain
 |albert_tiny_zh_google|60.860|59.500|57.556|57.702|
 |albert_xlarge_zh_177k|63.380|63.603|60.168|60.596|
 |albert_xlarge_zh_183k|63.210|67.161|59.220|59.599|
+|chinese_wwm|64.000|62.747|64.509|63.042|
