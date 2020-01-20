@@ -1,6 +1,7 @@
 includes:
 #  - "../pretrain/bert_huggingface.yml"
-  - "../pretrain/albert_chinese.yml"
+#  - "../pretrain/albert_chinese.yml"
+  - "../pretrain/bert_wwm.yml"
 
 model_name: bert_for_classification
 
@@ -64,7 +65,7 @@ pretrained:
 #    name: bert-base-chinese-huggingface
 #    name: albert_base_zh
 #    name: albert_base_zh_additional_36k_steps
-    name: albert_xlarge_zh_183k
+    name: chinese_roberta_wwm_ext
     init_from_pretrained: true
 
 
