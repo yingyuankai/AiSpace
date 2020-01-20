@@ -128,8 +128,8 @@ We have integrated multiple pre-trained language models and are constantly expan
 |xlnet|2|0|no|[transformers](https://github.com/huggingface/transformers)|Processing|
 |xlnet_chinese|2|2|yes|[transformers](https://github.com/huggingface/transformers)|Processing|
 |ernie|4|2|todo|[ERNIE](https://github.com/PaddlePaddle/ERNIE)|Processing|
-|NEZHA|-|-|-|-|Processing|
-|TinyBERT|-|-|-|-|Processing|
+|NEZHA|-|-|-|[NEZHA](https://github.com/huawei-noah/Pretrained-Language-Model)|Processing|
+|TinyBERT|-|-|-|[TinyBERT](https://github.com/huawei-noah/Pretrained-Language-Model)|Processing|
 
 For those models that need to be downloaded manually, download, unzip them and modify the path in the corresponding configuration.
 
