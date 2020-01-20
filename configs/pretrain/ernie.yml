@@ -1,4 +1,4 @@
-# config for huggingface bert
+# config for ernie
 
 includes:
   - "../base.yml"

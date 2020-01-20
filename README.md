@@ -119,15 +119,17 @@ includes:
 
 We have integrated multiple pre-trained language models and are constantly expanding。
 
-|Model|Count|Chinese count|Download manually？|Refs|
-|---|---|---|---|---|
-|bert|13|1|no|[transformers](https://github.com/huggingface/transformers)|
-|albert|8|0|no|[transformers](https://github.com/huggingface/transformers)|
-|albert_chinese|9|9|yes|[albert_zh](https://github.com/brightmart/albert_zh)|
-|bert_wwm|4|4|yes|[Chinese-BERT-wwm](https://github.com/ymcui/Chinese-BERT-wwm)|
-|xlnet|2|0|no|[transformers](https://github.com/huggingface/transformers)|
-|xlnet_chinese|2|2|yes|[transformers](https://github.com/huggingface/transformers)|
-|ernie|4|2|todo|[ERNIE](https://github.com/PaddlePaddle/ERNIE)|
+|Model|#Model|#Chinese model|Download manually？|Refs|Status|
+|---|---|---|---|---|---|
+|bert|13|1|no|[transformers](https://github.com/huggingface/transformers)|Done|
+|albert|8|0|no|[transformers](https://github.com/huggingface/transformers)|Done|
+|albert_chinese|9|9|yes|[albert_zh](https://github.com/brightmart/albert_zh)|Done|
+|bert_wwm|4|4|yes|[Chinese-BERT-wwm](https://github.com/ymcui/Chinese-BERT-wwm)|Done|
+|xlnet|2|0|no|[transformers](https://github.com/huggingface/transformers)|Processing|
+|xlnet_chinese|2|2|yes|[transformers](https://github.com/huggingface/transformers)|Processing|
+|ernie|4|2|todo|[ERNIE](https://github.com/PaddlePaddle/ERNIE)|Processing|
+|NEZHA|-|-|-|-|Processing|
+|TinyBERT|-|-|-|-|Processing|
 
 For those models that need to be downloaded manually, download, unzip them and modify the path in the corresponding configuration.
 
@@ -165,3 +167,22 @@ Specify different pretrained model, please change ***includes*** and ***pretrain
 |chinese_wwm_ext|65.020|65.048|62.017|62.688|
 |chinese_roberta_wwm_ext|64.860|64.819|63.275|63.591|
 |chinese_roberta_wwm_large_ext|65.700|62.342|61.527|61.664|
+
+**NOTE**: The hyper-parameters used here have not been fine-tuned.
+
+## Todos
+
+- More complete and detailed documentation;
+- More pretrained models;
+- More evaluations of [CLUE](https://github.com/CLUEbenchmark/CLUE);
+- More Chinese dataset;
+- Support Pytorch;
+- Improve the tokenizer to make it more versatile;
+
+## Refs
+
+- [transformers](https://github.com/huggingface/transformers)
+
+- [UER-py](https://github.com/dbiir/UER-py)
+
+- [Huawei pretrained models](https://github.com/huawei-noah/Pretrained-Language-Model)

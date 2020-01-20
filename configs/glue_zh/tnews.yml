@@ -2,6 +2,7 @@ includes:
 #  - "../pretrain/bert_huggingface.yml"
 #  - "../pretrain/albert_chinese.yml"
   - "../pretrain/bert_wwm.yml"
+#  - "../pretrain/ernie.yml"
 
 model_name: bert_for_classification
 
@@ -13,7 +14,7 @@ model_attributes:
 training:
   learning_rate: 3e-5
   max_epochs: 30
-  batch_size: 64
+  batch_size: 32
   callbacks:
     # callback name
     early_stopping:
@@ -65,7 +66,9 @@ pretrained:
 #    name: bert-base-chinese-huggingface
 #    name: albert_base_zh
 #    name: albert_base_zh_additional_36k_steps
-    name: chinese_roberta_wwm_ext
+#    name: chinese_roberta_wwm_ext
+    name: chinese_roberta_wwm_large_ext
+#    name: ERNIE_stable-1.0.1
     init_from_pretrained: true
 
 
