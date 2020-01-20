@@ -26,7 +26,7 @@ Table of Contents
 * Highly configurable
 * Standardized process
 * Multi-GPU Training
-* Integrate multiple pre-trained models, including Chinese
+* Integrate multiple pre-trained models, including chinese
 * Simple and fast deployment using [BentoML](https://github.com/bentoml/BentoML)
 * Integrated Chinese benchmarks [CLUE](https://github.com/CLUEbenchmark/CLUE)
 
