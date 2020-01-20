@@ -85,6 +85,8 @@ python -u aispace/trainer.py \
 
 ### Deployment
 
+Generate deployment files before deployment, you need to specify the model path (--model_resume_path) to be deployed like following.
+
 ```
 python -u aispace/trainer.py \
     --schedule deploy \
@@ -162,3 +164,4 @@ Specify different pretrained model, please change ***includes*** and ***pretrain
 |chinese_wwm|64.000|62.747|64.509|63.042|
 |chinese_wwm_ext|65.020|65.048|62.017|62.688|
 |chinese_roberta_wwm_ext|64.860|64.819|63.275|63.591|
+|chinese_roberta_wwm_large_ext|65.700|62.342|61.527|61.664|
