@@ -133,6 +133,14 @@ We have integrated multiple pre-trained language models and are constantly expan
 
 For those models that need to be downloaded manually, download, unzip them and modify the path in the corresponding configuration.
 
+Some pre-trained models don't have tensorflow versions, I converted them and made them available for download。
+
+|Model|Refs|tf version|
+|---|---|---|
+|ERNIE_Base_en_stable-2.0.0|[ERNIE](https://github.com/PaddlePaddle/ERNIE)|[baidu yun](https://pan.baidu.com/s/142YNWLrQhO5hxvq2eCxs5g)|
+|ERNIE_stable-1.0.1|[ERNIE](https://github.com/PaddlePaddle/ERNIE)|[baidu yun](https://pan.baidu.com/s/15y-1B7rBW7USIvixIRqXrw)|
+|ERNIE_1.0_max-len-512|[ERNIE](https://github.com/PaddlePaddle/ERNIE)|[baidu yun](https://pan.baidu.com/s/1B-gehcnVDnNQIAr6m2dPjg)|
+
 ## Experiments
 
 ### glue_zh/tnews
