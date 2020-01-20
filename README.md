@@ -147,6 +147,8 @@ Some pre-trained models don't have tensorflow versions, I converted them and mad
 
 ### glue_zh/tnews
 
+Tnews is a task of Chinese GLUE, which is a short text classification task from ByteDance.
+
 Run Tnews classification
 ```
 python -u aispace/trainer.py \
