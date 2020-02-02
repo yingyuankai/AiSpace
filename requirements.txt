@@ -16,6 +16,7 @@ jieba
 prettytable
 bentoml
 sentencepiece
+stanfordnlp
 setuptools>=41.0.0
 six>=1.12.0
 tensorboard>=2.1.0
