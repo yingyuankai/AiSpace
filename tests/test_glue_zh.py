@@ -49,7 +49,3 @@ class TestGlue(unittest.TestCase):
             print(item)
             break
         print()
-
-    def test_s3(self):
-        train_10_20_ds = tfds.load('mnist:3.*.*', split='train[10:20]')
-        print()
