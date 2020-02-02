@@ -17,8 +17,8 @@ Features
 * Standardized process
 * Multi-GPU Training
 * Integrate multiple pre-trained models, including chinese
-* Simple and fast deployment using [BentoML](https://github.com/bentoml/BentoML)
-* Integrated Chinese benchmarks [CLUE](https://github.com/CLUEbenchmark/CLUE)
+* Simple and fast deployment using `BentoML <https://github.com/bentoml/BentoML>`_
+* Integrated Chinese benchmarks `CLUE <https://github.com/CLUEbenchmark/CLUE>`_
 
 .. toctree::
    :maxdepth: 2
