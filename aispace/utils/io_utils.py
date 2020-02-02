@@ -64,8 +64,7 @@ def read_csv(data_fp, header=0):
     try:
         df = pd.read_csv(data_fp, header=header)
     except ParserError:
-        logging.WARNING('Failed to parse the CSV with pandas default way,'
-                        ' trying \ as escape character.')
+        logging.WARNING(r'Failed to parse the CSV with pandas default way, trying \ as escape character.')
         df = pd.read_csv(data_fp, header=header, escapechar='\\')
 
     return df
