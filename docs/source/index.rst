@@ -13,7 +13,7 @@ Features
 -----------------
 
 * Highly configurable, we manage all hyperparameters with inheritable Configuration files.
-* All modules are registerable, including models, dataset, losses, optimizers, metrics, etc.
+* All modules are registerable, including models, dataset, losses, optimizers, metrics, callbacks, etc.
 * Standardized process
 * Multi-GPU Training
 * Integrate multiple pre-trained models, including chinese
