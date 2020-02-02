@@ -23,17 +23,10 @@ class TestGlue(unittest.TestCase):
         checksum_dir = "../aispace/datasets/url_checksums"
         tfds.download.add_checksums_dir(checksum_dir)
         # download_config = DownloadConfig(register_checksums=False)
-        tnews = tfds.load("glue_zh/tnews",
-                          # data_dir="/search/data1/yyk/data/datasets/glue_zh",
-                          data_dir="../data/glue_zh",
-                          builder_kwargs={'hparams': hparams},
-                          # download_and_prepare_kwargs={'download_config': download_config}
-                          )
-        for item in tnews['test']:
-            print()
-            # print(item["context"].numpy().decode("utf8"))
-            # print(item["question"].numpy().decode("utf8"))
-            print(item["sentence"].numpy().decode("utf8"))
-            print(item)
-            break
+        # tnews = tfds.load("glue_zh/tnews",
+        #                   # data_dir="/search/data1/yyk/data/datasets/glue_zh",
+        #                   data_dir="../data/glue_zh",
+        #                   builder_kwargs={'hparams': hparams},
+        #                   # download_and_prepare_kwargs={'download_config': download_config}
+        #                   )
         print()
