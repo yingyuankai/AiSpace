@@ -6,6 +6,21 @@
     <br>
 <p>
 
+<p align="center">
+    <a href="https://travis-ci.com/yingyuankai/AiSpace.svg?branch=master">
+        <img alt="Build" src="https://img.shields.io/travis/com/yingyuankai/AiSpace">
+    </a>
+    <a href="https://github.com/yingyuankai/AiSpace/blob/master/LICENSE">
+        <img alt="GitHub" src="https://img.shields.io/github/license/yingyuankai/AiSpace.svg?color=blue">
+    </a>
+    <a href="https://aispace.readthedocs.io/en/latest/">
+        <img alt="Documentation" src="https://img.shields.io/website/http/aispace.readthedocs.io/en/latest.svg?down_color=red&down_message=offline&up_message=online">
+    </a>
+    <a href="https://github.com/yingyuankai/AiSpace/releases">
+        <img alt="GitHub release" src="https://img.shields.io/github/release/yingyuankai/AiSpace.svg">
+    </a>
+</p>
+
 AiSpace provides highly configurable framework for deep learning model development, deployment and 
 conveniently use of pre-trained models (bert, albert, opt, etc.). 
 
