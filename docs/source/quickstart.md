@@ -61,3 +61,47 @@ python -u aispace/trainer.py \
 ```
 
 We use [BentoML](https://github.com/bentoml/BentoML) as deploy tool, so your must implement the ***deploy*** function in your model class.
+
+## Output file structure
+
+The default output path is ***save***, which may has multiple output directories under name as:
+
+```text
+{experiment_name}_{model_name}_{random_seed}_{id}
+```
+
+Where ***id*** indicates the sequence number of the experiment for the same task, increasing from 0.
+
+Take the text classification task as an example, the output file structure is similar to the following:
+
+```
+test_bert_for_classification_119_0
+├── checkpoint                  # checkpoints
+│   ├── checkpoint
+│   ├── ckpt_1.data-00000-of-00002
+│   ├── ckpt_1.data-00001-of-00002
+│   ├── ckpt_1.index
+|   ...
+├── deploy                      # Bentoml depolyment directory
+│   └── BertTextClassificationService
+│       └── 20191208180211_B6FC81
+├── hparams.json                # Json file of all hyperparameters
+├── logs                        # general or tensorboard log directory
+│   ├── errors.log              # error log file
+│   ├── info.log                # info log file
+│   ├── train                
+│   │   ├── events.out.tfevents.1574839601.jshd-60-31.179552.14276.v2
+│   │   ├── events.out.tfevents.1574839753.jshd-60-31.profile-empty
+│   └── validation
+│       └── events.out.tfevents.1574839787.jshd-60-31.179552.151385.v2
+├── model_saved                 # last model saved
+│   ├── checkpoint
+│   ├── model.data-00000-of-00002
+│   ├── model.data-00001-of-00002
+│   └── model.index
+└── reports                     # Eval reports for every output or task
+    └── output_1_classlabel     # For example, text classification task
+        ├── confusion_matrix.txt
+        ├── per_class_stats.json
+        └── stats.json
+```
