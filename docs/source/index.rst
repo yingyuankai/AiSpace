@@ -26,6 +26,8 @@ Features
 
    quickstart
    configuration
+   dataset
+   model
    deployment
    examples
 
