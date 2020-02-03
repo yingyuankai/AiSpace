@@ -25,7 +25,7 @@ pretrained:
     adapter: tf_huggingface_bert_adapter
     force_download: false
     init_from_pretrained: true
-    cache_dir: /search/data1/yyk/data/pretrained/xlnet
+    cache_dir: /search/data1/yyk/data/pretrained/xlnet   # your path to save models
     model_path: null
     vocab_path: null
     config_path: null

@@ -25,7 +25,7 @@ pretrained:
     adapter: tf_huggingface_xlnet_adapter
     force_download: false
     init_from_pretrained: true
-    cache_dir: /search/data1/yyk/data/pretrained/xlnet
+    cache_dir: /search/data1/yyk/data/pretrained/xlnet  # your path to save models
     model_path: null
     vocab_path: null
     config_path: null
@@ -48,16 +48,19 @@ pretrained:
     family:
         chinese_xlnet_base:
             model:
+                # your/path/to/chinese_xlnet_base
                 url: /search/data1/yyk/data/pretrained/xlnet/chinese_xlnet_base
                 suffix: xlnet_model.ckpt
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
+                # your/path/to/chinese_xlnet_base/spiece.model
                 url: /search/data1/yyk/data/pretrained/xlnet/chinese_xlnet_base/spiece.model
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
+                # your/path/to/chinese_xlnet_base/xlnet_config.json
                 url: /search/data1/yyk/data/pretrained/xlnet/chinese_xlnet_base/xlnet_config.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
@@ -65,16 +68,19 @@ pretrained:
                     - pretrained.config
         chinese_xlnet_mid:
             model:
+                # your/path/to/chinese_xlnet_mid
                 url: /search/data1/yyk/data/pretrained/xlnet/chinese_xlnet_mid
                 suffix: xlnet_model.ckpt
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
+                # your/path/to/chinese_xlnet_mid/spiece.model
                 url: /search/data1/yyk/data/pretrained/xlnet/chinese_xlnet_mid/spiece.model
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
+                # your/path/to/chinese_xlnet_mid/spiece.model/xlnet_config.json
                 url: /search/data1/yyk/data/pretrained/xlnet/chinese_xlnet_mid/xlnet_config.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path

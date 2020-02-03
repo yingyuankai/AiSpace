@@ -144,7 +144,7 @@ We have integrated multiple pre-trained language models and are constantly expan
 |bert_wwm|4|4|yes|[Chinese-BERT-wwm](https://github.com/ymcui/Chinese-BERT-wwm)|Done|
 |xlnet|2|0|no|[transformers](https://github.com/huggingface/transformers)|Processing|
 |xlnet_chinese|2|2|yes|[transformers](https://github.com/huggingface/transformers)|Processing|
-|ernie|4|2|todo|[ERNIE](https://github.com/PaddlePaddle/ERNIE)|Processing|
+|ernie|4|2|yes|[ERNIE](https://github.com/PaddlePaddle/ERNIE)|Processing|
 |NEZHA|-|-|-|[NEZHA](https://github.com/huawei-noah/Pretrained-Language-Model)|Processing|
 |TinyBERT|-|-|-|[TinyBERT](https://github.com/huawei-noah/Pretrained-Language-Model)|Processing|
 
