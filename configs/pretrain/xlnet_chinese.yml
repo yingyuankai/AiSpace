@@ -4,15 +4,17 @@ includes:
 
 dataset:
     tokenizer:
-        name: bert_tokenizer
+        name: xlnet_tokenizer
         vocab:
             filename: null
             special_tokens:
-                PAD: "[PAD]"
-                UNK: "[UNK]"
-                SEP: "[SEP]"
-                CLS: "[CLS]"
-                MASK: "[MASK]"
+                PAD: "<pad>"
+                UNK: "<unk>"
+                SEP: "<sep>"
+                CLS: "<cls>"
+                MASK: "<mask>"
+                EOD: "<eod>"
+                EOP: "<eop>"
         tokenize_chinese_chars: True
         do_lower_case: True
         do_basic_tokenize: True
@@ -44,7 +46,7 @@ pretrained:
         mem_len: null
         num_labels: 2
         reuse_len: null
-    ref: https://github.com/ymcui/Chinese-BERT-wwm
+    ref: https://github.com/ymcui/Chinese-PreTrained-XLNet
     family:
         chinese_xlnet_base:
             model:

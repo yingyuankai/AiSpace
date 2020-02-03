@@ -143,7 +143,7 @@ We have integrated multiple pre-trained language models and are constantly expan
 |albert_chinese|9|9|yes|[albert_zh](https://github.com/brightmart/albert_zh)|Done|
 |bert_wwm|4|4|yes|[Chinese-BERT-wwm](https://github.com/ymcui/Chinese-BERT-wwm)|Done|
 |xlnet|2|0|no|[transformers](https://github.com/huggingface/transformers)|Processing|
-|xlnet_chinese|2|2|yes|[transformers](https://github.com/huggingface/transformers)|Processing|
+|xlnet_chinese|2|2|yes|[Chinese-PreTrained-XLNets](https://github.com/ymcui/Chinese-PreTrained-XLNets)|Processing|
 |ernie|4|2|yes|[ERNIE](https://github.com/PaddlePaddle/ERNIE)|Processing|
 |NEZHA|-|-|-|[NEZHA](https://github.com/huawei-noah/Pretrained-Language-Model)|Processing|
 |TinyBERT|-|-|-|[TinyBERT](https://github.com/huawei-noah/Pretrained-Language-Model)|Processing|
