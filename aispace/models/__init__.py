@@ -7,3 +7,4 @@
 from .base_model import BaseModel
 from . import pretrained
 from . import classifications
+from . import info_extract
