@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to AiSpace's documentation!
+AiSpace
 ===================================
 
 AiSpace provides highly configurable framework for deep learning model development, deployment and

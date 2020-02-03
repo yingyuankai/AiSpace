@@ -76,17 +76,17 @@ Take the text classification task as an example, the output file structure is si
 
 ```
 test_bert_for_classification_119_0
-├── checkpoint                  # checkpoints
+├── checkpoint                  # 1. checkpoints
 │   ├── checkpoint
 │   ├── ckpt_1.data-00000-of-00002
 │   ├── ckpt_1.data-00001-of-00002
 │   ├── ckpt_1.index
 |   ...
-├── deploy                      # Bentoml depolyment directory
+├── deploy                      # 2. Bentoml depolyment directory
 │   └── BertTextClassificationService
 │       └── 20191208180211_B6FC81
-├── hparams.json                # Json file of all hyperparameters
-├── logs                        # general or tensorboard log directory
+├── hparams.json                # 3. Json file of all hyperparameters
+├── logs                        # 4. general or tensorboard log directory
 │   ├── errors.log              # error log file
 │   ├── info.log                # info log file
 │   ├── train                
@@ -94,12 +94,12 @@ test_bert_for_classification_119_0
 │   │   ├── events.out.tfevents.1574839753.jshd-60-31.profile-empty
 │   └── validation
 │       └── events.out.tfevents.1574839787.jshd-60-31.179552.151385.v2
-├── model_saved                 # last model saved
+├── model_saved                 # 5. last model saved
 │   ├── checkpoint
 │   ├── model.data-00000-of-00002
 │   ├── model.data-00001-of-00002
 │   └── model.index
-└── reports                     # Eval reports for every output or task
+└── reports                     # 6. Eval reports for every output or task
     └── output_1_classlabel     # For example, text classification task
         ├── confusion_matrix.txt
         ├── per_class_stats.json
