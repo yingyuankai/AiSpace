@@ -25,7 +25,7 @@ Features
    :caption: Notes
 
    quickstart
-   config
+   configuration
    deployment
    examples
 
