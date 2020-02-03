@@ -1,0 +1,8 @@
+https://storage.googleapis.com/cluebenchmark/tasks/afqmc_public.zip 1195044 5a4cb1556b833010c329fa2ad2207d9e98fc94071b7e474015e9dd7c385db4dc
+https://storage.googleapis.com/cluebenchmark/tasks/cmnli_public.zip 31542894 8aef010738a536f920bbab20b754118f46d917d35e30a69bf6a4e631a72a6c1e
+https://storage.googleapis.com/cluebenchmark/tasks/cmrc2018_public.zip 3405146 6c63dc27e728ec5231aeb7d2861b4c90b6c116390582e0c44416cf3edf030b16
+https://storage.googleapis.com/cluebenchmark/tasks/csl_public.zip 3234594 795d1a2e475d59acad8236f6c5baba7a0b43d3e0508cb60f15ffbc76d5f437c4
+https://storage.googleapis.com/cluebenchmark/tasks/drcd_public.zip 7264200 f03a38bded37572e224b69b822794eca6218f9584afc0918bf8aa2bc77cf968d
+https://storage.googleapis.com/cluebenchmark/tasks/iflytek_public.zip 6505938 c59b961b29f1d0bad0c5e01aa62e4a61a80e9cfb980ce89b06c000851fbb3b06
+https://storage.googleapis.com/cluebenchmark/tasks/tnews_public.zip 4689325 2469c4205606e24118c7de08199fbd55da483b65128e1d9c1f380849797f6ce0
+https://storage.googleapis.com/cluebenchmark/tasks/wsc_public.zip 36181 fc55ce6e5f619de1670ea4201ceace5cf6e59d3193228ca75287a836ebc57b8c

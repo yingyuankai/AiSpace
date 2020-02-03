@@ -317,11 +317,15 @@ class GlueZh(BaseDataset):
             logger.warning("Do not specify inputs and outputs in config, using default feature dict.")
             features = self._base_feature_dict()
 
+        metadata = None
+        if "dataset" in self.hparams and "tokenizer" in self.hparams.dataset and "name" in self.hparams.dataset.tokenizer:
+            metadata = tfds.core.MetadataDict({"tokenizer": self.hparams.dataset.tokenizer.name})
+
         return tfds.core.DatasetInfo(
             builder=self,
             description=self.builder_config.description,
             features=tfds.features.FeaturesDict(features),
-            metadata=tfds.core.MetadataDict({"tokenizer": self.hparams.dataset.tokenizer.name}),
+            metadata=metadata,
             homepage="https://www.cluebenchmarks.com",
             citation=self.builder_config.citation + "\n" + _GLUE_CITATION,
         )
@@ -362,7 +366,7 @@ class GlueZh(BaseDataset):
         data_train_json, data_validation_json, data_test_json = \
             os.path.join(data_dir, "train.json"), os.path.join(data_dir, "dev.json"), os.path.join(data_dir,
                                                                                                    "test.json")
-        if "transformer" in self.hparams.dataset and self.hparams.dataset.transformer is not None:
+        if "dataset" in self.hparams and "transformer" in self.hparams.dataset and self.hparams.dataset.transformer is not None:
             transformer = Transformer.BaseTransformer.\
                 by_name(self.hparams.dataset.transformer)(self.hparams, data_dir=data_dir)
             data_train_json = transformer.transform(data_train_json, split="train")
@@ -388,7 +392,8 @@ class GlueZh(BaseDataset):
         ]
 
     def _generate_examples(self, filepath, **kwargs):
-        generator = self._generate_examples_from_json if "transformer" in self.hparams.dataset \
+        generator = self._generate_examples_from_json if "dataset" in self.hparams and \
+                                                         "transformer" in self.hparams.dataset \
                                                          and self.hparams.dataset.transformer is not None \
             else self._generate_examples_from_raw
         for idx, item in enumerate(generator(filepath, **kwargs)):

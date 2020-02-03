@@ -7,7 +7,7 @@
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-VERSION = 1.0
+VERSION = "0.1.0"
 LOGO_STR = '\n'.join(
     [
         '',
