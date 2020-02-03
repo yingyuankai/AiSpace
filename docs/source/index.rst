@@ -22,7 +22,7 @@ Features
 
 .. toctree::
    :maxdepth: 2
-   :caption: Notes:
+   :caption: Notes
 
    quickstart
    config
