@@ -3,6 +3,5 @@ Model
 
 ``BaseModel``
 ~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: aispace.models.base_model.BaseModel
+.. autoclass:: aispace.models.BaseModel
     :members:
