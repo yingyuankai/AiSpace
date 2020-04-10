@@ -17,20 +17,21 @@ from aispace.utils.hparams import Hparams
 from aispace.utils.builder_utils import load_dataset
 
 
-class TestGlue(unittest.TestCase):
-    def test_glue_load(self):
+class TestLSTC(unittest.TestCase):
+    def test_lstc_load(self):
         hparams = Hparams()
-        # checksum_dir = "../aispace/datasets/url_checksums"
-        # tfds.download.add_checksums_dir(checksum_dir)
-        # download_config = DownloadConfig(register_checksums=True)
-        tnews = tfds.load("glue_zh/cmrc2018",
+        hparams.load_from_config_file("../configs/2020_LSTC/DuEE_role.yml")
+        hparams.stand_by()
+        checksum_dir = "../aispace/datasets/url_checksums"
+        tfds.download.add_checksums_dir(checksum_dir)
+        download_config = DownloadConfig(register_checksums=True)
+        tnews = tfds.load("lstc_2020/DuEE_role",
                           # data_dir="/search/data1/yyk/data/datasets/glue_zh",
-                          data_dir="../data/glue_zh",
+                          data_dir="../data",
                           builder_kwargs={'hparams': hparams},
-                          # download_and_prepare_kwargs={'download_config': download_config}
+                          download_and_prepare_kwargs={'download_config': download_config}
                           )
-        print(tnews)
-        for itm in tnews["test"]:
+        for itm in tnews["train"]:
             print(itm)
             break
         print()

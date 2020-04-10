@@ -5,6 +5,6 @@
 # @File    : __init__.py
 
 from .base_model import BaseModel
-from . import pretrained
-from . import classifications
-from . import info_extract
+from .pretrained import *
+from .classifications import *
+from .info_extract import *

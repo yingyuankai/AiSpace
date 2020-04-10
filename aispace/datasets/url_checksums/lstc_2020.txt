@@ -1,0 +1,3 @@
+https://dataset-bj.cdn.bcebos.com/event_extraction/dev_data.json.zip 268607 25a9f36ea1ff13df92c5e3ad390829183b8623cf8fa353bc5bf8ca37c93063a1
+https://dataset-bj.cdn.bcebos.com/event_extraction/test1_data.json.zip 217842 78721aa4371c62e94e9fe9b748a7797386d47a939ba42c9c1c00a10e8b98f307
+https://dataset-bj.cdn.bcebos.com/event_extraction/train_data.json.zip 1684681 bf80c245c6e3fd5349732a0129e87f7f657a3550faf651a0cbb95a6c4e7f14c1

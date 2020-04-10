@@ -12,6 +12,7 @@ from aispace.constants import *
 
 from aispace.utils.hparams import Hparams
 
+
 __all__ = [
     'BaseDataset'
 ]
@@ -36,17 +37,54 @@ class BaseDataset(Registry, tfds.core.GeneratorBasedBuilder):
             if 'outputs' in self.hparams.dataset:
                 feature_labels.extend(self.hparams.dataset.outputs)
         for itm in feature_labels:
+            # Read labels from specify file when have labels too much
+            cur_labels = itm.get("labels")
+            if "labels" in itm and \
+                    not isinstance(itm.get("labels"), (list, tuple)) and \
+                    "url" in itm.get("labels"):
+                logger.info(f'Load labels from file: ${itm.get("labels", {}).get("url")}')
+                cur_label_map = self.transformer.prepare_labels(itm.get("labels", {}).get("url"), itm.get("labels", {}).get("name", ""))
+                # For convenience, keep this vocab on the first level
+                self.hparams.cascade_set("label_vocab", cur_label_map)
+                cur_labels = list(cur_label_map.values())
+                itm.cascade_set("labels", cur_labels)
+                itm.cascade_set("num", len(cur_labels))
+                # Replace feature values of same name with itm
+                if 'dataset' in self.hparams:
+                    if 'inputs' in self.hparams.dataset:
+                        new_tmp = []
+                        flag = False
+                        for tmp in self.hparams.dataset.inputs:
+                            if itm.name == tmp.name:
+                                new_tmp.append(itm)
+                                flag = True
+                            else:
+                                new_tmp.append(tmp)
+                        if flag:
+                            self.hparams.cascade_set("dataset.inputs", new_tmp)
+                    if 'outputs' in self.hparams.dataset:
+                        new_tmp = []
+                        flag = False
+                        for tmp in self.hparams.dataset.outputs:
+                            if itm.name == tmp.name:
+                                new_tmp.append(itm)
+                                flag = True
+                            else:
+                                new_tmp.append(tmp)
+                        if flag:
+                            self.hparams.cascade_set("dataset.outputs", new_tmp)
+
             if itm.get('type') in [INT, LIST_OF_INT]:
                 field_types[itm.get('name')] = FEATURE_MAPPING[itm.get('type')]
             elif itm.get('type') == CLASSLABEL:
                 field_types[itm.get('name')] = \
                     tfds.features.ClassLabel(
-                        names=itm.get('labels')
+                        names=cur_labels
                     )
             elif itm.get('type') == LIST_OF_CLASSLABEL:
                 field_types[itm.get('name')] = \
                     tfds.features.Sequence(tfds.features.ClassLabel(
-                        names=itm.get('labels')
+                        names=cur_labels
                     ))
         return field_types
 

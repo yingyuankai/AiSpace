@@ -7,3 +7,4 @@
 
 from .tnews_transformer import TnewsTransformer
 from .base_transformer import BaseTransformer
+from .duee_transformer import DuEETriggerTransformer

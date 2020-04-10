@@ -118,7 +118,7 @@ def build_dataset(hparams: Hparams, split=None, with_info=False):
     checksum_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../datasets/url_checksums")
     tfds.download.add_checksums_dir(checksum_dir)
     download_mode = tfds.core.download.GenerateMode.FORCE_REDOWNLOAD \
-        if hparams.force_rebuild_data else tfds.core.download.GenerateMode.REUSE_DATASET_IF_EXISTS
+        if hparams.force_rebuild_data and split == hparams.dataset.source.train else tfds.core.download.GenerateMode.REUSE_DATASET_IF_EXISTS
     download_config = DownloadConfig(download_mode=download_mode)
     return tfds.load(hparams.dataset.name, split=split,
                      with_info=with_info,

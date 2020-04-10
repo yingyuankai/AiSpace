@@ -6,4 +6,3 @@
 
 
 from .bert_for_ner import BertForNer
-from .bert_for_relation_extract import BertForRelationExtract

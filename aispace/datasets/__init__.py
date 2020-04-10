@@ -8,3 +8,4 @@ from aispace.datasets.base_dataset import *
 from aispace.datasets.tokenizer import *
 from aispace.datasets.data_transformers import *
 from aispace.datasets import glue_zh
+from aispace.datasets import lstc_2020

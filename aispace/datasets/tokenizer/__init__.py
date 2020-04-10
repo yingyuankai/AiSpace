@@ -4,5 +4,5 @@
 # @Email   : yingyuankai@aliyun.com
 # @File    : __init__.py
 
-from aispace.datasets.tokenizer.bert_tokenizer import BertTokenizer
-from aispace.datasets.tokenizer.tokenizer_base import BaseTokenizer
+from .bert_tokenizer import BertTokenizer
+from .tokenizer_base import BaseTokenizer

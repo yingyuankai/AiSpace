@@ -5,4 +5,4 @@
 # @File    : __init__.py
 
 
-from .bert_for_sequence_classification import BertForSeqClassification
+from .bert_for_sequence_classification import *
