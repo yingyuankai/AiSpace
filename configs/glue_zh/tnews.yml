@@ -1,6 +1,6 @@
 includes:
-#  - "../pretrain/bert_huggingface.yml"
-  - "../pretrain/xlnet_chinese.yml"
+  - "../pretrain/bert_huggingface.yml"
+#  - "../pretrain/xlnet_chinese.yml"
 
 model_name: bert_for_classification
 
@@ -61,8 +61,8 @@ dataset:
         - name: sparse_categorical_accuracy
 
 pretrained:
-#    name: bert-base-chinese-huggingface
-    name: chinese_xlnet_base
+    name: bert-base-chinese-huggingface
+#    name: chinese_xlnet_base
     init_from_pretrained: true
 
 

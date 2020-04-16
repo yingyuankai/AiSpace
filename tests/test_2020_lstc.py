@@ -24,12 +24,12 @@ class TestLSTC(unittest.TestCase):
         hparams.stand_by()
         checksum_dir = "../aispace/datasets/url_checksums"
         tfds.download.add_checksums_dir(checksum_dir)
-        download_config = DownloadConfig(register_checksums=True)
+        # download_config = DownloadConfig(register_checksums=True)
         tnews = tfds.load("lstc_2020/DuEE_role",
                           # data_dir="/search/data1/yyk/data/datasets/glue_zh",
                           data_dir="../data",
                           builder_kwargs={'hparams': hparams},
-                          download_and_prepare_kwargs={'download_config': download_config}
+                          # download_and_prepare_kwargs={'download_config': download_config}
                           )
         for itm in tnews["train"]:
             print(itm)

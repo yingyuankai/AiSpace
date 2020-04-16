@@ -14,5 +14,5 @@ class BaseTransformer(Registry):
     def transform(self, *args, **kwargs):
         raise NotImplementedError
 
-    def prepare_labels(self, *args, **kwargs):
+    def prepare_labels(self, *args, **kwargs) -> dict:
         raise NotImplementedError
