@@ -20,7 +20,7 @@ from pathlib import Path
 from aispace.utils.timer import Timer
 from aispace.utils.io_utils import save_json
 from aispace.utils.file_utils import default_download_dir, maybe_create_dir
-from aispace.utils.io_utils import maybe_download, load_from_file
+from aispace.utils.io_utils import maybe_download, load_from_file, load_json
 from aispace.utils.logger import setup_logging
 
 __all__ = [
@@ -50,14 +50,16 @@ class Hparams(collections.OrderedDict):
 
     def load_from_config_file(self, config_yaml_file):
         config_path = config_yaml_file
-        # base_config_path = self._get_base_config_path()
-        # base_config = self.load_yaml(base_config_path)
         base_config = dict()
         user_config = dict()
         if config_path is not None:
             user_config = self.load_yaml(config_path)
         config = self.dict_merge(base_config, user_config)
         self._init(config)
+
+    def reuse_saved_json_hparam(self):
+        json_obj = load_json(os.path.join(self.get_workspace_dir(), 'hparams.json'))
+        self.merge_from_dict(json_obj)
 
     def load_yaml(self, file) -> dict:
         """Load config from yaml file
@@ -154,9 +156,8 @@ class Hparams(collections.OrderedDict):
 
         :return:
         """
-        hparam_dict = self.to_dict()
-        # self['hparams_json_file'] = os.path.join(self.get_workspace_dir(), 'hparams.json')
         self['hparams_json_file'] = os.path.join(self.get_workspace_dir(), 'hparams.json')
+        hparam_dict = self.to_dict()
         save_json(self.hparams_json_file, hparam_dict)
 
     def get_experiment_name(self, save_dir):

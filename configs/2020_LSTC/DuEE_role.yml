@@ -23,9 +23,9 @@ dataset:
   transformer: "lstc_2020/DuEE_role"
 
   source:
-    train: "train[:80%]"
-    validation: "train[-20%:]"
-    test: "validation"
+    train: "train"
+    validation: "validation[:50%]"
+    test: "validation[-50%:]"
 
   tokenizer:
     max_len: 100

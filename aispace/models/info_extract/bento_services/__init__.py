@@ -6,4 +6,3 @@
 
 
 from .bert_for_ner_service import BertNerService
-from .bert_for_relation_extract_service import BertRelationClassificationService

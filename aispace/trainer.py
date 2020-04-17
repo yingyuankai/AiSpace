@@ -57,6 +57,11 @@ def experiment(hparams: Hparams):
 def deploy(hparams: Hparams):
     logger = logging.getLogger(__name__)
     assert hparams.model_resume_path is not None, ValueError("Model resume path is None, must be specified.")
+    # reuse hparams
+    model_resume_path = hparams.model_resume_path
+    logger.info(f"Reuse saved json config from {os.path.join(hparams.get_workspace_dir(), 'hparams.json')}")
+    hparams.reuse_saved_json_hparam()
+    hparams.cascade_set("model_resume_path", model_resume_path)
     # build model
     (model,) = build_model(hparams, return_losses=False, return_metrics=False, return_optimizer=False)
     logger.info("Export model to deployment.")
@@ -91,14 +96,15 @@ def main(argv):
     # experiment
     if hparams.schedule in ["train_and_eval"]:
         experiment(hparams)
+        hparams.to_json()
+        logging.info(f"save hparams to {hparams.hparams_json_file}")
     elif hparams.schedule == "deploy":
         deploy(hparams)
     elif hparams.schedule == "avg_checkpoints":
         avg_checkpints(hparams)
-    # elif hparams.schedule == "tmp_ner":
-    #     tmp_ner(hparams)
+    else:
+        raise NotImplementedError
 
-    hparams.to_json()
 
 
 if __name__ == '__main__':

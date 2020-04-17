@@ -37,6 +37,7 @@ def evaluation(hparams: Hparams, model=None, test_dataset=None):
     if model is None:
         # build model
         (model,) = build_model(hparams, return_losses=False, return_metrics=False, return_optimizer=False)
+        logger.info(f"Load model weights from {hparams.get_model_filename()}")
         model.load_weights(hparams.get_model_filename())
 
     if test_dataset is None:

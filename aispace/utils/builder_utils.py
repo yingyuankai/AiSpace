@@ -174,7 +174,7 @@ def build_model(hparam: Hparams, return_losses=True, return_metrics=True, return
         optimizer = build_tf_model_optimizer(hparam.training)
         rets += (optimizer, )
     model.summary()
-    # init from pretrained lm model
+    # init from pretrained model (language or etc.,)
     if not hparam.model_resume_path and not hparam.model_load_path \
             and "pretrained" in hparam and hparam.pretrained.init_from_pretrained:
         try:

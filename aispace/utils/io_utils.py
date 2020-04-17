@@ -79,7 +79,7 @@ def save_csv(data_fp, data):
 
 
 def load_json(data_fp):
-    data = []
+    data = {}
     with open(data_fp, 'r') as input_file:
         data = json.load(input_file)
     return data

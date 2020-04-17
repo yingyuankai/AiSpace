@@ -31,10 +31,12 @@ class TestLSTC(unittest.TestCase):
                           builder_kwargs={'hparams': hparams},
                           # download_and_prepare_kwargs={'download_config': download_config}
                           )
+
+        tokenizer = BertTokenizer(hparams.dataset.tokenizer)
         for itm in tnews["train"]:
             print(itm)
+            print(tokenizer.decode(itm["input_ids"].numpy().tolist()))
             break
-        print()
 
 # python -u aispace/trainer.py \
 #    --experiment_name test \
