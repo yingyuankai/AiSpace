@@ -12,8 +12,8 @@
 
 
 
-TRIGGER_DEPLOY_PATH="/search/data1/yyk/workspace/projects/AiSpace/save/trigger_bert_for_ner_119_0/deploy/BertNerService/20200417164029_5894BC"
-ROLE_DEPLOY_PATH="/search/data1/yyk/workspace/projects/AiSpace/save/role_bert_for_role_ner_119_0/deploy/RoleBertNerService/20200419173622_9ED071"
+TRIGGER_DEPLOY_PATH="/search/data1/yyk/workspace/projects/AiSpace/save/trigger_bert_for_ner_119_3/deploy/BertNerService/20200420001443_E4D41E"
+ROLE_DEPLOY_PATH="/search/data1/yyk/workspace/projects/AiSpace/save/role_bert_for_role_ner_119_2/deploy/RoleBertNerService/20200420001632_6B9CC7"
 
 export BENTOML__APISERVER__DEFAULT_PORT=5000
 TF_FORCE_GPU_ALLOW_GROWTH=true CUDA_VISIBLE_DEVICES=6 bentoml serve $TRIGGER_DEPLOY_PATH > trigger_extract_deploy.log 2>&1 &
