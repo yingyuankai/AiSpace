@@ -260,16 +260,17 @@ class DuEERoleTransformer(BaseTransformer):
 
         labels = OrderedDict()
         labels["O"] = "O"
+        visited = set()
         with open(file_path, "r", encoding="utf8") as inf:
             for line in inf:
                 one_json = json.loads(line)
                 role_list = one_json.get("role_list")
                 for role in role_list:
                     tmp = role["role"]
-                    if f"B-{tmp}" in labels:
+                    if tmp in visited:
                         continue
-                    labels[f"B-{tmp}"] = f"B-{len(labels)}"
-                    if f"I-{tmp}" in labels:
-                        continue
-                    labels[f"I-{tmp}"] = f"I-{len(labels)}"
+                    cur_num = len(labels)
+                    visited.add(tmp)
+                    labels[f"B-{tmp}"] = f"B-{cur_num}"
+                    labels[f"I-{tmp}"] = f"I-{cur_num}"
         return labels

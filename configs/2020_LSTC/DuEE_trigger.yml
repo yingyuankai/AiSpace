@@ -1,5 +1,5 @@
 includes:
-  - "../pretrain/bert_huggingface.yml"
+  - "../pretrain/bert_wwm.yml"
 
 model_name: bert_for_ner
 
@@ -9,7 +9,7 @@ model_attributes:
     hidden_size: 1024
 
 training:
-  learning_rate: 3e-5
+  learning_rate: 3e-4
   max_epochs: 30
   batch_size: 32
   callbacks:
@@ -61,7 +61,7 @@ dataset:
         - name: sparse_categorical_accuracy
 
 pretrained:
-    name: bert-base-chinese-huggingface
+    name: chinese_roberta_wwm_ext
     init_from_pretrained: true
 
 

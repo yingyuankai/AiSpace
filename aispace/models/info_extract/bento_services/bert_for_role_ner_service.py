@@ -5,7 +5,7 @@
 # @File    : bert_for_sequence_classification.py
 
 __all__ = [
-    "BertNerService"
+    "RoleBertNerService"
 ]
 
 import os, sys
@@ -30,9 +30,10 @@ from aispace.utils.hparams import Hparams
         PickleArtifact("hparams"),
     ])
 @env(pip_dependencies=['tensorflow==2.0.0', 'numpy', 'scipy'])
-class BertNerService(BentoService):
+class RoleBertNerService(BentoService):
 
-    def preprocessing(self, text_str):
+    def preprocessing(self, itm):
+        text_str = itm.get("text")
         input_ids, token_type_ids, attention_mask = self.artifacts.tokenizer.encode(text_str)
         return input_ids, token_type_ids, attention_mask, text_str
 
@@ -107,7 +108,7 @@ class BertNerService(BentoService):
     @api(JsonHandler)
     def ner_predict(self, parsed_json):
         input_data = {
-            "input_ids": [], "token_type_ids": [], "attention_mask": []
+            "input_ids": [], "token_type_ids": [], "attention_mask": [], "trigger_span": []
         }
         seq_length = []
         passages = []
@@ -116,18 +117,22 @@ class BertNerService(BentoService):
             input_data['input_ids'].extend(pre_input_data[0])
             input_data['token_type_ids'].extend(pre_input_data[1])
             input_data['attention_mask'].extend(pre_input_data[2])
+            input_data['trigger_span'].extend([itm.get("trigger_span", [0, 0]) for itm in parsed_json])
             seq_length.extend(list(map(sum, pre_input_data[2])))
             passages.extend(pre_input_data[-1])
         else:  # expecting type(parsed_json) == dict:
-            pre_input_data = self.preprocessing(parsed_json['text'])
+            pre_input_data = self.preprocessing(parsed_json)
+            trigger_span = parsed_json.get("trigger_span", [0, 0])
             input_data['input_ids'].append(pre_input_data[0])
             input_data['token_type_ids'].append(pre_input_data[1])
             input_data['attention_mask'].append(pre_input_data[2])
+            input_data['trigger_span'].append(trigger_span)
             seq_length.append(sum(pre_input_data[2]))
             passages.append(pre_input_data[-1])
         input_data['input_ids'] = tf.constant(input_data['input_ids'], name="input_ids")
         input_data['token_type_ids'] = tf.constant(input_data['token_type_ids'], name="token_type_ids")
         input_data['attention_mask'] = tf.constant(input_data['attention_mask'], name="attention_mask")
+        input_data['trigger_span'] = tf.constant(input_data['trigger_span'], name="trigger_span")
         prediction = self.artifacts.model(input_data, training=False)
         prediction_idx = np.argmax(prediction, -1).tolist()
         ret = {

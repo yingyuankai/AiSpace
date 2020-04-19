@@ -13,14 +13,14 @@
 
 
 TRIGGER_DEPLOY_PATH="/search/data1/yyk/workspace/projects/AiSpace/save/trigger_bert_for_ner_119_0/deploy/BertNerService/20200417164029_5894BC"
-ROLE_DEPLOY_PATH=""
+ROLE_DEPLOY_PATH="/search/data1/yyk/workspace/projects/AiSpace/save/role_bert_for_role_ner_119_0/deploy/RoleBertNerService/20200419173622_9ED071"
 
 export BENTOML__APISERVER__DEFAULT_PORT=5000
-TF_FORCE_GPU_ALLOW_GROWTH=true CUDA_VISIBLE_DEVICES=4 bentoml serve $TRIGGER_DEPLOY_PATH > trigger_extract_deploy.log 2>&1 &
+TF_FORCE_GPU_ALLOW_GROWTH=true CUDA_VISIBLE_DEVICES=6 bentoml serve $TRIGGER_DEPLOY_PATH > trigger_extract_deploy.log 2>&1 &
 echo "Start trigger extract service."
 
 export BENTOML__APISERVER__DEFAULT_PORT=5001
-TF_FORCE_GPU_ALLOW_GROWTH=true CUDA_VISIBLE_DEVICES=4 bentoml serve $ROLE_DEPLOY_PATH > role_extract_deploy.log 2>&1 &
+TF_FORCE_GPU_ALLOW_GROWTH=true CUDA_VISIBLE_DEVICES=6 bentoml serve $ROLE_DEPLOY_PATH > role_extract_deploy.log 2>&1 &
 echo "Start role extract service."
 
 

@@ -6,3 +6,4 @@
 
 
 from .bert_for_ner import BertForNer
+from .bert_for_role_ner import BertForRoleNer

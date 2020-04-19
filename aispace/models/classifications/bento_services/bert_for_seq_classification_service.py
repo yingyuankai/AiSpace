@@ -40,7 +40,7 @@ class BertTextClassificationService(BentoService):
         return self.artifacts.hparams.dataset.outputs[0].labels[idx]
 
     @api(JsonHandler)
-    def title_predict(self, parsed_json):
+    def label_predict(self, parsed_json):
         input_data = {
             "input_ids": [], "token_type_ids": [], "attention_mask": []
         }
@@ -78,5 +78,5 @@ class BertTextClassificationService(BentoService):
     # curl -i \
     # --header "Content-Type: application/json" \
     # --request POST \
-    # --data '{"text": "任命通知来了"}' \
-    # http://10.140.60.31:5013/title_predict
+    # --data '{"text": "泰安今早发生2.9级地震！靠近这个国家森林公园"}' \
+    # http://127.0.0.1:5000/label_predict

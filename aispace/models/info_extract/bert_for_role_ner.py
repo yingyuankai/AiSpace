@@ -21,7 +21,7 @@ __all__ = [
 ]
 
 
-@BaseModel.register("bert_for_ner")
+@BaseModel.register("bert_for_role_ner")
 class BertForRoleNer(BaseModel):
     def __init__(self, hparams: Hparams, **kwargs):
         super(BertForRoleNer, self).__init__(hparams, **kwargs)
@@ -67,10 +67,10 @@ class BertForRoleNer(BaseModel):
 
     def deploy(self):
         from aispace.datasets.tokenizer import BertTokenizer
-        from .bento_services import BertNerService
+        from .bento_services import RoleBertNerService
         tokenizer = BertTokenizer(self._hparams.dataset.tokenizer)
         bento_service = \
-            BertNerService.pack(
+            RoleBertNerService.pack(
                 model=self,
                 tokenizer=tokenizer,
                 hparams=self._hparams,
