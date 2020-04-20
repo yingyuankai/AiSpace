@@ -3,9 +3,9 @@
 export CUDA_VISIBLE_DEVICES=1,2
 nohup python -u aispace/trainer.py \
     --experiment_name role \
-    --model_name bert_for_role_ner \
+    --model_name bert_for_role_ner_v2 \
     --schedule train_and_eval \
-    --config_name DuEE_role \
+    --config_name DuEE_role2 \
     --config_dir ./configs/2020_LSTC \
     --gpus 0 1 \
     > err.log 2>&1 &
