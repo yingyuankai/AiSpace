@@ -9,7 +9,7 @@ model_attributes:
     hidden_size: 1024
 
 training:
-  learning_rate: 3e-4
+  learning_rate: 3e-5
   max_epochs: 30
   batch_size: 16
   callbacks:
