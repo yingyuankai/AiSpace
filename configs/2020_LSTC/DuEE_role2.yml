@@ -10,13 +10,15 @@ model_attributes:
     pos_emb_size: 768
 
 training:
-  learning_rate: 3e-4
-  max_epochs: 30
+  learning_rate: 8e-6
+  max_epochs: 10
   batch_size: 32
   callbacks:
     # callback name
     early_stopping:
       switch: true
+      config:
+        patience: 1
 
 dataset:
   name: "lstc_2020/DuEE_role"

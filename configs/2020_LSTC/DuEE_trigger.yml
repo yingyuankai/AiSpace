@@ -9,13 +9,15 @@ model_attributes:
     hidden_size: 1024
 
 training:
-  learning_rate: 3e-5
-  max_epochs: 30
-  batch_size: 16
+  learning_rate: 1.5e-4
+  max_epochs: 5
+  batch_size: 32
   callbacks:
     # callback name
     early_stopping:
       switch: true
+      config:
+        patience: 3
 
 dataset:
   name: lstc_2020/DuEE_trigger
