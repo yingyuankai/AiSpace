@@ -21,4 +21,3 @@ class BaseLayer(tf.keras.layers.Layer, Registry):
     def __init__(self, hparams: Hparams, **kwargs):
         super(BaseLayer, self).__init__(**kwargs)
         self._hparams = hparams
-

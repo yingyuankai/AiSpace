@@ -44,6 +44,7 @@ class BertForRoleNerV2(BaseModel):
 
         # self.bert = Bert(pretrained_hparams, name='bert')
         self.bert = BaseLayer.by_name(pretrained_hparams.norm_name)(pretrained_hparams)
+
         self.dropout = tf.keras.layers.Dropout(
             model_hparams.hidden_dropout_prob
         )
@@ -126,6 +127,7 @@ class BertForRoleNerV2(BaseModel):
         trigger_repr = tf.concat(trigger_repr, axis=-1)
         trigger_repr = self.trigger_project(trigger_repr)
         trigger_repr = self.dropout(trigger_repr, training=training)
+        trigger_repr = tf.tile(tf.expand_dims(trigger_repr, 1), [1, shape[1], 1])
         seq_output = seq_output + trigger_repr
 
         # project for output1

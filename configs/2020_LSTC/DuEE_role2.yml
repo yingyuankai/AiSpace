@@ -10,15 +10,15 @@ model_attributes:
     pos_emb_size: 768
 
 training:
-  learning_rate: 8e-6
-  max_epochs: 10
-  batch_size: 32
+  learning_rate: 1e-5
+  max_epochs: 20
+  batch_size: 64
   callbacks:
     # callback name
     early_stopping:
       switch: true
       config:
-        patience: 1
+        patience: 3
 
 dataset:
   name: "lstc_2020/DuEE_role"
@@ -84,14 +84,19 @@ dataset:
         url: "https://ai.baidu.com/file/9C92719AF96D4DDB96477BFBE1435262"
         name: "duee"
       loss:
-        name: sparse_categorical_crossentropy
+#        name: myself_crf_loss
+        name: dice_loss
         config:
           from_logits: true
+          smooth: 1e-17
+#        name: sparse_categorical_crossentropy
+#        config:
+#          from_logits: true
       metrics:
         - name: sparse_categorical_accuracy
 
 pretrained:
-    name: chinese_roberta_wwm_large_ext
+    name: chinese_roberta_wwm_ext
     init_from_pretrained: true
 
 

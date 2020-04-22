@@ -15,13 +15,16 @@ import tensorflow as tf
 from .focal_losses import \
     focal_loss_softmax, focal_loss_sigmoid_v1, focal_loss_sigmoid_v2
 
+from .dice_loss import dice_loss, cce_dice_loss
 
 LOSSES = {
     "sparse_categorical_crossentropy": lambda loss_config:
     tf.keras.losses.SparseCategoricalCrossentropy(**loss_config),
     'focal_loss_softmax': lambda loss_config: focal_loss_softmax(**loss_config),
     'focal_loss_sigmoid_v1': lambda loss_config: focal_loss_sigmoid_v1(**loss_config),
-    'focal_loss_sigmoid_v2': lambda loss_config: focal_loss_sigmoid_v2(**loss_config)
+    'focal_loss_sigmoid_v2': lambda loss_config: focal_loss_sigmoid_v2(**loss_config),
+    'dice_loss': lambda loss_config: dice_loss(**loss_config),
+    "cce_dice_loss": lambda loss_config: cce_dice_loss(**loss_config)
 }
 
 
