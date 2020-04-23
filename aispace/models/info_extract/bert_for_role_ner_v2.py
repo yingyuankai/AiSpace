@@ -53,7 +53,7 @@ class BertForRoleNerV2(BaseModel):
         )
         # self.bilstm = Bilstm(model_hparams.hidden_size, model_hparams.hidden_dropout_prob, name="bilstm")
 
-        self.attention = MultiHeadAttention(model_hparams, name="attention_fusion")
+        # self.attention = MultiHeadAttention(model_hparams, name="attention_fusion")
         # self.type_project = tf.keras.layers.Dense(
         #     model_hparams.hidden_size,
         #     kernel_initializer=get_initializer(model_hparams.initializer_range),
@@ -64,11 +64,11 @@ class BertForRoleNerV2(BaseModel):
             kernel_initializer=get_initializer(model_hparams.initializer_range),
             name="passage_project"
         )
-        self.trigger_project = tf.keras.layers.Dense(
-            model_hparams.hidden_size,
-            kernel_initializer=get_initializer(model_hparams.initializer_range),
-            name="trigger_project"
-        )
+        # self.trigger_project = tf.keras.layers.Dense(
+        #     model_hparams.hidden_size,
+        #     kernel_initializer=get_initializer(model_hparams.initializer_range),
+        #     name="trigger_project"
+        # )
         self.project1 = tf.keras.layers.Dense(
             model_hparams.hidden_size,
             kernel_initializer=get_initializer(model_hparams.initializer_range),
@@ -118,17 +118,18 @@ class BertForRoleNerV2(BaseModel):
         # seq_output = seq_output + type_repr
         #
         # # trigger repr
-        trigger_span = tf.reshape(inputs["trigger_span"], [input_shape[0], 2])
-        trigger_repr = tf_gather(seq_output, trigger_span)  # [batch_size, 2, hidden_size]
-        trigger_repr = tf.unstack(trigger_repr, axis=1)
-        trigger_repr = tf.concat(trigger_repr, axis=-1)
-        trigger_repr = self.trigger_project(trigger_repr)
-        trigger_repr = self.dropout(trigger_repr, training=training)
-        # trigger_repr = tf.tile(tf.expand_dims(trigger_repr, 1), [1, shape[1], 1])
-        trigger_repr = tf.reshape(trigger_repr, [input_shape[0], 1, self.hidden_size])
+        # trigger_span = tf.reshape(inputs["trigger_span"], [input_shape[0], 2])
+        # trigger_repr = tf_gather(seq_output, trigger_span)  # [batch_size, 2, hidden_size]
+        # trigger_repr = tf.unstack(trigger_repr, axis=1)
+        # trigger_repr = tf.concat(trigger_repr, axis=-1)
+        # trigger_repr = self.trigger_project(trigger_repr)
+        # trigger_repr = self.dropout(trigger_repr, training=training)
+        # # trigger_repr = tf.tile(tf.expand_dims(trigger_repr, 1), [1, shape[1], 1])
+        # trigger_repr = tf.reshape(trigger_repr, [input_shape[0], 1, self.hidden_size])
 
-        seq_output = self.attention(seq_output, trigger_repr, trigger_repr, training=kwargs.get('training', False))
-        seq_output = tf.reshape(seq_output, [input_shape[0], self.seq_len, self.hidden_size])
+        # new_seq_output = self.attention(seq_output, trigger_repr, trigger_repr, training=kwargs.get('training', False))
+        # new_seq_output = tf.reshape(new_seq_output, [input_shape[0], self.seq_len, self.hidden_size])
+        # seq_output += new_seq_output
 
         # project for output1
         project = self.project1(seq_output)

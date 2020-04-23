@@ -370,20 +370,43 @@ class DuEERoleTransformer(BaseTransformer):
     def _build_featureV3(self, one_json, schema, label2ids):
         text = one_json.get("text")
         id = one_json.get("id")
+
+        # merge same event_type
+        event_list_combined = []
+        role_arg_dict = {}
+        for event in one_json.get("event_list"):
+            arguments = event.get("arguments", [])
+            for one_argument in arguments:
+                role = one_argument.get("role")
+                if role not in role_arg_dict:
+                    role_arg_dict[role] = []
+                role_arg_dict[role].append(one_argument)
+
         for event in one_json.get("event_list"):
             event_type = event.get("event_type")
-            trigger = event.get("trigger")
-            trigger_start_index = event.get("trigger_start_index")
-            if trigger_start_index + len(trigger) + 2 >= self.tokenizer.max_len:
-                continue
+            if event_type not in event_list_combined:
+                event_list_combined[event_type] = {}
             arguments = event.get("arguments", [])
-            arguments.sort(key=lambda s: s.get("argument_start_index"))
+            for one_argument in arguments:
+                role = one_argument.get("role")
+                event_list_combined[event_type].extend(role_arg_dict.get(role, []))
+
+        for event_type, old_arguments in event_list_combined.items():
+            old_arguments.sort(key=lambda s: s.get("argument_start_index"))
+            # 去重
+            i = 0
+            arguments = []
+            for i, arg in enumerate(old_arguments):
+                if i == 0:
+                    arguments.append(arg)
+                    continue
+                if arguments[-1].get("argument") == old_arguments[i].get("argument") and \
+                        arguments[-1].get("argument_start_index") == old_arguments[i].get("argument_start_index"):
+                    continue
+                arguments.append(arg)
+
             if len(arguments) == 0:
                 return {}
-
-            pre_trigger_tokens = self.tokenizer.tokenize(text[0: trigger_start_index])
-            trigger_tokens = self.tokenizer.tokenize(trigger)
-            trigger_span = [len(pre_trigger_tokens) + 1, len(pre_trigger_tokens) + len(trigger_tokens)]
 
             tokens = []
             labels = []
@@ -419,7 +442,7 @@ class DuEERoleTransformer(BaseTransformer):
             first_seq_len = len(tokens) + 1
 
             # append event_type
-            cur_tokens = self.tokenizer.tokenize(event_type + f"-{trigger}")
+            cur_tokens = self.tokenizer.tokenize(event_type)
             tokens.extend(cur_tokens)
             labels.extend(['O'] * len(cur_tokens))
             second_seq_len = len(cur_tokens) + 1
@@ -454,28 +477,12 @@ class DuEERoleTransformer(BaseTransformer):
             for r in schema[event_type]:
                 mask[label2ids[r]] = 1
 
-            # 相对trigger 的相对位置特征
-            pre_rel_pos = [trigger_span[0] - i for i in range(trigger_span[0])] + \
-                          [0] * (self.tokenizer.max_len - trigger_span[0])
-            pos_rel_pos = [0] * (trigger_span[1] + 1) + \
-                          [i - trigger_span[1] for i in range(trigger_span[1] + 1, self.tokenizer.max_len)]
-
-            pre_rel_pos = pre_rel_pos[:self.tokenizer.max_len]
-            pos_rel_pos = pos_rel_pos[:self.tokenizer.max_len]
-
             feature = {
                 "id": id,
-                "trigger_span": trigger_span,
                 "input_ids": input_ids,
                 "token_type_ids": token_type_ids,
                 "attention_mask": attention_mask,
-                # "type_input_ids": type_input_ids,
-                # "type_token_type_ids": type_token_type_ids,
-                # "type_attention_mask": type_attention_mask,
-                "pre_rel_pos": pre_rel_pos,
-                "pos_rel_pos": pos_rel_pos,
                 "label_mask": mask,
-                # "trigger_labels": trigger_labels,
                 "labels": labels,
             }
 

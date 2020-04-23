@@ -12,7 +12,7 @@ model_attributes:
     num_attention_heads: 4
 
 training:
-  learning_rate: 3e-4
+  learning_rate: 3e-5
   max_epochs: 30
   batch_size: 64
   callbacks:
@@ -48,21 +48,21 @@ dataset:
       column: attention_mask
       type: LIST_OF_INT
       max_len: 150
-    - name: pre_rel_pos
-      column: pre_rel_pos
-      type: LIST_OF_INT
-      max_len: 150
-    - name: pos_rel_pos
-      column: pos_rel_pos
-      type: LIST_OF_INT
-      max_len: 150
+#    - name: pre_rel_pos
+#      column: pre_rel_pos
+#      type: LIST_OF_INT
+#      max_len: 150
+#    - name: pos_rel_pos
+#      column: pos_rel_pos
+#      type: LIST_OF_INT
+#      max_len: 150
     - name: label_mask
       column: label_mask
       type: LIST_OF_INT
-    - name: trigger_span
-      column: trigger_span
-      type: LIST_OF_INT
-      max_len: 2
+#    - name: trigger_span
+#      column: trigger_span
+#      type: LIST_OF_INT
+#      max_len: 2
 
   outputs:
     - name: output_1
