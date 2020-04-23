@@ -39,7 +39,9 @@ class TestLSTC(unittest.TestCase):
             #         print(itm)
             #         break
             print(itm)
+            print()
             print(tokenizer.decode(itm["input_ids"].numpy().tolist()))
+            # print(tokenizer.decode(itm["type_input_ids"].numpy().tolist()))
             break
 
 # python -u aispace/trainer.py \

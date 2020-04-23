@@ -28,7 +28,10 @@ class BertForRoleNerV2(BaseModel):
         super(BertForRoleNerV2, self).__init__(hparams, **kwargs)
         pretrained_hparams = hparams.pretrained
         model_hparams = hparams.model_attributes
+        # self.batch_size = hparams.training.batch_size
+        self.seq_len = hparams.dataset.tokenizer.max_len
         self.num_labels = hparams.dataset.outputs[0].num
+        self.hidden_size = model_hparams.hidden_size
         self.initializer_range = model_hparams.initializer_range
 
         # self.pre_pos_embeddings = tf.keras.layers.Embedding(
@@ -50,17 +53,12 @@ class BertForRoleNerV2(BaseModel):
         )
         # self.bilstm = Bilstm(model_hparams.hidden_size, model_hparams.hidden_dropout_prob, name="bilstm")
 
-        # self.attention = MultiHeadAttention(model_hparams, name="attention_fusion")
-        self.type_project = tf.keras.layers.Dense(
-            model_hparams.hidden_size,
-            kernel_initializer=get_initializer(model_hparams.initializer_range),
-            name="type_project"
-        )
-        self.type_project = tf.keras.layers.Dense(
-            model_hparams.hidden_size,
-            kernel_initializer=get_initializer(model_hparams.initializer_range),
-            name="type_project"
-        )
+        self.attention = MultiHeadAttention(model_hparams, name="attention_fusion")
+        # self.type_project = tf.keras.layers.Dense(
+        #     model_hparams.hidden_size,
+        #     kernel_initializer=get_initializer(model_hparams.initializer_range),
+        #     name="type_project"
+        # )
         self.passage_project = tf.keras.layers.Dense(
             model_hparams.hidden_size,
             kernel_initializer=get_initializer(model_hparams.initializer_range),
@@ -71,10 +69,10 @@ class BertForRoleNerV2(BaseModel):
             kernel_initializer=get_initializer(model_hparams.initializer_range),
             name="trigger_project"
         )
-        self.output_project = tf.keras.layers.Dense(
+        self.project1 = tf.keras.layers.Dense(
             model_hparams.hidden_size,
             kernel_initializer=get_initializer(model_hparams.initializer_range),
-            name="output_project"
+            name="project1"
         )
         self.ner_output = tf.keras.layers.Dense(self.num_labels,
                                                 kernel_initializer=get_initializer(model_hparams.initializer_range),
@@ -86,19 +84,18 @@ class BertForRoleNerV2(BaseModel):
         # sequence length
         input_ids = inputs['input_ids']
         input_lengths = get_sequence_length(input_ids)
-        shape = get_shape(input_ids)
-
+        input_shape = get_shape(input_ids)
         # type bert encode
-        type_input = {
-            "input_ids": inputs["type_input_ids"],
-            "token_type_ids": inputs["type_token_type_ids"],
-            "attention_mask": inputs["type_attention_mask"]
-        }
-        type_bert_encode = self.bert(type_input, **kwargs)
-        type_repr = type_bert_encode[1]
-        type_repr = self.type_project(type_repr)
-        type_repr = self.dropout(type_repr, training=training)
-        type_repr = tf.tile(tf.expand_dims(type_repr, 1), [1, shape[1], 1])
+        # type_input = {
+        #     "input_ids": inputs["type_input_ids"],
+        #     "token_type_ids": inputs["type_token_type_ids"],
+        #     "attention_mask": inputs["type_attention_mask"]
+        # }
+        # type_bert_encode = self.bert(type_input, **kwargs)
+        # type_repr = type_bert_encode[1]
+        # type_repr = self.type_project(type_repr)
+        # type_repr = self.dropout(type_repr, training=training)
+        # type_repr = tf.tile(tf.expand_dims(type_repr, 1), [1, shape[1], 1])
 
         # passage bert encode
         passage_input = {
@@ -118,32 +115,34 @@ class BertForRoleNerV2(BaseModel):
         # pos_pos_repr = self.post_pos_embeddings(inputs["pos_rel_pos"])
 
         # fusion with event type
-        seq_output = seq_output + type_repr
-
-        # trigger repr
-        trigger_span = tf.reshape(inputs["trigger_span"], [shape[0], 2])
+        # seq_output = seq_output + type_repr
+        #
+        # # trigger repr
+        trigger_span = tf.reshape(inputs["trigger_span"], [input_shape[0], 2])
         trigger_repr = tf_gather(seq_output, trigger_span)  # [batch_size, 2, hidden_size]
         trigger_repr = tf.unstack(trigger_repr, axis=1)
         trigger_repr = tf.concat(trigger_repr, axis=-1)
         trigger_repr = self.trigger_project(trigger_repr)
         trigger_repr = self.dropout(trigger_repr, training=training)
-        trigger_repr = tf.tile(tf.expand_dims(trigger_repr, 1), [1, shape[1], 1])
-        seq_output = seq_output + trigger_repr
+        # trigger_repr = tf.tile(tf.expand_dims(trigger_repr, 1), [1, shape[1], 1])
+        trigger_repr = tf.reshape(trigger_repr, [input_shape[0], 1, self.hidden_size])
+
+        seq_output = self.attention(seq_output, trigger_repr, trigger_repr, training=kwargs.get('training', False))
+        seq_output = tf.reshape(seq_output, [input_shape[0], self.seq_len, self.hidden_size])
 
         # project for output1
-        project = self.output_project(seq_output)
+        project = self.project1(seq_output)
         project = self.dropout(project, training=training)
         logits = self.ner_output(project)
 
         # ner logits add mask
         label_mask = inputs["label_mask"]
-        label_mask = tf.tile(tf.expand_dims(label_mask, 1), [1, shape[1], 1])
+        label_mask = tf.tile(tf.expand_dims(label_mask, 1), [1, self.seq_len, 1])
         label_mask = tf.cast(label_mask, tf.float32)
         label_mask = (1.0 - label_mask) * -10000.0
-        logits = logits + label_mask
 
         # crf
-        viterbi, _ = self.crf([logits, input_lengths])
+        viterbi, _ = self.crf([logits + label_mask, input_lengths])
         output1 = tf.keras.backend.in_train_phase(logits, tf.one_hot(viterbi, self.num_labels), training=training)
 
         return output1
