@@ -31,10 +31,10 @@ class testDceLoss(unittest.TestCase):
         print(loss)
 
     def test_cce_dce_loss(self):
-        y_true = tf.constant([1])
-        y_pre = tf.constant([[0.1, 1.0, 0.1]])
+        y_true = tf.constant([[1]])
+        y_pre = tf.constant([[[0.1, 1.0, 0.1]]])
 
-        cce_dce_loss = CceDceLoss()
+        cce_dce_loss = CceDceLoss(from_logits=True, label_num=3, seq_len=1)
         loss = cce_dce_loss(y_true, y_pre)
         print(loss)
 

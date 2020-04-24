@@ -135,6 +135,7 @@ class BertForRoleNerV2(BaseModel):
         project = self.project1(seq_output)
         project = self.dropout(project, training=training)
         logits = self.ner_output(project)
+        logits = tf.reshape(logits, [input_shape[0], self.seq_len, self.num_labels])
 
         # ner logits add mask
         label_mask = inputs["label_mask"]

@@ -34,13 +34,14 @@ class RoleBertNerService(BentoService):
 
     def preprocessing(self, itm):
         text_str = itm.get("text")
-        input_ids, token_type_ids, attention_mask = self.artifacts.tokenizer.encode(text_str)
+        event_type = itm.get("event_type")
+        input_ids, token_type_ids, attention_mask = self.artifacts.tokenizer.encode(text_str, event_type)
         return input_ids, token_type_ids, attention_mask, text_str
 
     def _align_raw_text(self, tags, raw_tokens, align_mapping):
         new_tokens, new_tags = [], []
         i, j = 0, 0
-        while i <= j < len(tags):
+        while i <= j < min(len(tags), len(raw_tokens)):
             if align_mapping[i] == align_mapping[j]:
                 j += 1
             else:
@@ -108,7 +109,7 @@ class RoleBertNerService(BentoService):
     @api(JsonHandler)
     def ner_predict(self, parsed_json):
         input_data = {
-            "input_ids": [], "token_type_ids": [], "attention_mask": [], "trigger_span": []
+            "input_ids": [], "token_type_ids": [], "attention_mask": [], "label_mask": []
         }
         seq_length = []
         passages = []
@@ -117,22 +118,22 @@ class RoleBertNerService(BentoService):
             input_data['input_ids'].extend(pre_input_data[0])
             input_data['token_type_ids'].extend(pre_input_data[1])
             input_data['attention_mask'].extend(pre_input_data[2])
-            input_data['trigger_span'].extend([itm.get("trigger_span", [0, 0]) for itm in parsed_json])
+            input_data['label_mask'].extend([itm.get("label_mask") for itm in parsed_json])
             seq_length.extend(list(map(sum, pre_input_data[2])))
             passages.extend(pre_input_data[-1])
         else:  # expecting type(parsed_json) == dict:
             pre_input_data = self.preprocessing(parsed_json)
-            trigger_span = parsed_json.get("trigger_span", [0, 0])
+            label_mask = parsed_json.get("label_mask")
             input_data['input_ids'].append(pre_input_data[0])
             input_data['token_type_ids'].append(pre_input_data[1])
             input_data['attention_mask'].append(pre_input_data[2])
-            input_data['trigger_span'].append(trigger_span)
+            input_data['label_mask'].append(label_mask)
             seq_length.append(sum(pre_input_data[2]))
             passages.append(pre_input_data[-1])
         input_data['input_ids'] = tf.constant(input_data['input_ids'], name="input_ids")
         input_data['token_type_ids'] = tf.constant(input_data['token_type_ids'], name="token_type_ids")
         input_data['attention_mask'] = tf.constant(input_data['attention_mask'], name="attention_mask")
-        input_data['trigger_span'] = tf.constant(input_data['trigger_span'], name="trigger_span")
+        input_data['label_mask'] = tf.constant(input_data['label_mask'], name="label_mask")
         prediction = self.artifacts.model(input_data, training=False)
         prediction_idx = np.argmax(prediction, -1).tolist()
         ret = {

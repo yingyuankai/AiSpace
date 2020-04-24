@@ -13,8 +13,8 @@ model_attributes:
 
 training:
   learning_rate: 3e-5
-  max_epochs: 30
-  batch_size: 32
+  max_epochs: 50
+  batch_size: 16
   callbacks:
     # callback name
     early_stopping:
@@ -48,21 +48,9 @@ dataset:
       column: attention_mask
       type: LIST_OF_INT
       max_len: 150
-#    - name: pre_rel_pos
-#      column: pre_rel_pos
-#      type: LIST_OF_INT
-#      max_len: 150
-#    - name: pos_rel_pos
-#      column: pos_rel_pos
-#      type: LIST_OF_INT
-#      max_len: 150
     - name: label_mask
       column: label_mask
       type: LIST_OF_INT
-#    - name: trigger_span
-#      column: trigger_span
-#      type: LIST_OF_INT
-#      max_len: 2
 
   outputs:
     - name: output_1
@@ -75,10 +63,12 @@ dataset:
         name: "duee"
       loss:
 #        name: myself_crf_loss
-#        name: dice_loss
+#        name: cce_dce_loss
 #        config:
 #          from_logits: true
-#          smooth: 1e-17
+#          label_num: 243
+#          seq_len: 150
+#          name: "val_loss"
         name: sparse_categorical_crossentropy
         config:
           from_logits: true

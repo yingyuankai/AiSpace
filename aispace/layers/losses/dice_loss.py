@@ -53,8 +53,11 @@ class DceLoss(tf.keras.losses.Loss):
     """
     Ref: Li, Xiaoya, et al. "Dice Loss for Data-imbalanced NLP Tasks." arXiv preprint arXiv:1911.02855 (2019).
     """
-    def __init__(self, weight=None, ignore_index=None, name="dce_loss", reduction=tf.keras.losses.Reduction.NONE, **kwargs):
+    def __init__(self, seq_len=None, label_num=None, weight=None, ignore_index=None, name="dce_loss",
+                 reduction=tf.keras.losses.Reduction.NONE, **kwargs):
         super(DceLoss, self).__init__(name=name, reduction=reduction)
+        self.seq_len = seq_len
+        self.label_num = label_num
         self.kwargs = kwargs
         self.weight = weight
         self.ignore_index = ignore_index
@@ -78,6 +81,8 @@ class DceLoss(tf.keras.losses.Loss):
                 f"is not equal to the expected tensor rank {pred_rank}"
 
         pred_shape = get_shape(y_pred)
+        y_true = tf.reshape(y_true, [pred_shape[0], self.seq_len, self.label_num])
+        y_pred = tf.reshape(y_pred, [pred_shape[0], self.seq_len, self.label_num])
 
         total_loss = 0
         y_pred = tf.math.softmax(y_pred)
@@ -85,7 +90,7 @@ class DceLoss(tf.keras.losses.Loss):
         y_pred = tf.unstack(y_pred, axis=-1)
         y_true = tf.unstack(y_true, axis=-1)
 
-        for i in range(pred_shape[-1]):
+        for i in range(self.label_num):
             if i != self.ignore_index:
                 dice_loss = self.binary_dce_loss(y_true[i], y_pred[i])
                 if self.weight is not None:
@@ -131,10 +136,3 @@ class CceDceLoss(tf.keras.losses.Loss):
         config.update(self.kwargs)
         base_config = super(CceDceLoss, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
-
-
-def dce_tt_loss(y_true, y_pred):
-    num = tf.reduce_sum((1 - y_pred) * y_pred * y_true)
-    den = tf.reduce_sum((1 - y_pred) * y_pred * y_true + y_true)
-    loss = 1 - num / den
-    return loss

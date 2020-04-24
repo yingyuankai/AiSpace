@@ -38,11 +38,11 @@ class TestLSTC(unittest.TestCase):
             #     if v.shape[0] == 152:
             #         print(itm)
             #         break
-            print(itm)
+            # print(itm)
             print()
             print(tokenizer.decode(itm["input_ids"].numpy().tolist()))
             # print(tokenizer.decode(itm["type_input_ids"].numpy().tolist()))
-            break
+
 
 # python -u aispace/trainer.py \
 #    --experiment_name test \
