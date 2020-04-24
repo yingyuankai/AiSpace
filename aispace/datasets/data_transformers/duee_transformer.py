@@ -372,7 +372,7 @@ class DuEERoleTransformer(BaseTransformer):
         id = one_json.get("id")
 
         # merge same event_type
-        event_list_combined = []
+        event_list_combined = {}
         role_arg_dict = {}
         for event in one_json.get("event_list"):
             arguments = event.get("arguments", [])
@@ -385,7 +385,7 @@ class DuEERoleTransformer(BaseTransformer):
         for event in one_json.get("event_list"):
             event_type = event.get("event_type")
             if event_type not in event_list_combined:
-                event_list_combined[event_type] = {}
+                event_list_combined[event_type] = []
             arguments = event.get("arguments", [])
             for one_argument in arguments:
                 role = one_argument.get("role")

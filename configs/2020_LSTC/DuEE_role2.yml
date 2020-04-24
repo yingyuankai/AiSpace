@@ -14,7 +14,7 @@ model_attributes:
 training:
   learning_rate: 3e-5
   max_epochs: 30
-  batch_size: 64
+  batch_size: 32
   callbacks:
     # callback name
     early_stopping:
@@ -86,7 +86,7 @@ dataset:
         - name: sparse_categorical_accuracy
 
 pretrained:
-    name: chinese_roberta_wwm_ext
+    name: chinese_roberta_wwm_large_ext
     init_from_pretrained: true
 
 
