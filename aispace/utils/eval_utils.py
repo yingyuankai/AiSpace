@@ -37,8 +37,11 @@ def evaluation(hparams: Hparams, model=None, test_dataset=None):
     if model is None:
         # build model
         (model,) = build_model(hparams, return_losses=False, return_metrics=False, return_optimizer=False)
-        logger.info(f"Load model weights from {hparams.get_model_filename()}")
-        model.load_weights(hparams.get_model_filename())
+        if not os.path.exists(hparams.get_model_filename()):
+            logger.warning(f"Model from {hparams.get_model_filename()} is not exists, load nothing!")
+        else:
+            logger.info(f"Load model weights from {hparams.get_model_filename()}")
+            model.load_weights(hparams.get_model_filename())
 
     if test_dataset is None:
         test_dataset = load_dataset(hparams, ret_train=False, ret_dev=False, ret_info=False)[0]
@@ -57,13 +60,17 @@ def evaluation(hparams: Hparams, model=None, test_dataset=None):
             tmp_name = one_output_hparam.name
             tmp_type = one_output_hparam.type
             tmp_ground_truth = outputs[tmp_name]
-            if tmp_type in [CLASSLABEL, LIST_OF_CLASSLABEL]:
+            if tmp_type in [CLASSLABEL, LIST_OF_CLASSLABEL, LIST_OF_INT]:
+                if tmp_type in [LIST_OF_INT]:
+                    tmp_tg = tf.argmax(tmp_ground_truth, -1)
+                else:
+                    tmp_tg = tmp_ground_truth
                 if one_output_hparam.task == NER: # [[sent1], [sent2]]
-                    one_output_hparam.ground_truth.extend(tmp_ground_truth.numpy().tolist())
+                    one_output_hparam.ground_truth.extend(tmp_tg.numpy().tolist())
                     tmp_predictions = tf.argmax(prediction_output, -1).numpy().tolist()
                     one_output_hparam.predictions.extend(tmp_predictions)
                 else: # [1, 0, 1, ...]
-                    one_output_hparam.ground_truth.extend(tmp_ground_truth.numpy().reshape(-1).tolist())
+                    one_output_hparam.ground_truth.extend(tmp_tg.numpy().reshape(-1).tolist())
                     tmp_predictions = tf.argmax(prediction_output, -1).numpy().reshape(-1).tolist()
                     one_output_hparam.predictions.extend(tmp_predictions)
 
@@ -73,7 +80,7 @@ def evaluation(hparams: Hparams, model=None, test_dataset=None):
     for one_output_hparam in output_hparams:
         ground_truth = one_output_hparam.ground_truth
         predictions = one_output_hparam.predictions
-        if one_output_hparam.type in [CLASSLABEL, LIST_OF_CLASSLABEL]:
+        if one_output_hparam.type in [CLASSLABEL, LIST_OF_CLASSLABEL, LIST_OF_INT]:
             # some filename
             cur_report_folder = os.path.join(report_folder, f'{one_output_hparam.name}_{one_output_hparam.type.lower()}')
             if not os.path.exists(cur_report_folder):

@@ -16,10 +16,10 @@ __all__ = [
 
 
 METRICS = {
-    "sparse_categorical_accuracy": tf.keras.metrics.SparseCategoricalAccuracy('accuracy'),
-    "sparse_categorical_crossentropy": tf.keras.metrics.SparseCategoricalCrossentropy('crossentropy')
+    "categorical_accuracy": tf.keras.metrics.CategoricalAccuracy("categorical_accuracy"),
+    "sparse_categorical_accuracy": tf.keras.metrics.SparseCategoricalAccuracy('sparse_categorical_accuracy'),
+    "sparse_categorical_crossentropy": tf.keras.metrics.SparseCategoricalCrossentropy('sparse_categorical_crossentropy')
 }
-
 
 def print_available():
     table = PrettyTable(["NAME"])

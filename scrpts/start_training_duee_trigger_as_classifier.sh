@@ -3,9 +3,9 @@
 export CUDA_VISIBLE_DEVICES=3,4,5,6
 nohup python -u aispace/trainer.py \
     --experiment_name trigger \
-    --model_name bert_for_ner \
+    --model_name bert_for_classification \
     --schedule train_and_eval \
-    --config_name DuEE_trigger \
+    --config_name DuEE_trigger_as_classifier \
     --config_dir ./configs/2020_LSTC \
     --gpus 0 1 2 3 \
     > err.log 2>&1 &

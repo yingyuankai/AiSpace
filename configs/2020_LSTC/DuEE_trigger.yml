@@ -9,8 +9,8 @@ model_attributes:
     hidden_size: 1024
 
 training:
-  learning_rate: 1.2e-4
-  max_epochs: 5
+  learning_rate: 3e-4
+  max_epochs: 30
   batch_size: 32
   callbacks:
     # callback name
@@ -48,19 +48,36 @@ dataset:
 
   outputs:
     - name: output_1
-      column: labels
+      column: ner_labels
       type: LIST_OF_CLASSLABEL
       task: NER
       num: 0
+      weight: 0.5
       labels:
         url: "https://ai.baidu.com/file/9C92719AF96D4DDB96477BFBE1435262"
-        name: "duee"
+        name: "duee_trigger_ner_labels"
       loss:
         name: sparse_categorical_crossentropy
         config:
           from_logits: true
+#          reduction: "sum"
       metrics:
         - name: sparse_categorical_accuracy
+#    - name: output_2
+#      column: event_labels
+#      type: LIST_OF_INT
+#      num: 0
+#      weight: 0.5
+#      labels:
+#        url: "https://ai.baidu.com/file/9C92719AF96D4DDB96477BFBE1435262"
+#        name: "duee_event_type_labels"
+#      loss:
+#        name: sigmoid_focal_crossentropy
+#        config:
+#          from_logits: true
+#          reduction: "sum"
+#      metrics:
+#        - name: categorical_accuracy
 
 pretrained:
     name: chinese_roberta_wwm_large_ext

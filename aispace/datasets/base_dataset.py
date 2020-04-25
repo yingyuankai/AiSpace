@@ -43,9 +43,12 @@ class BaseDataset(Registry, tfds.core.GeneratorBasedBuilder):
                     not isinstance(itm.get("labels"), (list, tuple)) and \
                     "url" in itm.get("labels"):
                 logger.info(f'Load labels from file: ${itm.get("labels", {}).get("url")}')
-                cur_label_map = self.transformer.prepare_labels(itm.get("labels", {}).get("url"), itm.get("labels", {}).get("name", ""))
+                cur_label_map = getattr(self.transformer,
+                                        itm.get("labels", {}).get("name", "prepare_labels"),
+                                        self.transformer.prepare_labels)(itm.get("labels", {}).get("url"),
+                                                                         itm.get("labels", {}).get("name", ""))
                 # For convenience, keep this vocab on the first level
-                self.hparams.cascade_set("label_vocab", cur_label_map)
+                self.hparams.cascade_set(itm.get("labels", {}).get("name", "label_vocab"), cur_label_map)
                 cur_labels = list(cur_label_map.values())
                 itm.cascade_set("labels", cur_labels)
                 itm.cascade_set("num", len(cur_labels))

@@ -10,23 +10,24 @@ __all__ = [
 
 from prettytable import PrettyTable
 import tensorflow as tf
-
-
-from .focal_losses import \
-    focal_loss_softmax, focal_loss_sigmoid_v1, focal_loss_sigmoid_v2
+import tensorflow_addons as tfa
+# from .focal_losses import \
+#     focal_loss_softmax, focal_loss_sigmoid_v1, focal_loss_sigmoid_v2
 
 from .dice_loss import DceLoss, CceDceLoss
 
 LOSSES = {
-    "sparse_categorical_crossentropy": lambda loss_config:
-    tf.keras.losses.SparseCategoricalCrossentropy(**loss_config),
-    'focal_loss_softmax': lambda loss_config: focal_loss_softmax(**loss_config),
-    'focal_loss_sigmoid_v1': lambda loss_config: focal_loss_sigmoid_v1(**loss_config),
-    'focal_loss_sigmoid_v2': lambda loss_config: focal_loss_sigmoid_v2(**loss_config),
-    'dce_loss': lambda loss_config: DceLoss(**loss_config),
-    "cce_dce_loss": lambda loss_config: CceDceLoss(**loss_config)
+    "categorical_crossentropy":
+        lambda loss_config: tf.keras.losses.CategoricalCrossentropy(**loss_config),
+    "sparse_categorical_crossentropy":
+        lambda loss_config: tf.keras.losses.SparseCategoricalCrossentropy(**loss_config),
+    'sigmoid_focal_crossentropy':
+        lambda loss_config: tfa.losses.SigmoidFocalCrossEntropy(**loss_config),
+    'dce_loss':
+        lambda loss_config: DceLoss(**loss_config),
+    "cce_dce_loss":
+        lambda loss_config: CceDceLoss(**loss_config)
 }
-
 
 def print_available():
     table = PrettyTable(["NAME"])

@@ -98,6 +98,13 @@ def main(argv):
         experiment(hparams)
         hparams.to_json()
         logging.info(f"save hparams to {hparams.hparams_json_file}")
+    elif hparams.schedule == "eval":
+        logger = logging.getLogger(__name__)
+        assert hparams.model_resume_path is not None, ValueError("Model resume path is None, must be specified.")
+        # reuse hparams
+        logger.info(f"Reuse saved json config from {os.path.join(hparams.get_workspace_dir(), 'hparams.json')}")
+        hparams.reuse_saved_json_hparam()
+        evaluation(hparams)
     elif hparams.schedule == "deploy":
         deploy(hparams)
     elif hparams.schedule == "avg_checkpoints":

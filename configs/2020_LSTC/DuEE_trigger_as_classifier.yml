@@ -1,31 +1,28 @@
 includes:
   - "../pretrain/bert_wwm.yml"
 
-model_name: bert_for_role_ner_v2
+model_name: bert_for_classification
 
 model_attributes:
     hidden_dropout_prob: 0.5
     initializer_range: 0.02
     hidden_size: 1024
-    pos_emb_size: 768
-    attention_probs_dropout_prob: 0.5
-    num_attention_heads: 4
 
 training:
   learning_rate: 3e-5
-  max_epochs: 50
-  batch_size: 16
+  max_epochs: 5
+  batch_size: 32
   callbacks:
     # callback name
     early_stopping:
       switch: true
       config:
-        patience: 2
+        patience: 3
 
 dataset:
-  name: "lstc_2020/DuEE_role"
+  name: lstc_2020/DuEE_trigger
   data_dir: "./data"
-  transformer: "lstc_2020/DuEE_role"
+  transformer: "lstc_2020/DuEE_trigger_as_classifier"
 
   source:
     train: "train"
@@ -48,35 +45,26 @@ dataset:
       column: attention_mask
       type: LIST_OF_INT
       max_len: 150
-    - name: label_mask
-      column: label_mask
-      type: LIST_OF_INT
 
   outputs:
     - name: output_1
-      column: labels
-      type: LIST_OF_CLASSLABELc
-      task: NER
-      num: 0
+      column: event_labels
+      type: LIST_OF_INT
+      num: 65
       labels:
         url: "https://ai.baidu.com/file/9C92719AF96D4DDB96477BFBE1435262"
-        name: "duee_role_ner_labels"
+        name: "duee_event_type_labels"
       loss:
-#        name: myself_crf_loss
-#        name: cce_dce_loss
-#        config:
-#          from_logits: true
-#          label_num: 243
-#          seq_len: 150
-#          name: "val_loss"
-        name: sparse_categorical_crossentropy
+#        name: sigmoid_focal_crossentropy
+        name: categorical_crossentropy
         config:
           from_logits: true
+#          reduction: "sum"
       metrics:
-        - name: sparse_categorical_accuracy
+        - name: categorical_accuracy
 
 pretrained:
-    name: chinese_roberta_wwm_large_ext
+    name: chinese_roberta_wwm_ext
     init_from_pretrained: true
 
 
