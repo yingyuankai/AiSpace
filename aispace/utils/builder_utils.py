@@ -81,10 +81,12 @@ def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, 
         steps_per_epoch = int(train_data_size / training_hparams.batch_size)
         num_warmup_steps = \
             int(training_hparams.max_epochs * train_data_size * training_hparams.warmup_factor / training_hparams.batch_size)
+        num_warmup_steps = min(steps_per_epoch, num_warmup_steps)
+
         validation_steps = int(
             math.ceil(validation_data_size / training_hparams.batch_size))
         logger.info("Reset some hparams according to dataset_info:")
-        if "num_warmup_steps" not in training_hparams or training_hparams.steps_per_epoch <= 0:
+        if "steps_per_epoch" not in training_hparams or training_hparams.steps_per_epoch <= 0:
             hparams.cascade_set('training.steps_per_epoch', steps_per_epoch)
             logger.info(f"Set training.steps_per_epoch to {steps_per_epoch}")
         else:
@@ -267,7 +269,8 @@ def build_tf_model_metrics(dataset_hparams: Hparams):
         if name not in metrics:
             res_metrics[name] = []
         for idx, metric in enumerate(metrics):
-            metric_fn = METRICS.get(metric.name)
+            cur_config = metric.get("config", {})
+            metric_fn = METRICS.get(metric.name)(cur_config)
             logger.info(f"Using metric[{idx}] [{metric.name}] for {name}.")
             if metric_fn is None:
                 logger.warning(f"metric [{metric.name}] does not registered.")

@@ -101,7 +101,6 @@ def main(argv):
     elif hparams.schedule == "eval":
         logger = logging.getLogger(__name__)
         assert hparams.model_resume_path is not None, ValueError("Model resume path is None, must be specified.")
-        # reuse hparams
         logger.info(f"Reuse saved json config from {os.path.join(hparams.get_workspace_dir(), 'hparams.json')}")
         hparams.reuse_saved_json_hparam()
         evaluation(hparams)

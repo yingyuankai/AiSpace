@@ -18,7 +18,7 @@ from bentoml.artifact import TensorflowSavedModelArtifact, PickleArtifact
 from bentoml.handlers import JsonHandler
 
 import numpy as np
-from scipy.special import softmax
+from scipy.special import softmax, expit
 
 from aispace.datasets.tokenizer import BertTokenizer
 from aispace.utils.hparams import Hparams
@@ -32,7 +32,8 @@ from aispace.utils.hparams import Hparams
 @env(pip_dependencies=['tensorflow-gpu==2.0.0', 'numpy==1.16', 'scipy==1.3.1', "tensorflow-datasets==1.3.0"])
 class BertTextClassificationService(BentoService):
 
-    def preprocessing(self, text_str):
+    def preprocessing(self, one_json):
+        text_str = one_json["text"]
         input_ids, token_type_ids, attention_mask = self.artifacts.tokenizer.encode(text_str)
         return input_ids, token_type_ids, attention_mask
 
@@ -50,7 +51,7 @@ class BertTextClassificationService(BentoService):
             input_data['token_type_ids'].extend(pre_input_data[1])
             input_data['attention_mask'].extend(pre_input_data[2])
         else:  # expecting type(parsed_json) == dict:
-            pre_input_data = self.preprocessing(parsed_json['text'])
+            pre_input_data = self.preprocessing(parsed_json)
             input_data['input_ids'].append(pre_input_data[0])
             input_data['token_type_ids'].append(pre_input_data[1])
             input_data['attention_mask'].append(pre_input_data[2])
@@ -72,6 +73,48 @@ class BertTextClassificationService(BentoService):
                 "confidence": confidence
             }
             ret["predictions"].append(new_ret)
+
+        return ret
+
+    @api(JsonHandler)
+    def multi_label_predict(self, parsed_json):
+        input_data = {
+            "input_ids": [], "token_type_ids": [], "attention_mask": []
+        }
+        if isinstance(parsed_json, (list, tuple)):
+            pre_input_data = list(zip(*list(map(self.preprocessing, parsed_json))))
+            input_data['input_ids'].extend(pre_input_data[0])
+            input_data['token_type_ids'].extend(pre_input_data[1])
+            input_data['attention_mask'].extend(pre_input_data[2])
+            threshold = parsed_json[0].get("threshold", 0.5)
+        else:  # expecting type(parsed_json) == dict:
+            pre_input_data = self.preprocessing(parsed_json)
+            input_data['input_ids'].append(pre_input_data[0])
+            input_data['token_type_ids'].append(pre_input_data[1])
+            input_data['attention_mask'].append(pre_input_data[2])
+            threshold = parsed_json.get("threshold", 0.5)
+
+        input_data['input_ids'] = tf.constant(input_data['input_ids'], name="input_ids")
+        input_data['token_type_ids'] = tf.constant(input_data['token_type_ids'], name="token_type_ids")
+        input_data['attention_mask'] = tf.constant(input_data['attention_mask'], name="attention_mask")
+        prediction = self.artifacts.model(input_data, training=False)
+        prediction_normed = expit(prediction[0].numpy())
+
+        ret = {
+            "predictions": []
+        }
+
+        for i, logits in enumerate(prediction_normed):
+            logtit_idx = np.where(logits > threshold)[0].tolist()
+            if len(logtit_idx) == 0:
+                logtit_idx = [np.argmax(logits, -1)]
+
+            one_ret = {"labels": [], "confidences": []}
+            for j in logtit_idx:
+                one_ret["labels"].append(self.decode_label_idx(j))
+                one_ret["confidences"].append(float(prediction_normed[i, j]))
+
+            ret["predictions"].append(one_ret)
 
         return ret
 

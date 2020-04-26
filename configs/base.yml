@@ -91,7 +91,7 @@ training:
     # Should use warmup for lr
     use_warmup: false
     # Warmup factor learning rate warmup
-    warmup_factor: 0.2
+    warmup_factor: 0.1
     # Iteration until which warnup should be done
     num_warmup_steps: -1
 

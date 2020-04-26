@@ -11,11 +11,11 @@ nohup python -u aispace/trainer.py \
     > err.log 2>&1 &
 
 
-#export CUDA_VISIBLE_DEVICES=7
+#export CUDA_VISIBLE_DEVICES=6
 #nohup python -u aispace/trainer.py \
 #    --experiment_name trigger \
-#    --model_name bert_for_ner \
-#    --model_resume_path /search/data1/yyk/workspace/projects/AiSpace/save/trigger_bert_for_ner_119_20 \
+#    --model_name bert_for_classification \
+#    --model_resume_path /search/data1/yyk/workspace/projects/AiSpace/save/trigger_bert_for_classification_119_19 \
 #    --schedule deploy \
 #    --config_name DuEE_trigger \
 #    --config_dir ./configs/2020_LSTC \

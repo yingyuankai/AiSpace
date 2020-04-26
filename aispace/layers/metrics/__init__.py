@@ -5,6 +5,7 @@
 # @File    : __init__.py
 
 import tensorflow as tf
+import tensorflow_addons as tfa
 from prettytable import PrettyTable
 
 from aispace.utils.print_utils import print_boxed
@@ -16,9 +17,14 @@ __all__ = [
 
 
 METRICS = {
-    "categorical_accuracy": tf.keras.metrics.CategoricalAccuracy("categorical_accuracy"),
-    "sparse_categorical_accuracy": tf.keras.metrics.SparseCategoricalAccuracy('sparse_categorical_accuracy'),
-    "sparse_categorical_crossentropy": tf.keras.metrics.SparseCategoricalCrossentropy('sparse_categorical_crossentropy')
+    "categorical_accuracy":
+        lambda config: tf.keras.metrics.CategoricalAccuracy(**config),
+    "sparse_categorical_accuracy":
+        lambda config: tf.keras.metrics.SparseCategoricalAccuracy(**config),
+    "sparse_categorical_crossentropy":
+        lambda config: tf.keras.metrics.SparseCategoricalCrossentropy(**config),
+    "f1_score":
+        lambda config: tfa.metrics.F1Score(**config)
 }
 
 def print_available():

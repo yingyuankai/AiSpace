@@ -10,14 +10,15 @@ model_attributes:
 
 training:
   learning_rate: 3e-5
-  max_epochs: 5
+  max_epochs: 30
   batch_size: 32
+#  steps_per_epoch: 100
   callbacks:
     # callback name
     early_stopping:
       switch: true
       config:
-        patience: 3
+        patience: 2
 
 dataset:
   name: lstc_2020/DuEE_trigger
@@ -55,16 +56,27 @@ dataset:
         url: "https://ai.baidu.com/file/9C92719AF96D4DDB96477BFBE1435262"
         name: "duee_event_type_labels"
       loss:
-#        name: sigmoid_focal_crossentropy
-        name: categorical_crossentropy
+        name: sigmoid_focal_crossentropy
+#        name: categorical_crossentropy
         config:
           from_logits: true
-#          reduction: "sum"
+          reduction: "sum"
       metrics:
         - name: categorical_accuracy
+        - name: f1_score
+          config:
+            name: "macro_f1"
+            num_classes: 65
+            average: "macro"
+        - name: f1_score
+          config:
+            name: "micro_f1"
+            num_classes: 65
+            average: "micro"
+
 
 pretrained:
-    name: chinese_roberta_wwm_ext
+    name: chinese_roberta_wwm_large_ext
     init_from_pretrained: true
 
 

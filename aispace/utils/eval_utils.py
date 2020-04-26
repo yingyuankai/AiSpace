@@ -37,7 +37,7 @@ def evaluation(hparams: Hparams, model=None, test_dataset=None):
     if model is None:
         # build model
         (model,) = build_model(hparams, return_losses=False, return_metrics=False, return_optimizer=False)
-        if not os.path.exists(hparams.get_model_filename()):
+        if not os.path.exists(hparams.get_model_filename() + ".index"):
             logger.warning(f"Model from {hparams.get_model_filename()} is not exists, load nothing!")
         else:
             logger.info(f"Load model weights from {hparams.get_model_filename()}")
@@ -47,6 +47,7 @@ def evaluation(hparams: Hparams, model=None, test_dataset=None):
         test_dataset = load_dataset(hparams, ret_train=False, ret_dev=False, ret_info=False)[0]
 
     # prediction
+    # print(model.evaluate(test_dataset))
     for inputs, outputs in tqdm(test_dataset):
         model_outputs = model.predict(inputs)
         if not isinstance(model_outputs, (tuple, list)):
@@ -104,13 +105,15 @@ def evaluation(hparams: Hparams, model=None, test_dataset=None):
 
             # print some reports
             print_boxed(f"{one_output_hparam.name} Evaluation")
+
             cms = cm.confusion_matrix_visual()
-            print(cms)
+            if len(cm.label2idx) < 10:
+                print(cms)
+                # save reports to files
+                with open(os.path.join(cur_report_folder, "confusion_matrix.txt"), 'w') as f:
+                    f.write(cms)
             print()
             print(json.dumps(cm.stats(), indent=4))
-            # save reports to files
-            with open(os.path.join(cur_report_folder, "confusion_matrix.txt"), 'w') as f:
-                f.write(cms)
             save_json(os.path.join(cur_report_folder, "stats.json"), cm.stats())
             save_json(os.path.join(cur_report_folder, 'per_class_stats.json'), cm.per_class_stats())
             # save reports to hparams

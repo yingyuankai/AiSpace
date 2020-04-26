@@ -35,18 +35,22 @@ class TestLSTC(unittest.TestCase):
 
         tokenizer = BertTokenizer(hparams.dataset.tokenizer)
         id_to_label = {v: k for k, v in hparams.duee_event_type_labels.items()}
-        for itm in tnews["train"]:
+        label_counter = {}
+        for itm in tnews["validation"]:
             # for k, v in itm.items():
             #     if v.shape[0] == 152:
             #         print(itm)
             #         break
-            print(itm)
+            # print(itm)
             print()
             print(tokenizer.decode(itm["input_ids"].numpy().tolist()))
             l = hparams.dataset.outputs[0].labels[tf.argmax(itm["output_1"], -1).numpy().tolist()]
             print(id_to_label[l])
-            break
-
+            if id_to_label[l] not in label_counter:
+                label_counter[id_to_label[l]] = 0
+            label_counter[id_to_label[l]] += 1
+        print(label_counter)
+        print(len(label_counter))
 
 # python -u aispace/trainer.py \
 #    --experiment_name test \

@@ -13,7 +13,7 @@ model_attributes:
 
 training:
   learning_rate: 3e-5
-  max_epochs: 50
+  max_epochs: 30
   batch_size: 16
   callbacks:
     # callback name
@@ -55,7 +55,7 @@ dataset:
   outputs:
     - name: output_1
       column: labels
-      type: LIST_OF_CLASSLABELc
+      type: LIST_OF_CLASSLABEL
       task: NER
       num: 0
       labels:
