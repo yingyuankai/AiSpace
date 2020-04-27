@@ -12,7 +12,7 @@ model_attributes:
     num_attention_heads: 4
 
 training:
-  learning_rate: 3e-5
+  learning_rate: 5e-5
   max_epochs: 30
   batch_size: 16
   callbacks:

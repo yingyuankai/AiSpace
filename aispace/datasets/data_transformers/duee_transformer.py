@@ -300,7 +300,7 @@ class DuEERoleTransformer(BaseTransformer):
                     if len(line_json) == 0: continue
                     # features = self._build_featureV3(line_json, schema, label2ids)
                     # features = self._build_featureV4(line_json, schema, label2ids, split)
-                    features = self._build_featureV4(line_json, schema, schema_raw, label2ids, split)
+                    features = self._build_featureV5(line_json, schema, schema_raw, label2ids, split)
                     for feature in features:
                         new_line = f"{json_dumps(feature)}\n"
                         ouf.write(new_line)
@@ -794,8 +794,6 @@ class DuEERoleTransformer(BaseTransformer):
                 labels.extend(["O"] * len(pre_tokens))
 
                 cur_tokens = self.tokenizer.tokenize(argument)
-                if split == "train" and random() <= 0.15:
-                    cur_tokens = [self.tokenizer.vocab.mask_token] * len(cur_tokens)
                 tokens.extend(cur_tokens)
                 labels.extend([self._hparams.duee_role_ner_labels[f"B-{role}"]])
                 labels.extend([self._hparams.duee_role_ner_labels[f"I-{role}"]] * (len(cur_tokens) - 1))
@@ -805,20 +803,24 @@ class DuEERoleTransformer(BaseTransformer):
             cur_tokens = self.tokenizer.tokenize(text[pre_start: len(text)])
             tokens.extend(cur_tokens)
             labels.extend(['O'] * len(cur_tokens))
+            first_seq_len = len(tokens)
+
+            # append event_type
+            event_type_tokens = self.tokenizer.tokenize(f"{event_type}-{schema_raw[event_type]}")
+            second_seq_len = len(event_type_tokens)
+
+            if first_seq_len + second_seq_len + 3 > self.tokenizer.max_len:
+                cur_len = first_seq_len + second_seq_len + 3 - self.tokenizer.max_len
+                tokens = tokens[0: -1 * cur_len]
+                labels = labels[0: -1 * cur_len]
+                first_seq_len = len(tokens)
 
             cur_tokens = [self.tokenizer.vocab.sep_token]
             tokens.extend(cur_tokens)
             labels.extend(['O'] * len(cur_tokens))
-            first_seq_len = len(tokens) + 1
 
-            # append event_type
-            cur_tokens = self.tokenizer.tokenize(f"{event_type}-{schema_raw[event_type]}")
-            tokens.extend(cur_tokens)
-            labels.extend(['O'] * len(cur_tokens))
-            second_seq_len = len(cur_tokens) + 1
-
-            if first_seq_len + second_seq_len > self.tokenizer.max_len:
-                continue
+            tokens.extend(event_type_tokens)
+            labels.extend(['O'] * len(event_type_tokens))
 
             # bert lables
             labels = labels[:self.tokenizer.max_len - 2]
@@ -831,9 +833,9 @@ class DuEERoleTransformer(BaseTransformer):
             input_ids = self.tokenizer.vocab.transformer(tokens)
             lens = len(input_ids)
             input_ids += [0] * (self.tokenizer.max_len - lens)
-            token_type_ids = [0] * first_seq_len + \
-                             [1] * second_seq_len + \
-                             [0] * (self.tokenizer.max_len - first_seq_len - second_seq_len)
+            token_type_ids = [0] * (first_seq_len + 2) + \
+                             [1] * (second_seq_len + 1) + \
+                             [0] * (self.tokenizer.max_len - first_seq_len - second_seq_len - 3)
             attention_mask = [1] * lens + [0] * (self.tokenizer.max_len - lens)
 
             # label mask
