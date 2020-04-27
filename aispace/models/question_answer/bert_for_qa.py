@@ -13,6 +13,9 @@ from aispace.layers.pretrained.bert import Bert
 from aispace.utils.tf_utils import get_initializer
 from aispace.layers import BaseLayer
 
+__all__ = [
+    "BertForQA"
+]
 
 @BaseModel.register("bert_for_qa")
 class BertForQA(BaseModel):

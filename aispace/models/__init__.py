@@ -8,3 +8,4 @@ from .base_model import BaseModel
 from .pretrained import *
 from .classifications import *
 from .info_extract import *
+from .question_answer import *

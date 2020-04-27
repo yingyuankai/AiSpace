@@ -13,8 +13,8 @@ model_attributes:
 
 training:
   learning_rate: 3e-5
-  max_epochs: 50
-  batch_size: 16
+  max_epochs: 30
+  batch_size: 32
   callbacks:
     # callback name
     early_stopping:
@@ -48,9 +48,6 @@ dataset:
       column: attention_mask
       type: LIST_OF_INT
       max_len: 150
-    - name: label_mask
-      column: label_mask
-      type: LIST_OF_INT
 
   outputs:
     - name: output_1
@@ -58,10 +55,10 @@ dataset:
       type: LIST_OF_INT
       num: 150
       loss:
-        name: sigmoid_focal_crossentropy
-        config:
-          from_logits: true
-          reduction: "sum"
+        name: sigmoid_cross_entropy
+#        config:
+#          from_logits: true
+#          reduction: "sum"
       metrics:
         - name: categorical_accuracy
     - name: output_2
@@ -69,26 +66,26 @@ dataset:
       type: LIST_OF_INT
       num: 150
       loss:
-        name: sigmoid_focal_crossentropy
-        config:
-          from_logits: true
-          reduction: "sum"
+        name: sigmoid_cross_entropy
+#        config:
+#          from_logits: true
+#          reduction: "sum"
       metrics:
         - name: categorical_accuracy
     - name: output_3
-      column: start_positions
+      column: is_impossible
       type: LIST_OF_INT
       num: 2
       loss:
-        name: sigmoid_focal_crossentropy
-        config:
-          from_logits: true
-          reduction: "sum"
+        name: sigmoid_cross_entropy
+#        config:
+#          from_logits: true
+#          reduction: "sum"
       metrics:
         - name: categorical_accuracy
 
 pretrained:
-    name: chinese_roberta_wwm_large_ext
+    name: chinese_roberta_wwm_ext
     init_from_pretrained: true
 
 

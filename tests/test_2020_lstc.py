@@ -21,7 +21,7 @@ from aispace.utils.builder_utils import load_dataset
 class TestLSTC(unittest.TestCase):
     def test_lstc_load(self):
         hparams = Hparams()
-        hparams.load_from_config_file("../configs/2020_LSTC/DuEE_role2.yml")
+        hparams.load_from_config_file("../configs/2020_LSTC/DuEE_role_as_qa.yml")
         hparams.stand_by()
         checksum_dir = "../aispace/datasets/url_checksums"
         tfds.download.add_checksums_dir(checksum_dir)
@@ -34,23 +34,23 @@ class TestLSTC(unittest.TestCase):
                           )
 
         tokenizer = BertTokenizer(hparams.dataset.tokenizer)
-        id_to_label = {v: k for k, v in hparams.duee_event_type_labels.items()}
+        # id_to_label = {v: k for k, v in hparams.duee_event_type_labels.items()}
         label_counter = {}
         for itm in tnews["validation"]:
-            # for k, v in itm.items():
-            #     if v.shape[0] == 152:
-            #         print(itm)
-            #         break
+            for k, v in itm.items():
+                if v.shape[0] == 151:
+                    print(itm)
+                    break
             # print(itm)
-            print()
-            print(tokenizer.decode(itm["input_ids"].numpy().tolist()))
-            l = hparams.dataset.outputs[0].labels[tf.argmax(itm["output_1"], -1).numpy().tolist()]
-            print(id_to_label[l])
-            if id_to_label[l] not in label_counter:
-                label_counter[id_to_label[l]] = 0
-            label_counter[id_to_label[l]] += 1
-        print(label_counter)
-        print(len(label_counter))
+            # print()
+            # print(tokenizer.decode(itm["input_ids"].numpy().tolist()))
+            # l = hparams.dataset.outputs[0].labels[tf.argmax(itm["output_1"], -1).numpy().tolist()]
+            # print(id_to_label[l])
+            # if id_to_label[l] not in label_counter:
+            #     label_counter[id_to_label[l]] = 0
+            # label_counter[id_to_label[l]] += 1
+        # print(label_counter)
+        # print(len(label_counter))
 
 # python -u aispace/trainer.py \
 #    --experiment_name test \

@@ -730,7 +730,6 @@ class DuEERoleTransformer(BaseTransformer):
 
     def _build_featureV5(self, one_json, schema, schema_raw, label2ids, split="train"):
         """
-        随机替换role
         :param one_json:
         :param schema:
         :param label2ids:
@@ -806,7 +805,7 @@ class DuEERoleTransformer(BaseTransformer):
             first_seq_len = len(tokens)
 
             # append event_type
-            event_type_tokens = self.tokenizer.tokenize(f"{event_type}-{schema_raw[event_type]}")
+            event_type_tokens = self.tokenizer.tokenize(f"{event_type}")
             second_seq_len = len(event_type_tokens)
 
             if first_seq_len + second_seq_len + 3 > self.tokenizer.max_len:
@@ -908,6 +907,7 @@ class DuEERoleAsQATransformer(BaseTransformer):
 
         # read schema and build entity_type to role mask
         schema = {}
+        self.schema_file = "/root/aispace_data/duee/event_schema/event_schema.json"
         with open(self.schema_file, "r", encoding="utf8") as inf:
             for line in inf:
                 one_json = json.loads(line)
@@ -923,12 +923,13 @@ class DuEERoleAsQATransformer(BaseTransformer):
                     if len(line) == 0: continue
                     line_json = json.loads(line)
                     if len(line_json) == 0: continue
-                    features = self._build_feature(line_json, schema)
+                    features = self._build_feature_v2(line_json, schema)
                     for feature in features:
                         new_line = f"{json_dumps(feature)}\n"
                         ouf.write(new_line)
         return output_path
 
+    # 单个答案
     def _build_feature(self, one_json, schema):
         text = one_json.get("text")
         id = one_json.get("id")
@@ -959,8 +960,17 @@ class DuEERoleAsQATransformer(BaseTransformer):
 
                     if len(token1 + token2 + token3 + token4) + 3 > self.tokenizer.max_len:
                         last_len = (self.tokenizer.max_len - len(token2 + token4) - 3) // 2
-                        token1 = token1[last_len * -1:]
-                        token3 = token3[:last_len]
+                        if len(token1) >= last_len and len(token3) >= last_len:
+                            token1 = token1[-1 * last_len:]
+                            token3 = token3[:last_len]
+                        elif len(token1) >= last_len > len(token3):
+                            token1 = token1[-1 * (last_len * 2 - (len(token3) // 2) - 1):]
+                            token3 = token3[: len(token3) // 2]
+                        elif len(token1) < last_len <= len(token3):
+                            token3 = token3[:(last_len * 2 - (len(token1) // 2) - 1)]
+                            token1 = token1[-1 * (len(token1) // 2):]
+                        else:
+                            continue
 
                     tokens = [self.tokenizer.vocab.cls_token] + token1 + token2 + token3 + [
                         self.tokenizer.vocab.sep_token] + token4 + [self.tokenizer.vocab.sep_token]
@@ -973,7 +983,7 @@ class DuEERoleAsQATransformer(BaseTransformer):
                                 self.tokenizer.max_len - mask_len)
 
                     start_positions = [0] * self.tokenizer.max_len
-                    start_positions[len(token1)] = 1
+                    start_positions[len(token1) + 1] = 1
                     end_positions = [0] * self.tokenizer.max_len
                     end_positions[len(token1) + len(token2)] = 1
                     is_impossible = [0, 1]
@@ -982,6 +992,124 @@ class DuEERoleAsQATransformer(BaseTransformer):
                     start_positions = [0] * self.tokenizer.max_len
                     start_positions[0] = 1
                     end_positions = [0] * self.tokenizer.max_len
+                    end_positions[0] = 1
+                    is_impossible = [1, 0]
+
+                feature = {
+                    "id": id,
+                    "input_ids": input_ids,
+                    "token_type_ids": token_type_ids,
+                    "attention_mask": attention_mask,
+                    "start_positions": start_positions,
+                    "end_positions": end_positions,
+                    "is_impossible": is_impossible
+                }
+
+                yield feature
+
+    # 多个答案
+    def _build_feature_v2(self, one_json, schema):
+        text = one_json.get("text")
+        id = one_json.get("id")
+
+        event_roles = {}
+        event_types = set()
+        for event in one_json.get("event_list"):
+            event_type = event.get("event_type")
+            event_types.add(event_type)
+            arguments = event.get("arguments", [])
+            arguments.sort(key=lambda s: s.get("argument_start_index"))
+            if len(arguments) == 0:
+                return {}
+            for argument in arguments:
+                event_type_role_key = (event_type, argument['role'])
+                if event_type_role_key not in event_roles:
+                    event_roles[event_type_role_key] = []
+                event_roles[event_type_role_key].append(argument)
+
+        new_event_roles = {}
+        for k, v in event_roles.items():
+            n_v = []
+            visited = set()
+            for i, t in enumerate(v):
+                tt = t['argument'] + str(t["argument_start_index"])
+                if tt in visited:
+                    continue
+                visited.add(tt)
+                n_v.append(t)
+            new_event_roles[k] = n_v
+
+        for event_type in event_types:
+            for role_name in schema[event_type]:
+                query_token_str = f"{event_type}-{role_name}"
+
+                if (event_type, role_name) in new_event_roles:
+                    arguments = new_event_roles[(event_type, role_name)]
+                    arguments.sort(key=lambda s: s.get("argument_start_index"))
+                    tokens = []
+                    start_positions, end_positions = [], []
+                    pre_start = 0
+                    for one_argument in arguments:
+                        role = one_argument.get("role")
+                        argument = one_argument.get("argument")
+                        argument_start_index = one_argument.get("argument_start_index")
+                        if role is None or not argument or argument_start_index is None:
+                            continue
+
+                        span_start = argument_start_index
+                        span_end = span_start + len(argument)
+                        pre_tokens = self.tokenizer.tokenize(text[pre_start: span_start])
+                        tokens.extend(pre_tokens)
+                        start_positions += [0] * len(pre_tokens)
+                        end_positions += [0] * len(pre_tokens)
+
+                        cur_tokens = self.tokenizer.tokenize(argument)
+                        tokens.extend(cur_tokens)
+                        start_positions += [1] + [0] * (len(cur_tokens) - 1)
+                        end_positions += [0] * (len(cur_tokens) - 1) + [1]
+
+                        pre_start = span_end
+
+                    cur_tokens = self.tokenizer.tokenize(text[pre_start: len(text)])
+                    tokens.extend(cur_tokens)
+                    start_positions += [0] * len(cur_tokens)
+                    end_positions += [0] * len(cur_tokens)
+                    first_seq_len = len(tokens)
+
+                    # append event_type
+                    query_tokens = self.tokenizer.tokenize(query_token_str)
+                    second_seq_len = len(query_tokens)
+
+                    if first_seq_len + second_seq_len + 3 > self.tokenizer.max_len:
+                        cur_len = first_seq_len + second_seq_len + 3 - self.tokenizer.max_len
+                        tokens = tokens[0: -1 * cur_len]
+                        start_positions = start_positions[0: -1 * cur_len]
+                        end_positions = end_positions[0: -1 * cur_len]
+                        first_seq_len = len(tokens)
+
+                    start_positions = [0] + start_positions
+                    start_positions += [0] * (self.tokenizer.max_len - len(start_positions))
+                    end_positions = [0] + end_positions
+                    end_positions += [0] * (self.tokenizer.max_len - len(end_positions))
+
+                    tokens = [self.tokenizer.vocab.cls_token] + tokens + [self.tokenizer.vocab.sep_token] + \
+                             query_tokens + [self.tokenizer.vocab.sep_token]
+                    t_len = len(tokens)
+                    tokens += [self.tokenizer.vocab.pad_token] * (self.tokenizer.max_len - len(tokens))
+                    input_ids = self.tokenizer.vocab.transformer(tokens)
+                    token_type_ids = [0] * (first_seq_len + 2) + \
+                                     [1] * (second_seq_len + 1) + \
+                                     [0] * (self.tokenizer.max_len - first_seq_len - second_seq_len - 3)
+                    attention_mask = [1] * t_len + [0] * (self.tokenizer.max_len - t_len)
+                    if sum(start_positions) == sum(end_positions) == 0:
+                        is_impossible = [1, 0]
+                    else:
+                        is_impossible = [0, 1]
+                else:
+                    start_positions = [0] * self.tokenizer.max_len
+                    end_positions = [0] * self.tokenizer.max_len
+                    input_ids, token_type_ids, attention_mask = self.tokenizer.encode(text, query_token_str)
+                    start_positions[0] = 1
                     end_positions[0] = 1
                     is_impossible = [1, 0]
 
