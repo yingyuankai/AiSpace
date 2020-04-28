@@ -35,7 +35,7 @@ class BertForNer(BaseModel):
         self.dropout = tf.keras.layers.Dropout(
             model_hparams.hidden_dropout_prob
         )
-        # self.bilstm = Bilstm(model_hparams.hidden_size, model_hparams.hidden_dropout_prob, name="bilstm")
+        self.bilstm = Bilstm(model_hparams.hidden_size, model_hparams.hidden_dropout_prob, name="bilstm")
         self.project = tf.keras.layers.Dense(
             model_hparams.hidden_size,
             kernel_initializer=get_initializer(model_hparams.initializer_range),
@@ -55,7 +55,7 @@ class BertForNer(BaseModel):
         bert_encode = self.bert(inputs, **kwargs)
         seq_output = bert_encode[0]
         # bilstm
-        # seq_output = self.bilstm(seq_output)
+        seq_output = self.bilstm(seq_output)
         # project
         project = self.project(seq_output)
         project = self.dropout(project, training=training)

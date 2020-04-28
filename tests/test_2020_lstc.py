@@ -21,7 +21,7 @@ from aispace.utils.builder_utils import load_dataset
 class TestLSTC(unittest.TestCase):
     def test_lstc_load(self):
         hparams = Hparams()
-        hparams.load_from_config_file("../configs/2020_LSTC/DuEE_role_as_qa.yml")
+        hparams.load_from_config_file("../configs/2020_LSTC/DuEE_role_reduce_label.yml")
         hparams.stand_by()
         checksum_dir = "../aispace/datasets/url_checksums"
         tfds.download.add_checksums_dir(checksum_dir)

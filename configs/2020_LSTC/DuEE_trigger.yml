@@ -11,13 +11,13 @@ model_attributes:
 training:
   learning_rate: 3e-4
   max_epochs: 30
-  batch_size: 32
+  batch_size: 8
   callbacks:
     # callback name
     early_stopping:
       switch: true
       config:
-        patience: 3
+        patience: 2
 
 dataset:
   name: lstc_2020/DuEE_trigger
@@ -52,14 +52,14 @@ dataset:
       type: LIST_OF_CLASSLABEL
       task: NER
       num: 0
-      weight: 0.5
       labels:
         url: "https://ai.baidu.com/file/9C92719AF96D4DDB96477BFBE1435262"
         name: "duee_trigger_ner_labels"
       loss:
-        name: sparse_categorical_crossentropy
-        config:
-          from_logits: true
+#        name: sparse_categorical_crossentropy
+        name: myself_crf_loss
+#        config:
+#          from_logits: true
 #          reduction: "sum"
       metrics:
         - name: sparse_categorical_accuracy

@@ -19,7 +19,10 @@ from aispace.utils.io_utils import maybe_download, load_from_file
 
 __all__ = [
     "DuEETriggerTransformer",
-    "DuEERoleTransformer"
+    "DuEERoleTransformer",
+    "DuEERoleAsQATransformer",
+    "DuEERoleReduceLabelTransformer",
+    "DuEETriggerAsClassifierTransformer"
 ]
 
 logger = logging.getLogger(__name__)
@@ -43,7 +46,7 @@ class DuEETriggerTransformer(BaseTransformer):
         output_path = os.path.join(output_path_base, f"{split}.json")
 
         self.ner_label_to_id = {l: idx for idx, l in enumerate(self._hparams.dataset.outputs[0].labels)}
-        self.label_to_id = {l: idx for idx, l in enumerate(self._hparams.dataset.outputs[1].labels)}
+        # self.label_to_id = {l: idx for idx, l in enumerate(self._hparams.dataset.outputs[1].labels)}
         with open(data_path, "r", encoding="utf8") as inf:
             with open(output_path, "w", encoding="utf8") as ouf:
                 for line in tqdm(inf):
@@ -59,6 +62,74 @@ class DuEETriggerTransformer(BaseTransformer):
         return output_path
 
     def _build_feature(self, one_json):
+        text = one_json.get("text")
+        id = one_json.get("id")
+        event_list = one_json.get("event_list", [])
+        event_list.sort(key=lambda s: s.get("trigger_start_index"))
+        if len(event_list) == 0:
+            return {}
+
+        tokens = []
+        labels = []
+        pre_start = 0
+        event_types = set()
+        for event in event_list:
+            event_type = event.get("event_type")
+            event_types.add(event_type)
+            trigger = event.get("trigger")
+            trigger_start_index = event.get("trigger_start_index")
+            if event_type is None or not trigger or trigger_start_index is None:
+                continue
+
+            if trigger_start_index + len(trigger) + 2 >= self.tokenizer.max_len:
+                continue
+
+            span_start = trigger_start_index
+            span_end = span_start + len(trigger)
+
+            pre_tokens = self.tokenizer.tokenize(text[pre_start: span_start])
+            tokens.extend(pre_tokens)
+            labels.extend(["O"] * len(pre_tokens))
+
+            cur_tokens = self.tokenizer.tokenize(trigger)
+            tokens.extend(cur_tokens)
+            labels.extend([self._hparams.duee_trigger_ner_labels[f"B-{event_type}"]])
+            labels.extend([self._hparams.duee_trigger_ner_labels[f"I-{event_type}"]] * (len(cur_tokens) - 1))
+
+            pre_start = span_end
+        cur_tokens = self.tokenizer.tokenize(text[pre_start: len(text)])
+        tokens.extend(cur_tokens)
+        labels.extend(['O'] * len(cur_tokens))
+
+        # bert lables
+        labels = labels[:self.tokenizer.max_len - 2]
+        labels = ['O'] + labels + ['O']
+        labels += ['O'] * (self.tokenizer.max_len - len(labels))
+        # bert base input
+        tokens = tokens[:self.tokenizer.max_len - 2]
+        tokens = [self.tokenizer.vocab.cls_token] + tokens + [self.tokenizer.vocab.sep_token]
+        input_ids = self.tokenizer.vocab.transformer(tokens)
+        lens = len(input_ids)
+        input_ids += [0] * (self.tokenizer.max_len - lens)
+        token_type_ids = [0] * self.tokenizer.max_len
+        attention_mask = [1] * lens + [0] * (self.tokenizer.max_len - lens)
+
+        feature = {
+            "id": id,
+            "input_ids": input_ids,
+            "token_type_ids": token_type_ids,
+            "attention_mask": attention_mask,
+            "ner_labels": labels,
+        }
+
+        return feature
+
+    def _build_feature_v2(self, one_json):
+        """
+        ner 分类 joint
+        :param one_json:
+        :return:
+        """
         text = one_json.get("text")
         id = one_json.get("id")
         event_list = one_json.get("event_list", [])
@@ -888,8 +959,220 @@ class DuEERoleTransformer(BaseTransformer):
                     labels[f"I-{tmp}"] = f"I-{cur_num}"
         return labels
 
+@BaseTransformer.register("lstc_2020/DuEE_role_reduce_label")
+class DuEERoleReduceLabelTransformer(BaseTransformer):
+    """3.0.0"""
+    def __init__(self, hparams, **kwargs):
+        super(DuEERoleReduceLabelTransformer, self).__init__(hparams, **kwargs)
+
+        # tokenizer
+        self.tokenizer = \
+            BaseTokenizer. \
+                by_name(self._hparams.dataset.tokenizer.name) \
+                (self._hparams.dataset.tokenizer)
+
+        self.label_reduce_map = {}
+        label_reduce_file = "/search/data1/yyk/workspace/projects/AiSpace/data/reduce_labels.txt"
+        with open(label_reduce_file, "r", encoding="utf-8") as inf:
+            for line in inf:
+                pieces = line.split()
+                norm_name = pieces[0]
+                for t in pieces[1:]:
+                    self.label_reduce_map[t] = norm_name
+
+    def transform(self, data_path, split="train"):
+        output_path_base = os.path.join(os.path.dirname(data_path), "json")
+        if not os.path.exists(output_path_base):
+            os.makedirs(output_path_base)
+        output_path = os.path.join(output_path_base, f"{split}.json")
+
+        # read schema and build entity_type to role mask
+        schema = {}
+        schema_raw = {}
+        with open(self.schema_file, "r", encoding="utf8") as inf:
+            for line in inf:
+                one_json = json.loads(line)
+                s_event_type = one_json.get("event_type")
+                s_roles = one_json.get("role_list")
+                schema[s_event_type] = [f"B-{self.label_reduce_map.get(r['role'], r['role'])}" for r in s_roles] + [f"I-{self.label_reduce_map.get(r['role'], r['role'])}" for r in s_roles]
+                schema_raw[s_event_type] = "-".join([self.label_reduce_map.get(r['role'], r['role']) for r in s_roles])
+
+        label2ids = {l: idx for idx, l in enumerate(list(self._hparams.duee_role_ner_labels.keys()))}
+
+        self.trigger_mapping, self.role_mapping = {}, {}
+        with open(data_path, "r", encoding="utf8") as inf:
+            with open(output_path, "w", encoding="utf8") as ouf:
+                for line in tqdm(inf):
+                    if not line: continue
+                    line = line.strip()
+                    if len(line) == 0: continue
+                    line_json = json.loads(line)
+                    if len(line_json) == 0: continue
+                    # features = self._build_featureV3(line_json, schema, label2ids)
+                    # features = self._build_featureV4(line_json, schema, label2ids, split)
+                    features = self._build_feature(line_json, schema, schema_raw, label2ids, split)
+                    for feature in features:
+                        new_line = f"{json_dumps(feature)}\n"
+                        ouf.write(new_line)
+        return output_path
+
+    def _build_feature(self, one_json, schema, schema_raw, label2ids, split="train"):
+        """
+        使用类别规约
+        :param one_json:
+        :param schema:
+        :param label2ids:
+        :param split:
+        :return:
+        """
+        text = one_json.get("text")
+        id = one_json.get("id")
+
+        event_args = {}
+        for event in one_json.get("event_list"):
+            event_type = event.get("event_type")
+            if event_type not in event_args:
+                event_args[event_type] = []
+            arguments = event.get("arguments", [])
+            event_args[event_type].extend(arguments)
+
+        new_event_args = {}
+        for event_type, args in event_args.items():
+            visited = set()
+            n_a = []
+            for arg in args:
+                erk = f"{arg['argument']}{arg['argument_start_index']}"
+                if erk in visited:
+                    continue
+                visited.add(erk)
+                n_a.append(arg)
+            new_event_args[event_type] = n_a
+
+        for event_type, arguments in new_event_args.items():
+            arguments.sort(key=lambda s: s.get("argument_start_index"))
+
+            if len(arguments) == 0:
+                return {}
+
+            tokens = []
+            labels = []
+            pre_start = 0
+            for one_argument in arguments:
+                role = one_argument.get("role")
+                role = self.label_reduce_map.get(role, role)
+                argument = one_argument.get("argument")
+                argument_start_index = one_argument.get("argument_start_index")
+                if role is None or not argument or argument_start_index is None:
+                    continue
+
+                span_start = argument_start_index
+                span_end = span_start + len(argument)
+                pre_tokens = self.tokenizer.tokenize(text[pre_start: span_start])
+                tokens.extend(pre_tokens)
+                labels.extend(["O"] * len(pre_tokens))
+
+                cur_tokens = self.tokenizer.tokenize(argument)
+                tokens.extend(cur_tokens)
+                labels.extend([self._hparams.duee_role_ner_labels[f"B-{role}"]])
+                labels.extend([self._hparams.duee_role_ner_labels[f"I-{role}"]] * (len(cur_tokens) - 1))
+
+                pre_start = span_end
+
+            cur_tokens = self.tokenizer.tokenize(text[pre_start: len(text)])
+            tokens.extend(cur_tokens)
+            labels.extend(['O'] * len(cur_tokens))
+            first_seq_len = len(tokens)
+
+            # append event_type
+            event_type_tokens = self.tokenizer.tokenize(f"{event_type}")
+            second_seq_len = len(event_type_tokens)
+
+            if first_seq_len + second_seq_len + 3 > self.tokenizer.max_len:
+                cur_len = first_seq_len + second_seq_len + 3 - self.tokenizer.max_len
+                tokens = tokens[0: -1 * cur_len]
+                labels = labels[0: -1 * cur_len]
+                first_seq_len = len(tokens)
+            if len(set(labels)) == 1:
+                continue
+
+            cur_tokens = [self.tokenizer.vocab.sep_token]
+            tokens.extend(cur_tokens)
+            labels.extend(['O'] * len(cur_tokens))
+
+            tokens.extend(event_type_tokens)
+            labels.extend(['O'] * len(event_type_tokens))
+
+            # bert lables
+            labels = labels[:self.tokenizer.max_len - 2]
+            labels = ['O'] + labels + ['O']
+            labels += ['O'] * (self.tokenizer.max_len - len(labels))
+
+            # bert base input
+            tokens = tokens[:self.tokenizer.max_len - 2]
+            tokens = [self.tokenizer.vocab.cls_token] + tokens + [self.tokenizer.vocab.sep_token]
+            input_ids = self.tokenizer.vocab.transformer(tokens)
+            lens = len(input_ids)
+            input_ids += [0] * (self.tokenizer.max_len - lens)
+            token_type_ids = [0] * (first_seq_len + 2) + \
+                             [1] * (second_seq_len + 1) + \
+                             [0] * (self.tokenizer.max_len - first_seq_len - second_seq_len - 3)
+            attention_mask = [1] * lens + [0] * (self.tokenizer.max_len - lens)
+
+            # label mask
+            mask = [0] * len(self._hparams.duee_role_ner_labels)
+            mask[0] = 1
+            for r in schema[event_type]:
+                mask[label2ids[r]] = 1
+
+            feature = {
+                "id": id,
+                "input_ids": input_ids,
+                "token_type_ids": token_type_ids,
+                "attention_mask": attention_mask,
+                "label_mask": mask,
+                "labels": labels,
+            }
+
+            yield feature
+
+    # read labels from file
+    def duee_role_ner_labels(self, url, name=""):
+        from collections import OrderedDict
+        if url.startswith("http"):
+            filename = "event_schema/event_schema.json"
+            cache_path = default_download_dir(name)
+            file_path = cache_path / filename
+            if not file_path.exists():
+                try:
+                    maybe_download(url, str(cache_path), extract=True)
+                except Exception as e:
+                    logger.error(f"Download from {url} failure!", exc_info=True)
+                    raise e
+        else:  # when specify paths of resource which have downloaded.
+            file_path = Path(url)
+
+        self.schema_file = file_path
+        labels = OrderedDict()
+        labels["O"] = "O"
+        visited = set()
+        with open(file_path, "r", encoding="utf8") as inf:
+            for line in inf:
+                one_json = json.loads(line)
+                role_list = one_json.get("role_list")
+                for role in role_list:
+                    role = role['role']
+                    tmp = self.label_reduce_map.get(role, role)
+                    if tmp in visited:
+                        continue
+                    visited.add(tmp)
+                    cur_num = len(visited)
+                    labels[f"B-{tmp}"] = f"B-{cur_num}"
+                    labels[f"I-{tmp}"] = f"I-{cur_num}"
+        return labels
+
 @BaseTransformer.register("lstc_2020/DuEE_role_as_qa")
 class DuEERoleAsQATransformer(BaseTransformer):
+    "2.0.0"
     def __init__(self, hparams, **kwargs):
         super(DuEERoleAsQATransformer, self).__init__(hparams, **kwargs)
 
@@ -1102,6 +1385,10 @@ class DuEERoleAsQATransformer(BaseTransformer):
                                      [0] * (self.tokenizer.max_len - first_seq_len - second_seq_len - 3)
                     attention_mask = [1] * t_len + [0] * (self.tokenizer.max_len - t_len)
                     if sum(start_positions) == sum(end_positions) == 0:
+                        start_positions = [0] * self.tokenizer.max_len
+                        end_positions = [0] * self.tokenizer.max_len
+                        start_positions[0] = 1
+                        end_positions[0] = 1
                         is_impossible = [1, 0]
                     else:
                         is_impossible = [0, 1]
