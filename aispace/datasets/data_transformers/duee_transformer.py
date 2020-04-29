@@ -55,7 +55,7 @@ class DuEETriggerTransformer(BaseTransformer):
                     if len(line) == 0: continue
                     line_json = json.loads(line)
                     if len(line_json) == 0: continue
-                    feature = self._build_feature(line_json)
+                    feature = self._build_feature(line_json, split, False)
                     if not feature: continue
                     new_line = f"{json_dumps(feature)}\n"
                     ouf.write(new_line)
@@ -82,7 +82,7 @@ class DuEETriggerTransformer(BaseTransformer):
         labels = []
         pre_start = 0
         event_types = set()
-        flag = False
+        flag = True
         for event in event_list:
             event_type = event.get("event_type")
             event_types.add(event_type)
@@ -103,7 +103,7 @@ class DuEETriggerTransformer(BaseTransformer):
 
             cur_tokens = self.tokenizer.tokenize(trigger)
             if data_aug and split == "train" and random() <= 0.1:
-                flag = True
+                flag = False
                 cur_tokens = [self.tokenizer.vocab.mask_token] * len(cur_tokens)
             tokens.extend(cur_tokens)
             labels.extend([self._hparams.duee_trigger_ner_labels[f"B-{event_type}"]])
@@ -134,7 +134,7 @@ class DuEETriggerTransformer(BaseTransformer):
             "attention_mask": attention_mask,
             "ner_labels": labels,
         }
-        if not flag:
+        if data_aug and flag:
             return None
 
         return feature
