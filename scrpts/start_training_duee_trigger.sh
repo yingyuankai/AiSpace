@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export CUDA_VISIBLE_DEVICES=5,6
+export CUDA_VISIBLE_DEVICES=0,1
 nohup python -u aispace/trainer.py \
     --experiment_name trigger \
     --model_name bert_for_ner \
