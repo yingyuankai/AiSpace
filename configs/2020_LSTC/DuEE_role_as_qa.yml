@@ -13,7 +13,7 @@ model_attributes:
 
 training:
   learning_rate: 1e-4
-  max_epochs: 30
+  max_epochs: 1
   batch_size: 16
   callbacks:
     # callback name
@@ -78,7 +78,7 @@ dataset:
       column: is_impossible
       type: LIST_OF_INT
       num: 2
-      weight: 0.001
+      weight: 0.0001
       loss:
         name: sigmoid_cross_entropy
 #        config:
