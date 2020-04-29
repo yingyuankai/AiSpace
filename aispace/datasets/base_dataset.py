@@ -98,7 +98,10 @@ class BaseDataset(Registry, tfds.core.GeneratorBasedBuilder):
                   for itm in self.hparams.dataset.inputs + self.hparams.dataset.outputs]
         with open(filepath, 'r') as inf:
             for line in inf:
-                row = json.loads(line)
+                try:
+                    row = json.loads(line)
+                except:
+                    logger.error("Read json Err!", exc_info = True)
                 instance_final = {}
                 for field_name, field_column in fields:
                     field_value = row.get(field_column)
