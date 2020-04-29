@@ -64,6 +64,7 @@ class DuEETriggerTransformer(BaseTransformer):
                     if split != "train":
                         continue
                     visited = set()
+                    visited.add(sum(feature['input_ids']))
                     for i in range(3):
                         feature = self._build_feature(line_json, split, True)
                         if feature:
@@ -106,7 +107,7 @@ class DuEETriggerTransformer(BaseTransformer):
             labels.extend(["O"] * len(pre_tokens))
 
             cur_tokens = self.tokenizer.tokenize(trigger)
-            if data_aug and split == "train":
+            if data_aug and split == "train" and random() < 0.3:
                 flag = False
                 random_len = max(2, randrange(2, len(cur_tokens) + 3))
                 cur_tokens = [self.tokenizer.vocab.mask_token] * random_len
