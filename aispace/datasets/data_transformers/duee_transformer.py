@@ -56,7 +56,7 @@ class DuEETriggerTransformer(BaseTransformer):
                     line_json = json.loads(line)
                     if len(line_json) == 0: continue
                     feature = self._build_feature(line_json)
-                    if not feature == 0: continue
+                    if not feature: continue
                     new_line = f"{json_dumps(feature)}\n"
                     ouf.write(new_line)
 
@@ -65,7 +65,7 @@ class DuEETriggerTransformer(BaseTransformer):
                         continue
                     for i in range(3):
                         feature = self._build_feature(line_json, split, True)
-                        if not feature == 0: continue
+                        if not feature: continue
                         new_line = f"{json_dumps(feature)}\n"
                         ouf.write(new_line)
         return output_path
