@@ -9,7 +9,7 @@ import os
 from tqdm import tqdm
 import json
 import logging
-from random import random
+from random import random, randrange
 from pathlib import Path
 from .base_transformer import BaseTransformer
 from aispace.datasets import BaseTokenizer
@@ -63,9 +63,13 @@ class DuEETriggerTransformer(BaseTransformer):
                     # 数据增强
                     if split != "train":
                         continue
+                    visited = set()
                     for i in range(3):
                         feature = self._build_feature(line_json, split, True)
                         if feature:
+                            if sum(feature['input_ids']) in visited:
+                                continue
+                            visited.add(sum(feature['input_ids']))
                             new_line = f"{json_dumps(feature)}\n"
                             ouf.write(new_line)
         return output_path
@@ -102,9 +106,10 @@ class DuEETriggerTransformer(BaseTransformer):
             labels.extend(["O"] * len(pre_tokens))
 
             cur_tokens = self.tokenizer.tokenize(trigger)
-            if data_aug and split == "train" and random() <= 0.1:
+            if data_aug and split == "train":
                 flag = False
-                cur_tokens = [self.tokenizer.vocab.mask_token] * len(cur_tokens)
+                random_len = max(2, randrange(2, len(cur_tokens) + 3))
+                cur_tokens = [self.tokenizer.vocab.mask_token] * random_len
             tokens.extend(cur_tokens)
             labels.extend([self._hparams.duee_trigger_ner_labels[f"B-{event_type}"]])
             labels.extend([self._hparams.duee_trigger_ner_labels[f"I-{event_type}"]] * (len(cur_tokens) - 1))
