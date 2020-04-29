@@ -56,12 +56,18 @@ class DuEETriggerTransformer(BaseTransformer):
                     line_json = json.loads(line)
                     if len(line_json) == 0: continue
                     feature = self._build_feature(line_json)
-                    if len(feature) == 0: continue
+                    if not feature == 0: continue
+                    new_line = f"{json_dumps(feature)}\n"
+                    ouf.write(new_line)
+
+                    # 数据增强
+                    feature = self._build_feature(line_json, split, True)
+                    if not feature == 0: continue
                     new_line = f"{json_dumps(feature)}\n"
                     ouf.write(new_line)
         return output_path
 
-    def _build_feature(self, one_json):
+    def _build_feature(self, one_json, split="train", data_aug=False):
         text = one_json.get("text")
         id = one_json.get("id")
         event_list = one_json.get("event_list", [])
@@ -73,6 +79,7 @@ class DuEETriggerTransformer(BaseTransformer):
         labels = []
         pre_start = 0
         event_types = set()
+        flag = False
         for event in event_list:
             event_type = event.get("event_type")
             event_types.add(event_type)
@@ -92,6 +99,9 @@ class DuEETriggerTransformer(BaseTransformer):
             labels.extend(["O"] * len(pre_tokens))
 
             cur_tokens = self.tokenizer.tokenize(trigger)
+            if data_aug and split == "train" and random() <= 0.1:
+                flag = True
+                cur_tokens = [self.tokenizer.vocab.mask_token] * len(cur_tokens)
             tokens.extend(cur_tokens)
             labels.extend([self._hparams.duee_trigger_ner_labels[f"B-{event_type}"]])
             labels.extend([self._hparams.duee_trigger_ner_labels[f"I-{event_type}"]] * (len(cur_tokens) - 1))
@@ -121,10 +131,12 @@ class DuEETriggerTransformer(BaseTransformer):
             "attention_mask": attention_mask,
             "ner_labels": labels,
         }
+        if not flag:
+            return None
 
         return feature
 
-    def _build_feature_v2(self, one_json):
+    def _build_feature_v2(self, one_json, split="train", data_aug=False):
         """
         ner 分类 joint
         :param one_json:
@@ -160,6 +172,8 @@ class DuEETriggerTransformer(BaseTransformer):
             labels.extend(["O"] * len(pre_tokens))
 
             cur_tokens = self.tokenizer.tokenize(trigger)
+            if data_aug and split == "train" and random() <= 0.1:
+                cur_tokens = [self.tokenizer.vocab.mask_token] * len(cur_tokens)
             tokens.extend(cur_tokens)
             labels.extend([self._hparams.duee_trigger_ner_labels[f"B-{event_type}"]])
             labels.extend([self._hparams.duee_trigger_ner_labels[f"I-{event_type}"]] * (len(cur_tokens) - 1))

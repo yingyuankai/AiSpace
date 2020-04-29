@@ -20,7 +20,7 @@ training:
     early_stopping:
       switch: true
       config:
-        patience: 2
+        patience: 5
 
 dataset:
   name: "lstc_2020/DuEE_role"
@@ -88,7 +88,7 @@ dataset:
         - name: categorical_accuracy
 
 pretrained:
-    name: chinese_roberta_wwm_ext
+    name: chinese_roberta_wwm_large_ext
     init_from_pretrained: true
 
 
