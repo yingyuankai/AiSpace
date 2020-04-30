@@ -10,7 +10,7 @@ model_attributes:
     hidden_size: 1024
 
 training:
-  learning_rate: 3e-6
+  learning_rate: 3e-4
   max_epochs: 30
   batch_size: 8
   callbacks:
@@ -81,8 +81,8 @@ dataset:
 #        - name: categorical_accuracy
 
 pretrained:
-#    name: chinese_roberta_wwm_large_ext
-    name: albert_xlarge_zh_183k
+    name: chinese_roberta_wwm_large_ext
+#    name: albert_xlarge_zh_183k
     init_from_pretrained: true
 
 
