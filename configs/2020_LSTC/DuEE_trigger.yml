@@ -1,6 +1,6 @@
 includes:
-#  - "../pretrain/bert_wwm.yml"
-  - "../pretrain/albert_chinese.yml"
+  - "../pretrain/bert_wwm.yml"
+#  - "../pretrain/albert_chinese.yml"
 
 model_name: bert_for_ner
 
