@@ -24,7 +24,9 @@ METRICS = {
     "sparse_categorical_crossentropy":
         lambda config: tf.keras.metrics.SparseCategoricalCrossentropy(**config),
     "f1_score":
-        lambda config: tfa.metrics.F1Score(**config)
+        lambda config: tfa.metrics.F1Score(**config),
+    "hamming_loss":
+        lambda config: tfa.metrics.HammingLoss(**config)
 }
 
 def print_available():

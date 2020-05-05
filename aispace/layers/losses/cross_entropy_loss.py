@@ -17,4 +17,8 @@ class SigmoidCrossEntropy(tf.keras.losses.Loss):
     def call(self, y_true, y_pred):
         y_true = tf.cast(y_true, tf.float32)
         cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(y_true, y_pred)
-        return tf.reduce_mean(cross_ent)
+        if self.reduction == tf.keras.losses.Reduction.SUM:
+            loss = tf.reduce_sum(cross_ent)
+        else:
+            loss = tf.reduce_mean(cross_ent)
+        return loss

@@ -40,7 +40,7 @@ class testDceLoss(unittest.TestCase):
 
     def test_focal_loss(self):
         from tensorflow_addons.losses import sigmoid_focal_crossentropy
-        y_true = tf.constant([1, 0, 0])
+        y_true = tf.constant([1.0, 0.0, 0.0])
         y_pre = tf.constant([0.1, 0.8, 0.1])
         loss = sigmoid_focal_crossentropy(y_true=y_true, y_pred=y_pre)
         print(loss)

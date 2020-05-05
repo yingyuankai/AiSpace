@@ -103,6 +103,7 @@ class BaseDataset(Registry, tfds.core.GeneratorBasedBuilder):
                 except:
                     logger.error("Read json Err!", exc_info=True)
                     logger.error(line)
+                    continue
                 instance_final = {}
                 for field_name, field_column in fields:
                     field_value = row.get(field_column)

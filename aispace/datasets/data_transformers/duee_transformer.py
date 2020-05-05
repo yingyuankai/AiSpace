@@ -9,6 +9,7 @@ import os
 from tqdm import tqdm
 import json
 import logging
+import numpy as np
 from random import random, randrange
 from pathlib import Path
 from .base_transformer import BaseTransformer
@@ -61,18 +62,18 @@ class DuEETriggerTransformer(BaseTransformer):
                     ouf.write(new_line)
 
                     # 数据增强
-                    if split != "train":
-                        continue
-                    visited = set()
-                    visited.add(sum(feature['input_ids']))
-                    for i in range(3):
-                        feature = self._build_feature(line_json, split, True)
-                        if feature:
-                            if sum(feature['input_ids']) in visited:
-                                continue
-                            visited.add(sum(feature['input_ids']))
-                            new_line = f"{json_dumps(feature)}\n"
-                            ouf.write(new_line)
+                    # if split != "train":
+                    #     continue
+                    # visited = set()
+                    # visited.add(sum(feature['input_ids']))
+                    # for i in range(3):
+                    #     feature = self._build_feature(line_json, split, True)
+                    #     if feature:
+                    #         if sum(feature['input_ids']) in visited:
+                    #             continue
+                    #         visited.add(sum(feature['input_ids']))
+                    #         new_line = f"{json_dumps(feature)}\n"
+                    #         ouf.write(new_line)
         return output_path
 
     def _build_feature(self, one_json, split="train", data_aug=False):
@@ -1434,3 +1435,231 @@ class DuEERoleAsQATransformer(BaseTransformer):
                 }
 
                 yield feature
+
+@BaseTransformer.register("lstc_2020/DuEE_joint")
+class DuEEJointTransformer(BaseTransformer):
+    """
+    1）trigger 抽取、事件类型确定；2）role抽取；3）trigger 和 role 将关系确定 联合训练
+
+    """
+    def __init__(self, hparams, **kwargs):
+        super(DuEEJointTransformer, self).__init__(hparams, **kwargs)
+
+        # tokenizer
+        self.tokenizer = \
+            BaseTokenizer. \
+                by_name(self._hparams.dataset.tokenizer.name) \
+                (self._hparams.dataset.tokenizer)
+
+    def transform(self, data_path, split="train"):
+        output_path_base = os.path.join(os.path.dirname(data_path), "json")
+        if not os.path.exists(output_path_base):
+            os.makedirs(output_path_base)
+        output_path = os.path.join(output_path_base, f"{split}.json")
+
+        # read schema and build entity_type to role mask
+        schema = {}
+        schema_raw = {}
+        with open(self.schema_file, "r", encoding="utf8") as inf:
+            for line in inf:
+                one_json = json.loads(line)
+                s_event_type = one_json.get("event_type")
+                s_roles = one_json.get("role_list")
+                schema[s_event_type] = [f"B-{r['role']}" for r in s_roles] + [f"I-{r['role']}" for r in s_roles]
+                schema_raw[s_event_type] = "-".join([r['role'] for r in s_roles])
+
+        label2ids = {l: idx for idx, l in enumerate(list(self._hparams.duee_role_ner_labels.keys()))}
+
+        self.trigger_mapping, self.role_mapping = {}, {}
+        with open(data_path, "r", encoding="utf8") as inf:
+            with open(output_path, "w", encoding="utf8") as ouf:
+                for line in tqdm(inf):
+                    if not line: continue
+                    line = line.strip()
+                    if len(line) == 0: continue
+                    line_json = json.loads(line)
+                    if len(line_json) == 0: continue
+                    features = self._build_feature(line_json, schema, schema_raw, label2ids, split)
+                    new_line = f"{json_dumps(features)}\n"
+                    ouf.write(new_line)
+        return output_path
+
+    def _build_feature(self, one_json, schema, schema_raw, label2ids, split="train"):
+        """
+        :param one_json:
+        :param schema:
+        :param label2ids:
+        :param split:
+        :return:
+        """
+        text = one_json.get("text")
+        id = one_json.get("id")
+
+        mentions = {}
+        for event in one_json.get("event_list"):
+            event_type = event.get("event_type")
+            trigger = event.get("trigger")
+            trigger_start_index = event.get("trigger_start_index")
+
+            if (trigger, trigger_start_index) not in mentions:
+                mentions[(trigger, trigger_start_index)] = {
+                    "text": trigger,
+                    "span_start": trigger_start_index,
+                    "span_end": trigger_start_index + len(trigger),
+                    "event_type": event_type,
+                    "other": set()
+                }
+
+            arguments = event.get("arguments", [])
+            for one_argument in arguments:
+                role = one_argument.get("role")
+                argument = one_argument.get("argument")
+                argument_start_index = one_argument.get("argument_start_index")
+                if (argument, argument_start_index) not in mentions:
+                    mentions[(argument, argument_start_index)] = {
+                        "text": argument,
+                        "span_start": argument_start_index,
+                        "span_end": argument_start_index + len(argument),
+                        "role_type": role,
+                        "other": {(trigger, trigger_start_index)}
+                    }
+                else:
+                    mentions[(argument, argument_start_index)]['other'].add((trigger, trigger_start_index))
+                mentions[(trigger, trigger_start_index)]['other'].add((argument, argument_start_index))
+
+        trigger_labels = []
+        role_labels = []
+        tokens = []
+        pre_start = 0
+        mvs = list(mentions.values())
+        mvs.sort(key=lambda s: s['span_start'])
+        for mention in mvs:
+            span_start, span_end = mention['span_start'], mention['span_end']
+
+            pre_tokens = self.tokenizer.tokenize(text[pre_start: span_start])
+            tokens.extend(pre_tokens)
+            trigger_labels.extend(["O"] * len(pre_tokens))
+            role_labels.extend(["O"] * len(pre_tokens))
+
+            cur_tokens = self.tokenizer.tokenize(mention['text'])
+            if "event_type" in mention:
+                trigger_labels.extend([self._hparams.duee_trigger_ner_labels[f"B-{mention['event_type']}"]])
+                trigger_labels.extend([self._hparams.duee_trigger_ner_labels[f"I-{mention['event_type']}"]] * (len(cur_tokens) - 1))
+                role_labels.extend(['O'] * len(cur_tokens))
+            else:
+                role_labels.extend([self._hparams.duee_role_ner_labels[f"B-{mention['role_type']}"]])
+                role_labels.extend(
+                    [self._hparams.duee_role_ner_labels[f"I-{mention['role_type']}"]] * (len(cur_tokens) - 1))
+                trigger_labels.extend(['O'] * len(cur_tokens))
+            mention['token_idx'] = len(tokens) + 1
+            tokens.extend(cur_tokens)
+            pre_start = span_end
+
+        cur_tokens = self.tokenizer.tokenize(text[pre_start: len(text)])
+        tokens.extend(cur_tokens)
+        trigger_labels.extend(['O'] * len(cur_tokens))
+        role_labels.extend(['O'] * len(cur_tokens))
+
+        # bert lables
+        trigger_labels = trigger_labels[:self.tokenizer.max_len - 2]
+        trigger_labels = ['O'] + trigger_labels + ['O']
+        trigger_labels += ['O'] * (self.tokenizer.max_len - len(trigger_labels))
+
+        role_labels = role_labels[:self.tokenizer.max_len - 2]
+        role_labels = ['O'] + role_labels + ['O']
+        role_labels += ['O'] * (self.tokenizer.max_len - len(role_labels))
+        # bert base input
+        tokens = tokens[:self.tokenizer.max_len - 2]
+        tokens = [self.tokenizer.vocab.cls_token] + tokens + [self.tokenizer.vocab.sep_token]
+        input_ids = self.tokenizer.vocab.transformer(tokens)
+        lens = len(input_ids)
+        input_ids += [0] * (self.tokenizer.max_len - lens)
+        token_type_ids = [0] * self.tokenizer.max_len
+        attention_mask = [1] * lens + [0] * (self.tokenizer.max_len - lens)
+
+        relation_labels = np.zeros(shape=(self.tokenizer.max_len, self.tokenizer.max_len), dtype=np.int)
+
+        for mention in mentions.values():
+            i = mention['token_idx']
+            if i >= self.tokenizer.max_len:
+                continue
+            for other_k in mention['other']:
+                j = mentions[other_k]['token_idx']
+                if j >= self.tokenizer.max_len:
+                    continue
+                relation_labels[i, j] = 1
+                relation_labels[j, i] = 1
+
+        feature = {
+            "id": id,
+            "input_ids": input_ids,
+            "token_type_ids": token_type_ids,
+            "attention_mask": attention_mask,
+            "trigger_labels": trigger_labels,
+            "role_labels": role_labels,
+            "relation_labels": relation_labels.flatten().tolist()
+        }
+
+        return feature
+
+
+    # read labels from file
+    def duee_trigger_ner_labels(self, url, name=""):
+        from collections import OrderedDict
+        if url.startswith("http"):
+            filename = "event_schema/event_schema.json"
+            cache_path = default_download_dir(name)
+            file_path = cache_path / filename
+            if not file_path.exists():
+                try:
+                    maybe_download(url, str(cache_path), extract=True)
+                except Exception as e:
+                    logger.error(f"Download from {url} failure!", exc_info=True)
+                    raise e
+        else:  # when specify paths of resource which have downloaded.
+            file_path = Path(url)
+
+        labels = OrderedDict()
+        labels["O"] = "O"
+        with open(file_path, "r", encoding="utf8") as inf:
+            for line in inf:
+                one_json = json.loads(line)
+                event_type = one_json.get("event_type")
+                id = one_json.get("id")
+                labels[f"B-{event_type}"] = f"B-{id}"
+                labels[f"I-{event_type}"] = f"I-{id}"
+        return labels
+
+    # read labels from file
+    def duee_role_ner_labels(self, url, name=""):
+        from collections import OrderedDict
+        if url.startswith("http"):
+            filename = "event_schema/event_schema.json"
+            cache_path = default_download_dir(name)
+            file_path = cache_path / filename
+            if not file_path.exists():
+                try:
+                    maybe_download(url, str(cache_path), extract=True)
+                except Exception as e:
+                    logger.error(f"Download from {url} failure!", exc_info=True)
+                    raise e
+        else:  # when specify paths of resource which have downloaded.
+            file_path = Path(url)
+
+        self.schema_file = file_path
+        labels = OrderedDict()
+        labels["O"] = "O"
+        visited = set()
+        with open(file_path, "r", encoding="utf8") as inf:
+            for line in inf:
+                one_json = json.loads(line)
+                role_list = one_json.get("role_list")
+                for role in role_list:
+                    tmp = role["role"]
+                    if tmp in visited:
+                        continue
+                    cur_num = len(labels)
+                    visited.add(tmp)
+                    labels[f"B-{tmp}"] = f"B-{cur_num}"
+                    labels[f"I-{tmp}"] = f"I-{cur_num}"
+        return labels

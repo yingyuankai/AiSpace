@@ -39,7 +39,7 @@ CLASSLABEL = 'CLASSLABEL'
 LIST_OF_CLASSLABEL = 'LIST_OF_CLASSLABEL'
 
 FEATURE_MAPPING = {
-    LIST_OF_INT: tfds.features.Sequence(tf.int32),
+    LIST_OF_INT: tfds.features.Sequence(tf.float32),
     INT: tf.int32,
 }
 
