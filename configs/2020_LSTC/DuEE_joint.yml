@@ -20,7 +20,7 @@ training:
     early_stopping:
       switch: true
       config:
-        patience: 5
+        patience: 2
 
 dataset:
   name: "lstc_2020/DuEE_role"
@@ -60,7 +60,8 @@ dataset:
         url: "https://ai.baidu.com/file/9C92719AF96D4DDB96477BFBE1435262"
         name: "duee_trigger_ner_labels"
       loss:
-        name: sparse_categorical_crossentropy
+#        name: sparse_categorical_crossentropy
+        name: sparse_softmax_focal_crossentropy
         config:
           from_logits: true
           reduction: "sum"
@@ -76,28 +77,29 @@ dataset:
         url: "https://ai.baidu.com/file/9C92719AF96D4DDB96477BFBE1435262"
         name: "duee_role_ner_labels"
       loss:
-        name: sparse_categorical_crossentropy
+#        name: sparse_categorical_crossentropy
+        name: sparse_softmax_focal_crossentropy
         config:
           from_logits: true
           reduction: "sum"
       metrics:
         - name: sparse_categorical_accuracy
-    - name: output_3
-      column: relation_labels
-      type: LIST_OF_INT
-      num: 22500
-      weight: 1.0
-      loss:
-#        name: sigmoid_cross_entropy
-        name: sigmoid_focal_crossentropy
-        config:
-          from_logits: true
-          reduction: "sum"
-      metrics:
-        - name: categorical_accuracy
-#        - name: hamming_loss
-#          config:
-#            mode: "multilabel"
+#    - name: output_3
+#      column: relation_labels
+#      type: LIST_OF_INT
+#      num: 22500
+#      weight: 1.0
+#      loss:
+##        name: sigmoid_cross_entropy
+#        name: sigmoid_focal_crossentropy
+#        config:
+#          from_logits: true
+#          reduction: "sum"
+#      metrics:
+#        - name: categorical_accuracy
+##        - name: hamming_loss
+##          config:
+##            mode: "multilabel"
 
 pretrained:
     name: chinese_roberta_wwm_ext

@@ -13,6 +13,7 @@ from aispace.layers import activations
 
 __all__ = [
     "get_initializer",
+    "get_bias_initializer",
     "get_shape",
     "assert_rank",
     "pack_inputs",
@@ -29,6 +30,16 @@ def get_initializer(initializer_range=0.02):
         TruncatedNormal initializer with stddev = `initializer_range`.
       """
     return tf.keras.initializers.TruncatedNormal(stddev=initializer_range)
+
+
+def get_bias_initializer(type='conv'):
+    """
+    create bias constant initializer
+    :param type: if type equals to conv, return 0 constant initializer, if equals to dense, return 1 constant initializer
+    :return: tensorflow constant initializer
+    """
+    if type == 'dense': return tf.constant_initializer(1)
+    else: return tf.constant_initializer(0)
 
 
 def pack_inputs(inputs):

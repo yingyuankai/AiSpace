@@ -6,3 +6,4 @@
 
 from .transformer import *
 from .rnn import *
+from .cnn import *

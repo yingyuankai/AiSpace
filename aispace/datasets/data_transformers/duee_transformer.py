@@ -10,6 +10,7 @@ from tqdm import tqdm
 import json
 import logging
 import numpy as np
+import hanlp
 from random import random, randrange
 from pathlib import Path
 from .base_transformer import BaseTransformer
@@ -40,6 +41,13 @@ class DuEETriggerTransformer(BaseTransformer):
                 by_name(self._hparams.dataset.tokenizer.name) \
                 (self._hparams.dataset.tokenizer)
 
+        self.hanlp_tokenizer = hanlp.load('PKU_NAME_MERGED_SIX_MONTHS_CONVSEG')
+        self.hanlp_tagger = hanlp.load(hanlp.pretrained.pos.CTB5_POS_RNN_FASTTEXT_ZH)
+        # self.hannlp_pipeline = hanlp.pipeline() \
+        #     .append(hanlp.utils.rules.split_sentence, output_key='sentences') \
+        #     .append(tokenizer, output_key='tokens') \
+        #     .append(tagger, output_key='part_of_speech_tags')
+
     def transform(self, data_path, split="train"):
         output_path_base = os.path.join(os.path.dirname(data_path), "json")
         if not os.path.exists(output_path_base):
@@ -56,7 +64,7 @@ class DuEETriggerTransformer(BaseTransformer):
                     if len(line) == 0: continue
                     line_json = json.loads(line)
                     if len(line_json) == 0: continue
-                    feature = self._build_feature(line_json, split, False)
+                    feature = self._build_feature_v3(line_json, split, False)
                     if not feature: continue
                     new_line = f"{json_dumps(feature)}\n"
                     ouf.write(new_line)
@@ -111,7 +119,7 @@ class DuEETriggerTransformer(BaseTransformer):
             if data_aug and split == "train" and random() < 0.3:
                 flag = False
                 random_len = max(2, randrange(2, len(cur_tokens) + 3))
-                cur_tokens = [self.tokenizer.vocab.mask_token] * random_len
+                cur_tokens = [self.tokenizer.vocab.pad_token] * random_len
             tokens.extend(cur_tokens)
             labels.extend([self._hparams.duee_trigger_ner_labels[f"B-{event_type}"]])
             labels.extend([self._hparams.duee_trigger_ner_labels[f"I-{event_type}"]] * (len(cur_tokens) - 1))
@@ -220,6 +228,107 @@ class DuEETriggerTransformer(BaseTransformer):
 
         return feature
 
+    def _build_feature_v3(self, one_json, split="train", data_aug=False):
+        """
+        增加pos 特征
+        :param one_json:
+        :param split:
+        :param data_aug:
+        :return:
+        """
+        text = one_json.get("text")
+        id = one_json.get("id")
+        event_list = one_json.get("event_list", [])
+        event_list.sort(key=lambda s: s.get("trigger_start_index"))
+        if len(event_list) == 0:
+            return {}
+
+        tokens = []
+        token_pos = []
+        labels = []
+        flag = True
+        tokens_hanlp = self.hanlp_tokenizer(text)
+        pos_hanlp = self.hanlp_tagger(tokens_hanlp)
+        event_dict = {event.get("trigger_start_index"): event for event in event_list}
+
+        def common_span(word_start, word_end):
+            final_start = word_start
+            final_end = word_end
+            event_type = "O"
+            for k, v in event_dict.items():
+                cur_word_start = k
+                cur_word_end = k + len(v["trigger"])
+
+                tmp_start = max(final_start, cur_word_start)
+                tmp_end = min(final_end, cur_word_end)
+                if tmp_start >= tmp_end:
+                    continue
+                final_start = tmp_start
+                final_end = tmp_end
+                event_type = v['event_type']
+            return final_start - word_start, final_end - word_start, event_type
+
+        worker_i = 0
+
+        for i in range(len(tokens_hanlp)):
+            cur_word = tokens_hanlp[i]
+            cur_pos = pos_hanlp[i]
+            span_s, span_e, event_type = common_span(worker_i, worker_i + len(cur_word))
+            cur_all_tokens = []
+
+            cur_tokens = self.tokenizer.tokenize(cur_word[: span_s])
+            tokens.extend(cur_tokens)
+            labels.extend(["O"] * len(cur_tokens))
+            cur_all_tokens += cur_tokens
+
+            cur_tokens = self.tokenizer.tokenize(cur_word[span_s: span_e])
+            tokens.extend(cur_tokens)
+            if event_type != "O":
+                labels.extend([self._hparams.duee_trigger_ner_labels[f"B-{event_type}"]])
+                labels.extend([self._hparams.duee_trigger_ner_labels[f"I-{event_type}"]] * (len(cur_tokens) - 1))
+            else:
+                labels.extend(["O"] * len(cur_tokens))
+            cur_all_tokens += cur_tokens
+
+            cur_tokens = self.tokenizer.tokenize(cur_word[span_e:])
+            tokens.extend(cur_tokens)
+            labels.extend(["O"] * len(cur_tokens))
+            cur_all_tokens += cur_tokens
+
+            token_pos += [f"B-{cur_pos}"] + [f"I-{cur_pos}"] * (len(cur_all_tokens) - 1)
+            worker_i += len(cur_word)
+
+        # pos
+        token_pos = token_pos[: self.tokenizer.max_len - 2]
+        token_pos = ["O"] + token_pos + ["O"]
+        token_pos += ['O'] * (self.tokenizer.max_len - len(token_pos))
+
+        # bert lables
+        labels = labels[:self.tokenizer.max_len - 2]
+        labels = ['O'] + labels + ['O']
+        labels += ['O'] * (self.tokenizer.max_len - len(labels))
+        # bert base input
+        tokens = tokens[:self.tokenizer.max_len - 2]
+        tokens = [self.tokenizer.vocab.cls_token] + tokens + [self.tokenizer.vocab.sep_token]
+        input_ids = self.tokenizer.vocab.transformer(tokens)
+        lens = len(input_ids)
+        input_ids += [0] * (self.tokenizer.max_len - lens)
+        token_type_ids = [0] * self.tokenizer.max_len
+        attention_mask = [1] * lens + [0] * (self.tokenizer.max_len - lens)
+
+        feature = {
+            "id": id,
+            "input_ids": input_ids,
+            "token_type_ids": token_type_ids,
+            "attention_mask": attention_mask,
+            "pos": token_pos,
+            "ner_labels": labels,
+        }
+        if data_aug and flag:
+            return None
+
+        return feature
+
     # read labels from file
     def duee_trigger_ner_labels(self, url, name=""):
         from collections import OrderedDict
@@ -270,6 +379,18 @@ class DuEETriggerTransformer(BaseTransformer):
                 id = one_json.get("id")
                 labels[event_type] = id
         return labels
+
+    def hanlp_pos_labels(self, url, name=""):
+        from collections import OrderedDict
+        tag_vocab = self.hanlp_tagger.tag_vocab.idx_to_token
+        labels = OrderedDict()
+
+        labels["O"] = "O"
+        for k in tag_vocab:
+            labels[f"B-{k}"] = f"B-{k}"
+            labels[f"I-{k}"] = f"I-{k}"
+        return labels
+
 
 @BaseTransformer.register("lstc_2020/DuEE_trigger_as_classifier")
 class DuEETriggerAsClassifierTransformer(BaseTransformer):

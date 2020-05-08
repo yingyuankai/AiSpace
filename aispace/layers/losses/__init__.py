@@ -16,6 +16,7 @@ import tensorflow_addons as tfa
 
 from .dice_loss import DceLoss, CceDceLoss
 from .cross_entropy_loss import SigmoidCrossEntropy
+from .focal_loss import SparseSoftmaxFocalCrossEntropy
 
 LOSSES = {
     "categorical_crossentropy":
@@ -24,6 +25,8 @@ LOSSES = {
         lambda loss_config: tf.keras.losses.SparseCategoricalCrossentropy(**loss_config),
     'sigmoid_focal_crossentropy':
         lambda loss_config: tfa.losses.SigmoidFocalCrossEntropy(**loss_config),
+    "sparse_softmax_focal_crossentropy":
+        lambda loss_config: SparseSoftmaxFocalCrossEntropy(**loss_config),
     'sigmoid_cross_entropy':
         lambda loss_config: SigmoidCrossEntropy(**loss_config),
     'dce_loss':
@@ -31,6 +34,7 @@ LOSSES = {
     "cce_dce_loss":
         lambda loss_config: CceDceLoss(**loss_config)
 }
+
 
 def print_available():
     table = PrettyTable(["NAME"])
