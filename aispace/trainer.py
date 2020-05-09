@@ -114,6 +114,7 @@ def main(argv):
     except Exception as e:
         logging.error("Error!", exc_info=True)
         hparams.to_json()
+        logging.info(f"save hparams to {hparams.hparams_json_file}")
 
 
 if __name__ == '__main__':

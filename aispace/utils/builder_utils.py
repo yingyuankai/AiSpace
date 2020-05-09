@@ -217,7 +217,7 @@ def build_tf_model_inputs(dataset_hparams: Hparams):
 
     inputs = {}
     for item in dataset_hparams.inputs:
-        if item.type == LIST_OF_INT:
+        if item.type in [LIST_OF_INT, LIST_OF_CLASSLABEL]:
             input = tf.keras.layers.Input(
                 shape=(item.max_len,), dtype=tf.int32, name=item.name
             )

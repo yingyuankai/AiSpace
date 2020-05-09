@@ -48,7 +48,12 @@ class BertDgcnnForNer(BaseModel):
             kernel_initializer=get_initializer(model_hparams.initializer_range),
             name="project"
         )
-        self.dgcnn_encoder = DgcnnBlock(self.hidden_size, [3, 3, 3], [1, 2, 4], name="trigger_dgcnn_encoder")
+        self.fusion_project = tf.keras.layers.Dense(
+            model_hparams.hidden_size,
+            kernel_initializer=get_initializer(model_hparams.initializer_range),
+            name="fusion_project"
+        )
+        self.dgcnn_encoder = DgcnnBlock(model_hparams.hidden_size, [3, 3, 3], [1, 2, 4], name="trigger_dgcnn_encoder")
         self.ner_output = tf.keras.layers.Dense(self.num_labels,
                                                 kernel_initializer=get_initializer(model_hparams.initializer_range),
                                                 name='ner_output')
@@ -65,11 +70,12 @@ class BertDgcnnForNer(BaseModel):
 
         # pos encode
         pos_ids = inputs["pos"]
-        pos_repr = self.dgcnn_encoder(pos_ids)
+        pos_repr = self.pos_embeddings(pos_ids)
         pos_repr = self.dropout(pos_repr, training=training)
 
         # feature fusion
         feature_fusion = tf.concat([seq_output, pos_repr], -1)
+        feature_fusion = self.fusion_project(feature_fusion)
 
         # bilstm
         feature_fusion = self.dgcnn_encoder(feature_fusion, training=training)

@@ -7,7 +7,7 @@
 
 import tensorflow as tf
 import tensorflow.keras.backend as K
-from tensorflow_addons.utils.types import FloatTensorLike, TensorLike
+# from tensorflow_addons import FloatTensorLike, TensorLike
 import tensorflow_addons as tfa
 from aispace.utils.tf_utils import get_shape
 
@@ -23,8 +23,8 @@ class SparseSoftmaxFocalCrossEntropy(tf.keras.losses.Loss):
     def __init__(
         self,
         from_logits: bool = False,
-        alpha: FloatTensorLike = 0.25,
-        gamma: FloatTensorLike = 2.0,
+        alpha=0.25,
+        gamma=2.0,
         reduction: str = tf.keras.losses.Reduction.NONE,
         name: str = "sparse_sigmoid_focal_crossentropy",
     ):
@@ -60,10 +60,10 @@ class SparseSoftmaxFocalCrossEntropy(tf.keras.losses.Loss):
 
 
 def softmax_focal_crossentropy(
-    y_true: TensorLike,
-    y_pred: TensorLike,
-    alpha: FloatTensorLike = 0.25,
-    gamma: FloatTensorLike = 2.0,
+    y_true,
+    y_pred,
+    alpha=0.25,
+    gamma=2.0,
     from_logits: bool = False,
 ) -> tf.Tensor:
     """

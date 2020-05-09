@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 export HANLP_GREEDY_GPU=1
+export HANLP_HOME="/search/data1/yyk/data/hanlp_data"
 export CUDA_VISIBLE_DEVICES=4,5,6,7
 nohup python -u aispace/trainer.py \
     --experiment_name trigger \
