@@ -15,6 +15,7 @@ from aispace.utils.misc import set_random_seed, set_visible_devices
 from aispace.utils.builder_utils import build_callbacks, load_dataset, build_model
 from aispace.constants import *
 from aispace.utils.eval_utils import evaluation
+from aispace.utils.checkpoint_utils import average_checkpoints
 
 
 def experiment(hparams: Hparams):
@@ -44,7 +45,12 @@ def experiment(hparams: Hparams):
             validation_steps=hparams.training.validation_steps,
         )
 
-    # save model
+    # load best model
+    checkpoint_dir = os.path.join(hparams.get_workspace_dir(), "checkpoint")
+    if hparams.eval_use_best and os.path.exists(checkpoint_dir):
+        logger.info(f"Load best model from {checkpoint_dir}")
+        average_checkpoints(model, checkpoint_dir)
+    # save best model
     logger.info(f'Save model in {hparams.get_model_filename()}')
     model.save_weights(hparams.get_model_filename(), save_format="tf")
 
@@ -70,7 +76,6 @@ def deploy(hparams: Hparams):
 
 
 def avg_checkpints(hparams: Hparams):
-    from aispace.utils.checkpoint_utils import average_checkpoints
     logger = logging.getLogger(__name__)
     (model,) = build_model(hparams, return_losses=False, return_metrics=False, return_optimizer=False)
     logger.info(f"Average checkpoints from {hparams.prefix_or_checkpints}")

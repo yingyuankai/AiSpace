@@ -8,6 +8,10 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 from prettytable import PrettyTable
 
+from .f1_score import SparseF1Score
+from .precision import SparsePrecision
+from .recall import SparseRecall
+
 from aispace.utils.print_utils import print_boxed
 
 __all__ = [
@@ -25,9 +29,20 @@ METRICS = {
         lambda config: tf.keras.metrics.SparseCategoricalCrossentropy(**config),
     "f1_score":
         lambda config: tfa.metrics.F1Score(**config),
+    "sparse_f1_score":
+        lambda config: SparseF1Score(**config),
+    "precision":
+        lambda config: tf.keras.metrics.Precision(**config),
+    "sparse_precision":
+        lambda config: SparsePrecision(**config),
+    "recall":
+        lambda config: tf.keras.metrics.Recall(**config),
+    "sparse_recall":
+        lambda config: SparseRecall(**config),
     "hamming_loss":
         lambda config: tfa.metrics.HammingLoss(**config)
 }
+
 
 def print_available():
     table = PrettyTable(["NAME"])

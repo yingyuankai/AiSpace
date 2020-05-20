@@ -507,6 +507,13 @@ def client(sys_argv):
         help='force to rebuild tfrecord and meta data'
     )
     parser.add_argument(
+        '-eub',
+        '--eval_use_best',
+        default=False,
+        type=ast.literal_eval,
+        help='use best model when evaluate or not.'
+    )
+    parser.add_argument(
         '-mrp',
         '--model_resume_path',
         help='path of a the model directory to resume training of'

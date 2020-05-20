@@ -141,7 +141,7 @@ def build_callbacks(hparams: Hparams):
         if fn is None:
             logger.warning(f"Callback name {name} may be wrong.")
             continue
-        callbacks.append(fn(**config.config))
+        callbacks.append(fn(config.config))
     return callbacks
 
 

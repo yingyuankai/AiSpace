@@ -11,8 +11,6 @@ __all__ = [
 from prettytable import PrettyTable
 import tensorflow as tf
 import tensorflow_addons as tfa
-# from .focal_losses import \
-#     focal_loss_softmax, focal_loss_sigmoid_v1, focal_loss_sigmoid_v2
 
 from .dice_loss import DceLoss, CceDceLoss
 from .cross_entropy_loss import SigmoidCrossEntropy

@@ -13,8 +13,11 @@ __all__ = [
 ]
 
 CALLBACKS = {
-    'early_stopping': tf.keras.callbacks.EarlyStopping,
-    'checkpoint': tf.keras.callbacks.ModelCheckpoint,
-    'tensorboard': tf.keras.callbacks.TensorBoard,
-    'swa': SWA
+    'early_stopping':
+        lambda config: tf.keras.callbacks.EarlyStopping(**config),
+    'checkpoint':
+        lambda config: tf.keras.callbacks.ModelCheckpoint(**config),
+    'tensorboard':
+        lambda config: tf.keras.callbacks.TensorBoard(**config),
+    # 'swa': SWA
 }

@@ -34,7 +34,7 @@ class BertDgcnnForNer(BaseModel):
 
         self.pos_embeddings = tf.keras.layers.Embedding(
             self.pos_num,
-            64,
+            65,
             embeddings_initializer=get_initializer(model_hparams.initializer_range),
             name="pos_embedding"
         )
@@ -75,9 +75,11 @@ class BertDgcnnForNer(BaseModel):
 
         # feature fusion
         feature_fusion = tf.concat([seq_output, pos_repr], -1)
+        # feature_fusion = seq_output
         feature_fusion = self.fusion_project(feature_fusion)
+        feature_fusion = self.dropout(feature_fusion, training=training)
 
-        # bilstm
+        # dgcnn
         feature_fusion = self.dgcnn_encoder(feature_fusion, training=training)
         # project
         project = self.project(feature_fusion)
