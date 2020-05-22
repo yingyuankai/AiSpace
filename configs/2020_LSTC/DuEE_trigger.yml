@@ -10,7 +10,7 @@ model_attributes:
     hidden_size: 1024
 
 training:
-  learning_rate: 3e-4
+  learning_rate: 3e-5
   max_epochs: 10
   batch_size: 32
   callbacks:
@@ -68,10 +68,10 @@ dataset:
         url: "https://ai.baidu.com/file/9C92719AF96D4DDB96477BFBE1435262"
         name: "duee_trigger_ner_labels"
       loss:
-        name: sparse_categorical_crossentropy
-#        name: myself_crf_loss
-        config:
-          from_logits: true
+#        name: sparse_categorical_crossentropy
+        name: myself_crf_loss
+#        config:
+#          from_logits: true
 #          reduction: "sum"
       metrics:
 #        - name: sparse_categorical_accuracy

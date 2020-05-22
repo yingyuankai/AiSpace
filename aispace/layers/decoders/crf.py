@@ -20,10 +20,15 @@ class CRFLayer(tf.keras.layers.Layer):
     def __init__(self,
                  num_labels,
                  initializer_range,
+                 label_mask=None,
                  **kwargs):
         super(CRFLayer, self).__init__(**kwargs)
         self.num_labels = num_labels
         self.initializer_range = initializer_range
+        if label_mask is not None:
+            self.label_mask = tf.constant(label_mask)
+        else:
+            self.label_mask = None
 
     def build(self, input_shape):
         self.transition_params = self.add_weight(
@@ -31,6 +36,10 @@ class CRFLayer(tf.keras.layers.Layer):
             shape=[self.num_labels, self.num_labels],
             initializer=get_initializer(self.initializer_range)
         )
+        if self.label_mask is not None:
+            label_mask = tf.cast(self.label_mask, tf.float32)
+            label_mask = (1.0 - label_mask) * -10000.0
+            self.transition_params += label_mask
 
         super(CRFLayer, self).build(input_shape)
 

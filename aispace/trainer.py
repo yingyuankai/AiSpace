@@ -20,12 +20,21 @@ from aispace.utils.checkpoint_utils import average_checkpoints
 
 def experiment(hparams: Hparams):
     logger = logging.getLogger(__name__)
+    if hparams.use_mixed_float16:
+        logger.info("Use auto mixed policy")
+        os.environ['TF_ENABLE_AUTO_MIXED_PRECISION'] = '1'
+
     strategy = tf.distribute.MirroredStrategy(devices=[f"/gpu:{id}" for id in hparams.gpus])
     # build dataset
     train_dataset, dev_dataset, dataset_info = load_dataset(hparams, ret_test=False)
+
     with strategy.scope():
         # build model
         model, (losses, loss_weights), metrics, optimizer = build_model(hparams)
+        # if hparams.use_mixed_float16:
+        #     logger.info("Use mixed float16 policy")
+        #     policy = tf.keras.mixed_precision.experimental.Policy('mixed_float16')
+        #     tf.keras.mixed_precision.experimental.set_policy(policy)
         # build callbacks
         callbacks = build_callbacks(hparams.training.callbacks)
         # compile

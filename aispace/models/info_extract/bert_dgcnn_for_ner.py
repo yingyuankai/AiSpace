@@ -34,7 +34,7 @@ class BertDgcnnForNer(BaseModel):
 
         self.pos_embeddings = tf.keras.layers.Embedding(
             self.pos_num,
-            65,
+            32,
             embeddings_initializer=get_initializer(model_hparams.initializer_range),
             name="pos_embedding"
         )
@@ -57,7 +57,7 @@ class BertDgcnnForNer(BaseModel):
         self.ner_output = tf.keras.layers.Dense(self.num_labels,
                                                 kernel_initializer=get_initializer(model_hparams.initializer_range),
                                                 name='ner_output')
-        self.crf = CRFLayer(self.num_labels, self.initializer_range, name="crf_output")
+        self.crf = CRFLayer(self.num_labels, self.initializer_range, label_mask=hparams.label_mask, name="crf_output")
 
     def call(self, inputs, **kwargs):
         training = kwargs.get('training', False)

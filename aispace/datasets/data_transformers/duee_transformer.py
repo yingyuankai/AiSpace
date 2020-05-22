@@ -11,6 +11,7 @@ import json
 import logging
 import numpy as np
 import hanlp
+import pickle
 from random import random, randrange
 from pathlib import Path
 from .base_transformer import BaseTransformer
@@ -48,6 +49,13 @@ class DuEETriggerTransformer(BaseTransformer):
         #     .append(tokenizer, output_key='tokens') \
         #     .append(tagger, output_key='part_of_speech_tags')
 
+        self.bio_mask_pik_file = os.path.join(self._hparams.get_workspace_dir(), "bio_mask.plk")
+        if os.path.exists(self.bio_mask_pik_file):
+            bio_mask = pickle.load(open(self.bio_mask_pik_file, "rb"))
+            self._hparams.cascade_set("bio_mask", bio_mask)
+        else:
+            self._hparams.cascade_set("bio_mask", None)
+
     def transform(self, data_path, split="train"):
         output_path_base = os.path.join(os.path.dirname(data_path), "json")
         if not os.path.exists(output_path_base):
@@ -56,6 +64,9 @@ class DuEETriggerTransformer(BaseTransformer):
 
         self.ner_label_to_id = {l: idx for idx, l in enumerate(self._hparams.dataset.outputs[0].labels)}
         # self.label_to_id = {l: idx for idx, l in enumerate(self._hparams.dataset.outputs[1].labels)}
+
+        self.bio_mask = np.zeros(shape=(len(self.ner_label_to_id), len(self.ner_label_to_id)), dtype=np.int)
+
         with open(data_path, "r", encoding="utf8") as inf:
             with open(output_path, "w", encoding="utf8") as ouf:
                 for line in tqdm(inf):
@@ -82,6 +93,9 @@ class DuEETriggerTransformer(BaseTransformer):
                     #         visited.add(sum(feature['input_ids']))
                     #         new_line = f"{json_dumps(feature)}\n"
                     #         ouf.write(new_line)
+
+        pickle.dump(self.bio_mask, open(self.bio_mask_pik_file, "wb"))
+        self._hparams.cascade_set("bio_mask", self.bio_mask)
         return output_path
 
     def _build_feature(self, one_json, split="train", data_aug=False):
@@ -307,6 +321,7 @@ class DuEETriggerTransformer(BaseTransformer):
         labels = labels[:self.tokenizer.max_len - 2]
         labels = ['O'] + labels + ['O']
         labels += ['O'] * (self.tokenizer.max_len - len(labels))
+        self.build_bio_mask(labels)
         # bert base input
         tokens = tokens[:self.tokenizer.max_len - 2]
         tokens = [self.tokenizer.vocab.cls_token] + tokens + [self.tokenizer.vocab.sep_token]
@@ -328,6 +343,12 @@ class DuEETriggerTransformer(BaseTransformer):
             return None
 
         return feature
+
+    def build_bio_mask(self, labels):
+        for i in range(len(labels) - 1):
+            b1 = self.ner_label_to_id[labels[i]]
+            b2 = self.ner_label_to_id[labels[i + 1]]
+            self.bio_mask[b1, b2] = 1
 
     # read labels from file
     def duee_trigger_ner_labels(self, url, name=""):
@@ -474,6 +495,7 @@ class DuEETriggerAsClassifierTransformer(BaseTransformer):
                 id = one_json.get("id")
                 labels[event_type] = id
         return labels
+
 
 @BaseTransformer.register("lstc_2020/DuEE_role")
 class DuEERoleTransformer(BaseTransformer):
@@ -1104,6 +1126,7 @@ class DuEERoleTransformer(BaseTransformer):
                     labels[f"I-{tmp}"] = f"I-{cur_num}"
         return labels
 
+
 @BaseTransformer.register("lstc_2020/DuEE_role_reduce_label")
 class DuEERoleReduceLabelTransformer(BaseTransformer):
     """3.0.0"""
@@ -1314,6 +1337,7 @@ class DuEERoleReduceLabelTransformer(BaseTransformer):
                     labels[f"B-{tmp}"] = f"B-{cur_num}"
                     labels[f"I-{tmp}"] = f"I-{cur_num}"
         return labels
+
 
 @BaseTransformer.register("lstc_2020/DuEE_role_as_qa")
 class DuEERoleAsQATransformer(BaseTransformer):
@@ -1556,6 +1580,7 @@ class DuEERoleAsQATransformer(BaseTransformer):
                 }
 
                 yield feature
+
 
 @BaseTransformer.register("lstc_2020/DuEE_joint")
 class DuEEJointTransformer(BaseTransformer):

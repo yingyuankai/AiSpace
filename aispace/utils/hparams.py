@@ -506,12 +506,20 @@ def client(sys_argv):
         type=ast.literal_eval,
         help='force to rebuild tfrecord and meta data'
     )
+
     parser.add_argument(
         '-eub',
         '--eval_use_best',
         default=False,
         type=ast.literal_eval,
         help='use best model when evaluate or not.'
+    )
+    parser.add_argument(
+        '-umf',
+        '--use_mixed_float16',
+        default=False,
+        type=ast.literal_eval,
+        help='use mixed float16 while training.'
     )
     parser.add_argument(
         '-mrp',
