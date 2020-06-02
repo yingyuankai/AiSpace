@@ -16,6 +16,7 @@ from aispace.layers.activations import ACT2FN
 from aispace.layers.base_layer import BaseLayer
 from aispace.layers.embeddings import SharedEmbeddings
 from aispace.layers.decoders import SequenceSummary
+from aispace.utils.tf_utils import get_shape
 
 
 class XLNetRelativeAttention(tf.keras.layers.Layer):
@@ -91,7 +92,7 @@ class XLNetRelativeAttention(tf.keras.layers.Layer):
 
         # position based attention score
         bd = tf.einsum('ibnd,jbnd->ijbn', q_head + self.r_r_bias, k_head_r)
-        bd = self.rel_shift(bd, klen=ac.shape[1])
+        bd = self.rel_shift(bd, klen=get_shape(ac)[1])
 
         # segment based attention score
         if seg_mat is None:

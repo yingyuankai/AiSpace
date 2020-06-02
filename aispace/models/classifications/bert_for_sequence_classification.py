@@ -23,7 +23,7 @@ class BertForSeqClassification(BaseModel):
         model_hparams = hparams.model_attributes
 
         # self.bert = Bert(pretrained_hparams, name='bert')
-        assert pretrained_hparams.norm_name in ['bert', 'albert', 'albert_brightmart', "ernie"], \
+        assert pretrained_hparams.norm_name in ['bert', 'albert', 'albert_brightmart', "ernie", "xlnet"], \
             ValueError(f"{pretrained_hparams.norm_name} not be supported.")
         self.bert = BaseLayer.by_name(pretrained_hparams.norm_name)(pretrained_hparams)
         self.dropout = tf.keras.layers.Dropout(

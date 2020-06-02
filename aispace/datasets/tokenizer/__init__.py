@@ -6,3 +6,4 @@
 
 from .bert_tokenizer import BertTokenizer
 from .tokenizer_base import BaseTokenizer
+from .xlnet_tokenizer import XlnetTokenizer

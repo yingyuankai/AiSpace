@@ -1,6 +1,6 @@
 includes:
-  - "../pretrain/bert_huggingface.yml"
-#  - "../pretrain/xlnet_chinese.yml"
+#  - "../pretrain/ernie.yml"
+  - "../pretrain/xlnet_chinese.yml"
 
 model_name: bert_for_classification
 
@@ -59,10 +59,17 @@ dataset:
           from_logits: true
       metrics:
         - name: sparse_categorical_accuracy
+        - name: sparse_f1_score
+          config:
+            name: "macro_f1"
+            num_classes: 15
+            average: "macro"
 
 pretrained:
-    name: bert-base-chinese-huggingface
-#    name: chinese_xlnet_base
+#    name: ERNIE_1.0_max-len-512
+    name: chinese_xlnet_mid
     init_from_pretrained: true
+#    config:
+#      use_task_id: false
 
 

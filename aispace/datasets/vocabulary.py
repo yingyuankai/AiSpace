@@ -77,6 +77,12 @@ class Vocabulary(object):
         return dict_
 
     def transformer(self, input, skip_special_tokens: Optional[bool] = False):
+        """
+        ids to tokens or tokens to ids
+        :param input:
+        :param skip_special_tokens:
+        :return:
+        """
         if isinstance(input, int) or isinstance(input, np.int64):
             if skip_special_tokens and input in self.special_token_ids():
                 output = None

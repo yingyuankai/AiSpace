@@ -32,7 +32,7 @@ def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, 
             (dataset_info.metadata is None or
              hparams.get("dataset", {}).get("tokenizer", {}).get("name", "") != dataset_info.metadata.get("tokenizer", "")):
         raise ValueError(f'The dataset is built using tokenizer {dataset_info.metadata.get("tokenizer", "")}, '
-                         f'however, now is using tokenizer '
+                         f'however, now is using tokenizer, please remove the data and restart.'
                          f'{hparams.get("dataset", {}).get("tokenizer", {}).get("name", "")}!')
 
     # data mapping

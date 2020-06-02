@@ -16,9 +16,9 @@ dataset:
                 EOD: "<eod>"
                 EOP: "<eop>"
         tokenize_chinese_chars: True
-        do_lower_case: True
-        do_basic_tokenize: True
-        non_split_tokens: null
+        do_lower_case: False
+        remove_space: True
+        keep_accents: False
         max_len: 512
 
 pretrained:

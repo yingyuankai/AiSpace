@@ -87,6 +87,7 @@ def tf_huggingface_ernie_adapter(hf_model_variables: list, init_checkpoint: str)
 
     tf.keras.backend.batch_set_value(name_to_values)
 
+
 def tf_huggingface_xlnet_adapter(hf_model_variables: list, init_checkpoint: str):
     """Build name to variable map from huggingface xlnet names to xlnet_chinese variables,
     and then set values for current model.

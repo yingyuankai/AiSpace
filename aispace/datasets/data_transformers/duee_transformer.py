@@ -10,7 +10,7 @@ from tqdm import tqdm
 import json
 import logging
 import numpy as np
-import hanlp
+# import hanlp
 import pickle
 from random import random, randrange
 from pathlib import Path
@@ -42,8 +42,8 @@ class DuEETriggerTransformer(BaseTransformer):
                 by_name(self._hparams.dataset.tokenizer.name) \
                 (self._hparams.dataset.tokenizer)
 
-        self.hanlp_tokenizer = hanlp.load('PKU_NAME_MERGED_SIX_MONTHS_CONVSEG')
-        self.hanlp_tagger = hanlp.load(hanlp.pretrained.pos.CTB5_POS_RNN_FASTTEXT_ZH)
+        # self.hanlp_tokenizer = hanlp.load('PKU_NAME_MERGED_SIX_MONTHS_CONVSEG')
+        # self.hanlp_tagger = hanlp.load(hanlp.pretrained.pos.CTB5_POS_RNN_FASTTEXT_ZH)
         # self.hannlp_pipeline = hanlp.pipeline() \
         #     .append(hanlp.utils.rules.split_sentence, output_key='sentences') \
         #     .append(tokenizer, output_key='tokens') \
@@ -401,16 +401,16 @@ class DuEETriggerTransformer(BaseTransformer):
                 labels[event_type] = id
         return labels
 
-    def hanlp_pos_labels(self, url, name=""):
-        from collections import OrderedDict
-        tag_vocab = self.hanlp_tagger.tag_vocab.idx_to_token
-        labels = OrderedDict()
-
-        labels["O"] = "O"
-        for k in tag_vocab:
-            labels[f"B-{k}"] = f"B-{k}"
-            labels[f"I-{k}"] = f"I-{k}"
-        return labels
+    # def hanlp_pos_labels(self, url, name=""):
+    #     from collections import OrderedDict
+    #     tag_vocab = self.hanlp_tagger.tag_vocab.idx_to_token
+    #     labels = OrderedDict()
+    #
+    #     labels["O"] = "O"
+    #     for k in tag_vocab:
+    #         labels[f"B-{k}"] = f"B-{k}"
+    #         labels[f"I-{k}"] = f"I-{k}"
+    #     return labels
 
 
 @BaseTransformer.register("lstc_2020/DuEE_trigger_as_classifier")

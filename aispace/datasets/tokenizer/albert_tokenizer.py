@@ -6,7 +6,6 @@
 from typing import Optional, List
 import logging
 import six
-import tensorflow as tf
 import unicodedata
 import numpy as np
 

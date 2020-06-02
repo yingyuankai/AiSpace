@@ -323,7 +323,7 @@ def load_vocab(file_path):
     if not file_path.endswith(".model"):
         with tf.io.gfile.GFile(file_path) as vocab_file:
             # Converts to 'unicode' (Python 2) or 'str' (Python 3)
-            vocab = list(tf.compat.as_text(line.strip()) for line in vocab_file)
+            vocab = list(tf.compat.as_text(line.strip().split()[0]) for line in vocab_file)
     else:
         try:
             import sentencepiece as spm

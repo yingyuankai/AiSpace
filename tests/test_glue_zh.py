@@ -20,10 +20,12 @@ from aispace.utils.builder_utils import load_dataset
 class TestGlue(unittest.TestCase):
     def test_glue_load(self):
         hparams = Hparams()
-        # checksum_dir = "../aispace/datasets/url_checksums"
-        # tfds.download.add_checksums_dir(checksum_dir)
+        hparams.load_from_config_file("../configs/glue_zh/tnews.yml")
+        hparams.stand_by()
+        checksum_dir = "../aispace/datasets/url_checksums"
+        tfds.download.add_checksums_dir(checksum_dir)
         # download_config = DownloadConfig(register_checksums=True)
-        tnews = tfds.load("glue_zh/cmrc2018",
+        tnews = tfds.load("glue_zh/tnews",
                           # data_dir="/search/data1/yyk/data/datasets/glue_zh",
                           data_dir="../data/glue_zh",
                           builder_kwargs={'hparams': hparams},
