@@ -7,3 +7,4 @@
 from .albert_embedding import *
 from .bert_embedding import *
 from .sharded_embedding import *
+from .electra_embedding import *

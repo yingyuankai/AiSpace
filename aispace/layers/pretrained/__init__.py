@@ -8,3 +8,4 @@
 from .bert import *
 from .albert import *
 from .xlnet import *
+from .electra import *

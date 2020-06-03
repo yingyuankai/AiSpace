@@ -23,9 +23,9 @@ class BertForSeqClassification(BaseModel):
         model_hparams = hparams.model_attributes
 
         # self.bert = Bert(pretrained_hparams, name='bert')
-        assert pretrained_hparams.norm_name in ['bert', 'albert', 'albert_brightmart', "ernie", "xlnet"], \
+        assert pretrained_hparams.norm_name in ['bert', 'albert', 'albert_brightmart', "ernie", "xlnet", "electra"], \
             ValueError(f"{pretrained_hparams.norm_name} not be supported.")
-        self.bert = BaseLayer.by_name(pretrained_hparams.norm_name)(pretrained_hparams)
+        self.encoder = BaseLayer.by_name(pretrained_hparams.norm_name)(pretrained_hparams)
         self.dropout = tf.keras.layers.Dropout(
             model_hparams.hidden_dropout_prob
         )
@@ -41,7 +41,7 @@ class BertForSeqClassification(BaseModel):
         )
 
     def call(self, inputs, **kwargs):
-        outputs = self.bert(inputs, **kwargs)
+        outputs = self.encoder(inputs, **kwargs)
 
         pooled_output = outputs[1]
         project = self.project(pooled_output)

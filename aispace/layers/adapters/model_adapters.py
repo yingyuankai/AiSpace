@@ -15,7 +15,8 @@ __all__ = [
     "tf_huggingface_ernie_adapter",
     "tf_huggingface_xlnet_adapter",
     "tf_huggingface_albert_chinese_adapter",
-    "tf_huggingface_albert_chinese_google_adapter"
+    "tf_huggingface_albert_chinese_google_adapter",
+    "tf_huggingface_electra_adapter"
 ]
 
 
@@ -295,6 +296,40 @@ def tf_huggingface_albert_chinese_google_adapter(hf_model_variables: list, init_
             matched_name = re.match("^.*attention/(.*)$", matched_name).group(1)
             matched_name = f"{default_prefix}attention_1/self/{matched_name}"
 
+        value = tf.train.load_variable(init_checkpoint, matched_name)
+        name_to_values.append((item, value))
+
+    tf.keras.backend.batch_set_value(name_to_values)
+
+
+def tf_huggingface_electra_adapter(hf_model_variables: list, init_checkpoint: str):
+    """Build name to variable map from huggingface electra names to electra variables,
+    and then set values for current model.
+
+    :param hf_model_variables:
+    :return:
+    """
+    name_to_values = list()
+
+    for item in hf_model_variables:
+        var_name = item.name
+        matched_name = re.match("^.*/(electra/.*):\\d+$", var_name)
+        if matched_name is None:
+            continue
+        matched_name = matched_name.group(1)
+        # for bert/encoder
+        encoder_matched = re.match("^electra/encoder/layer_._\\d+.*$", matched_name)
+        if encoder_matched is not None:
+            matched_name = matched_name.replace("_._", "_")
+        # for bert/embeddings
+        if matched_name == "electra/embeddings/weight":
+            matched_name = "electra/embeddings/word_embeddings"
+        elif matched_name == "electra/embeddings/position_embeddings/embeddings":
+            matched_name = "electra/embeddings/position_embeddings"
+        elif matched_name == "electra/embeddings/token_type_embeddings/embeddings":
+            matched_name = "electra/embeddings/token_type_embeddings"
+        elif matched_name == "electra/embeddings/task_type_embeddings/embeddings":
+            matched_name = "electra/embeddings/task_type_embeddings"
         value = tf.train.load_variable(init_checkpoint, matched_name)
         name_to_values.append((item, value))
 

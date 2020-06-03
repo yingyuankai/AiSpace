@@ -143,10 +143,11 @@ We have integrated multiple pre-trained language models and are constantly expan
 |albert_chinese|9|9|yes|[albert_zh](https://github.com/brightmart/albert_zh)|Done|
 |bert_wwm|4|4|yes|[Chinese-BERT-wwm](https://github.com/ymcui/Chinese-BERT-wwm)|Done|
 |xlnet|2|0|no|[transformers](https://github.com/huggingface/transformers)|Processing|
-|xlnet_chinese|2|2|yes|[Chinese-PreTrained-XLNets](https://github.com/ymcui/Chinese-PreTrained-XLNets)|Processing|
-|ernie|4|2|yes|[ERNIE](https://github.com/PaddlePaddle/ERNIE)|Processing|
+|xlnet_chinese|2|2|yes|[Chinese-PreTrained-XLNets](https://github.com/ymcui/Chinese-PreTrained-XLNets)|Done|
+|ernie|4|2|yes|[ERNIE](https://github.com/PaddlePaddle/ERNIE)|Done|
 |NEZHA|-|-|-|[NEZHA](https://github.com/huawei-noah/Pretrained-Language-Model)|Processing|
 |TinyBERT|-|-|-|[TinyBERT](https://github.com/huawei-noah/Pretrained-Language-Model)|Processing|
+|electra_chinese|4|4|yes|[Chinese-ELECTR](https://github.com/ymcui/Chinese-ELECTRA)|Done|
 
 For those models that need to be downloaded manually, download, unzip them and modify the path in the corresponding configuration.
 
@@ -202,6 +203,10 @@ Specify different pretrained model, please change ***includes*** and ***pretrain
 |ERNIE_1.0_max-len-512|66.010|65.301|62.230|62.884|
 |chinese_xlnet_base|65.110|64.377|**64.862**|64.169|
 |chinese_xlnet_mid|66.000|66.377|63.874|**64.708**|
+|chinese_electra_small|60.370|60.223|57.161|57.206|
+|chinese_electra_small_ex||
+|chinese_electra_base||
+|chinese_electra_large||
 
 **NOTE**: The hyper-parameters used here have not been fine-tuned.
 
