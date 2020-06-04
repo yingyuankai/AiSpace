@@ -204,10 +204,10 @@ Specify different pretrained model, please change ***includes*** and ***pretrain
 |chinese_xlnet_base|65.110|64.377|**64.862**|64.169|
 |chinese_xlnet_mid|66.000|66.377|63.874|**64.708**|
 |chinese_electra_small|60.370|60.223|57.161|57.206|
-|chinese_electra_small_ex||
-|chinese_electra_base||
-|chinese_electra_large||
-
+|chinese_electra_small_ex|59.900|58.078|55.525|56.194|
+|chinese_electra_base|60.500|60.090|58.267|58.909|
+|chinese_electra_large|60.500|60.362|57.653|58.336|
+    
 **NOTE**: The hyper-parameters used here have not been fine-tuned.
 
 ## Todos
