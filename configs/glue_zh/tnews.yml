@@ -11,7 +11,7 @@ model_attributes:
     hidden_size: 1024
 
 training:
-  learning_rate: 3e-5
+  learning_rate: 1e-5
   max_epochs: 30
   batch_size: 32
   callbacks:
@@ -69,7 +69,7 @@ dataset:
 pretrained:
 #    name: ERNIE_1.0_max-len-512
 #    name: chinese_xlnet_mid
-    name: chinese_electra_small_ex
+    name: chinese_electra_base
     init_from_pretrained: true
 #    config:
 #      use_task_id: false

@@ -17,27 +17,27 @@ from aispace.utils.hparams import Hparams
 from aispace.utils.builder_utils import load_dataset
 
 
-class TestGlue(unittest.TestCase):
-    def test_glue_load(self):
-        hparams = Hparams()
-        hparams.load_from_config_file("../configs/glue_zh/tnews.yml")
-        hparams.stand_by()
-        # checksum_dir = "../aispace/datasets/url_checksums"
-        # tfds.download.add_checksums_dir(checksum_dir)
-        # # download_config = DownloadConfig(register_checksums=True)
-        # tnews = tfds.load("glue_zh/tnews",
-        #                   # data_dir="/search/data1/yyk/data/datasets/glue_zh",
-        #                   data_dir="../data/glue_zh",
-        #                   builder_kwargs={'hparams': hparams},
-        #                   # download_and_prepare_kwargs={'download_config': download_config}
-        #                   )
-
-        train_dataset, dev_dataset, dataset_info = load_dataset(hparams, ret_test=False)
-
-        for itm in train_dataset:
-            print(itm)
-            break
-        print()
+# class TestGlue(unittest.TestCase):
+#     def test_glue_load(self):
+#         hparams = Hparams()
+#         hparams.load_from_config_file("../configs/glue_zh/tnews.yml")
+#         hparams.stand_by()
+#         # checksum_dir = "../aispace/datasets/url_checksums"
+#         # tfds.download.add_checksums_dir(checksum_dir)
+#         # # download_config = DownloadConfig(register_checksums=True)
+#         # tnews = tfds.load("glue_zh/tnews",
+#         #                   # data_dir="/search/data1/yyk/data/datasets/glue_zh",
+#         #                   data_dir="../data/glue_zh",
+#         #                   builder_kwargs={'hparams': hparams},
+#         #                   # download_and_prepare_kwargs={'download_config': download_config}
+#         #                   )
+#
+#         train_dataset, dev_dataset, dataset_info = load_dataset(hparams, ret_test=False)
+#
+#         for itm in train_dataset:
+#             print(itm)
+#             break
+#         print()
 
 # python -u aispace/trainer.py \
 #    --experiment_name test \

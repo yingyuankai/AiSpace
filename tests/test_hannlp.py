@@ -7,14 +7,14 @@
 
 import unittest
 
-import hanlp
+# import hanlp
 
 
 class TestHannlp(unittest.TestCase):
     def test_han(self):
 
-        tokenizer = hanlp.load('PKU_NAME_MERGED_SIX_MONTHS_CONVSEG')
-        tagger = hanlp.load(hanlp.pretrained.pos.CTB5_POS_RNN_FASTTEXT_ZH)
+        # tokenizer = hanlp.load('PKU_NAME_MERGED_SIX_MONTHS_CONVSEG')
+        # tagger = hanlp.load(hanlp.pretrained.pos.CTB5_POS_RNN_FASTTEXT_ZH)
         # recognizer = hanlp.load(hanlp.pretrained.ner.MSRA_NER_BERT_BASE_ZH)
         # syntactic_parser = hanlp.load(hanlp.pretrained.dep.CTB7_BIAFFINE_DEP_ZH)
         # semantic_parser = hanlp.load(hanlp.pretrained.sdp.SEMEVAL16_NEWS_BIAFFINE_ZH)
@@ -30,11 +30,11 @@ class TestHannlp(unittest.TestCase):
         text = "近期，蔚来美国裁员 70 人，其中有 20 人位于圣何塞的北美总部办公室和研发中心，50 人位于旧金山办公室，此外，旧金山办公室也在这次裁员中正式关闭。"
 
         # res = pipeline(text)
-        tokens = tokenizer(text)
-        res = tagger(tokens)
-        print(tagger.transform.tag_vocab)
+        # tokens = tokenizer(text)
+        # res = tagger(tokens)
+        # print(tagger.transform.tag_vocab)
 
-        print(res)
+        # print(res)
 
     def test_jieba(self):
         import jieba.posseg as psg
