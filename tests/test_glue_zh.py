@@ -3,12 +3,12 @@
 # @Author  : yingyuankai
 # @Email   : yingyuankai@aliyun.com
 # @File    : test_glue.py
-
-import os, sys
-import tensorflow_datasets as tfds
-import unittest
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+#
+# import os, sys
+# import tensorflow_datasets as tfds
+# import unittest
+#
+# sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from tensorflow_datasets.core.download import DownloadConfig
 
