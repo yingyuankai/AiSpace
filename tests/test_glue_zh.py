@@ -10,11 +10,11 @@
 #
 # sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from tensorflow_datasets.core.download import DownloadConfig
-
-from aispace.datasets import *
-from aispace.utils.hparams import Hparams
-from aispace.utils.builder_utils import load_dataset
+# from tensorflow_datasets.core.download import DownloadConfig
+#
+# from aispace.datasets import *
+# from aispace.utils.hparams import Hparams
+# from aispace.utils.builder_utils import load_dataset
 
 
 # class TestGlue(unittest.TestCase):
