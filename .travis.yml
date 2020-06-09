@@ -16,5 +16,5 @@ install:
 
 # command to run tests
 script:
-  - pytest
+#  - pytest
 
