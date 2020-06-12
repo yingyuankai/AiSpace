@@ -42,6 +42,7 @@ Table of Contents
 * All modules are registerable, including models, dataset, losses, optimizers, metrics, callbacks, etc.
 * Standardized process
 * Multi-GPU Training
+* K-fold cross validation training
 * Integrate multiple pre-trained models, including chinese
 * Simple and fast deployment using [BentoML](https://github.com/bentoml/BentoML)
 * Integrated Chinese benchmarks [CLUE](https://github.com/CLUEbenchmark/CLUE)
