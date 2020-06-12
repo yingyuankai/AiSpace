@@ -18,14 +18,35 @@ from aispace.constants import *
 logger = logging.getLogger(__name__)
 
 
+def get_dataset_split(hparams: Hparams):
+    """
+    get dataset split according to training policy and dataset source
+    :param hparams:
+    :return:
+    """
+
+    if hparams.training.policy.name == "k-fold":
+        k = hparams.training.policy.config.k
+        train_split = [f'train[:{k}%]+train[{k + 10}%:]' for k in range(0, 100, 100 // k)]
+        validation_split = [f'train[{k}%:{k + 10}%]' for k in range(0, 100, 100 // k)]
+        test_split = [hparams.dataset.source.test] * k
+    else:
+        train_split = [hparams.dataset.source.train]
+        validation_split = [hparams.dataset.source.validation]
+        test_split = [hparams.dataset.source.test]
+    return train_split, validation_split, test_split
+
+
 def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, ret_info=True):
     from aispace import datasets
+
+    train_split, validation_split, test_split = get_dataset_split(hparams)
     if ret_train:
-        train_dataset, dataset_info = build_dataset(hparams, hparams.dataset.source.train, with_info=True)
+        train_datasets, dataset_info = build_dataset(hparams, train_split, with_info=True)
     if ret_dev:
-        dev_dataset, dataset_info = build_dataset(hparams, hparams.dataset.source.validation, with_info=True)
+        dev_datasets, dataset_info = build_dataset(hparams, validation_split, with_info=True)
     if ret_test:
-        test_dataset, dataset_info = build_dataset(hparams, hparams.dataset.source.test, with_info=True)
+        test_datasets, dataset_info = build_dataset(hparams, test_split, with_info=True)
 
     # check the consistence of tokenizer using in building dataset and now using.
     if hparams.get("dataset", {}).get("tokenizer", {}).get("name", "") != "" and \
@@ -49,29 +70,6 @@ def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, 
                 raise ValueError(f"{k} not in inputs or outputs.")
         return inputs, outputs
 
-    # build batch
-    if ret_train:
-        train_dataset = train_dataset.\
-            map(build_generator, num_parallel_calls=tf.data.experimental.AUTOTUNE). \
-            shuffle(hparams.training.shuffle_size).\
-            repeat(). \
-            batch(hparams.training.batch_size). \
-            prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-        logger.info("Train dataset has loaded.")
-    if ret_dev:
-        dev_dataset = dev_dataset.\
-            map(build_generator, num_parallel_calls=tf.data.experimental.AUTOTUNE). \
-            repeat(). \
-            batch(hparams.training.batch_size). \
-            prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-        logger.info("Validation dataset has loaded.")
-    if ret_test:
-        test_dataset = test_dataset.\
-            map(build_generator, num_parallel_calls=tf.data.experimental.AUTOTUNE). \
-            batch(hparams.training.batch_size). \
-            prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-        logger.info("Test dataset has loaded.")
-
     # reset some hparams
     if ret_info:
         print(dataset_info)
@@ -80,7 +78,8 @@ def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, 
         validation_data_size = dataset_info.splits.get("validation").num_examples
         steps_per_epoch = int(train_data_size / training_hparams.batch_size)
         num_warmup_steps = \
-            int(training_hparams.max_epochs * train_data_size * training_hparams.warmup_factor / training_hparams.batch_size)
+            int(
+                training_hparams.max_epochs * train_data_size * training_hparams.warmup_factor / training_hparams.batch_size)
         num_warmup_steps = min(steps_per_epoch, num_warmup_steps)
 
         validation_steps = int(
@@ -102,18 +101,43 @@ def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, 
         else:
             logger.info(f"Get training.num_warmup_steps is {hparams.training.num_warmup_steps}")
 
-    result = ()
-    if ret_train:
-        result += (train_dataset, )
-    if ret_dev:
-        result += (dev_dataset, )
-    if ret_test:
-        result += (test_dataset, )
+    for i in range(len(train_split)):
+        # build batch
+        if ret_train:
+            train_dataset = train_datasets[i].\
+                map(build_generator, num_parallel_calls=tf.data.experimental.AUTOTUNE). \
+                shuffle(hparams.training.shuffle_size).\
+                repeat(). \
+                batch(hparams.training.batch_size). \
+                prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+            logger.info("Train dataset has loaded.")
+        if ret_dev:
+            dev_dataset = dev_datasets[i].\
+                map(build_generator, num_parallel_calls=tf.data.experimental.AUTOTUNE). \
+                repeat(). \
+                batch(hparams.training.batch_size). \
+                prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+            logger.info("Validation dataset has loaded.")
 
-    if ret_info:
-        result += (dataset_info, )
+        if ret_test:
+            test_dataset = test_datasets[i]. \
+                map(build_generator, num_parallel_calls=tf.data.experimental.AUTOTUNE). \
+                batch(hparams.training.batch_size). \
+                prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+            logger.info("Test dataset has loaded.")
 
-    return result
+        result = ()
+        if ret_train:
+            result += (train_dataset, )
+        if ret_dev:
+            result += (dev_dataset, )
+        if ret_test:
+            result += (test_dataset, )
+
+        if ret_info:
+            result += (dataset_info, )
+
+        yield result
 
 
 def build_dataset(hparams: Hparams, split=None, with_info=False):

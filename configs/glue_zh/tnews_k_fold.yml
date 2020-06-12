@@ -1,9 +1,5 @@
 includes:
-#  - "../base.yml"
-  - "../pretrain/nezha.yml"
-#  - "../pretrain/electra_chinese.yml"
-#  - "../pretrain/ernie.yml"
-#  - "../pretrain/xlnet_chinese.yml"
+  - "../base.yml"
 
 model_name: bert_for_classification
 
@@ -11,24 +7,24 @@ model_attributes:
     hidden_dropout_prob: 0.5
     initializer_range: 0.02
     hidden_size: 1024
-#    vocab_size: 21128
-#    filters:
-#      - 2
-#      - 3
-#      - 4
-#    windows:
-#      - 100
-#      - 100
-#      - 100
+    vocab_size: 21128
+    filters:
+      - 2
+      - 3
+      - 4
+    windows:
+      - 100
+      - 100
+      - 100
 
 training:
   policy:
     name: "k-fold"
     config:
       k: 5
-  learning_rate: 3e-5
+  learning_rate: 1e-3
   max_epochs: 30
-  batch_size: 32
+  batch_size: 128
   callbacks:
     # callback name
     early_stopping:
@@ -45,19 +41,19 @@ dataset:
     test: "validation"
 
   tokenizer:
-#      name: bert_tokenizer
-#      vocab:
-#          filename: "/search/data1/yyk/data/pretrained/nezha/NEZHA-Base/vocab.txt"
-#          special_tokens:
-#              PAD: "[PAD]"
-#              UNK: "[UNK]"
-#              SEP: "[SEP]"
-#              CLS: "[CLS]"
-#              MASK: "[MASK]"
-#      tokenize_chinese_chars: True
-#      do_lower_case: True
-#      do_basic_tokenize: True
-#      non_split_tokens: null
+      name: bert_tokenizer
+      vocab:
+          filename: "/search/data1/yyk/data/pretrained/nezha/NEZHA-Base/vocab.txt"
+          special_tokens:
+              PAD: "[PAD]"
+              UNK: "[UNK]"
+              SEP: "[SEP]"
+              CLS: "[CLS]"
+              MASK: "[MASK]"
+      tokenize_chinese_chars: True
+      do_lower_case: True
+      do_basic_tokenize: True
+      non_split_tokens: null
       max_len: 100
 
   inputs:
@@ -93,14 +89,5 @@ dataset:
             name: "macro_f1"
             num_classes: 15
             average: "macro"
-
-pretrained:
-#    name: ERNIE_1.0_max-len-512
-#    name: chinese_xlnet_mid
-#    name: chinese_electra_base
-    name: NEZHA-Base
-    init_from_pretrained: true
-#    config:
-#      use_task_id: false
 
 

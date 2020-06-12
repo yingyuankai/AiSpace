@@ -205,7 +205,7 @@ class Hparams(collections.OrderedDict):
         return log_folder
 
     def get_model_filename(self):
-        model_path = os.path.join(self.get_workspace_dir(), 'model_saved', "model")
+        model_path = os.path.join(self.get_saved_model_dir(), "model")
         return model_path
 
     def get_deploy_dir(self):
@@ -213,8 +213,12 @@ class Hparams(collections.OrderedDict):
         return deploy_dir
 
     def get_saved_model_dir(self):
-        saved_model_dir = os.path.join(self.get_workspace_dir(), "saved_model")
+        saved_model_dir = os.path.join(self.get_workspace_dir(), "model_saved")
         return saved_model_dir
+
+    def get_report_dir(self):
+        report_folder = os.path.join(self.get_workspace_dir(), "reports")
+        return report_folder
 
     def notice(self, fields):
         for field in fields:

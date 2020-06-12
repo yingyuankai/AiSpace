@@ -23,7 +23,9 @@ def average_checkpoints(model, prefix_or_checkpints, num_last_checkpoints=None, 
     """
     avg_weights = None
 
-    if prefix_or_checkpints.find(',') != -1 or not os.path.exists(prefix_or_checkpints):
+    if isinstance(prefix_or_checkpints, (list, tuple)):
+        ckpts = prefix_or_checkpints
+    elif prefix_or_checkpints.find(',') != -1 or not os.path.exists(prefix_or_checkpints):
         # checkpoints
         ckpts = prefix_or_checkpints.split(",")
     elif os.path.isdir(prefix_or_checkpints):

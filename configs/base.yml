@@ -22,6 +22,14 @@ random_seed: 34
 
 # Configuration for training
 training:
+    # training policy: base or k-fold
+    # for example:
+    #policy:
+    #    name: "k-fold"
+    #    config:
+    #        k: 5
+    policy:
+        name: "base"
     # Maximum epochs in case you don't want to use iterations
     # Can be mixed with max iterations, so it will stop whichever is
     # completed first. Default: null means epochs won't be used

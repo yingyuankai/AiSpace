@@ -44,7 +44,7 @@ def evaluation(hparams: Hparams, model=None, test_dataset=None):
             model.load_weights(hparams.get_model_filename())
 
     if test_dataset is None:
-        test_dataset = load_dataset(hparams, ret_train=False, ret_dev=False, ret_info=False)[0]
+        test_dataset = next(load_dataset(hparams, ret_train=False, ret_dev=False, ret_info=False))[0]
 
     # prediction
     # print(model.evaluate(test_dataset))
@@ -76,7 +76,7 @@ def evaluation(hparams: Hparams, model=None, test_dataset=None):
                     one_output_hparam.predictions.extend(tmp_predictions)
 
     # save reports
-    report_folder = os.path.join(hparams.get_workspace_dir(), "reports")
+    report_folder = hparams.get_report_dir()
     # evaluation, TODO more reports
     for one_output_hparam in output_hparams:
         ground_truth = one_output_hparam.ground_truth

@@ -1,5 +1,5 @@
 pandas
-tensorflow-gpu==2.0.1
+tensorflow-gpu==2.1.0
 tensorflow-addons
 sklearn
 numpy

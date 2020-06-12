@@ -82,6 +82,26 @@ python -u aispace/trainer.py \
 
 --model_resume_path is a path to initialization model.
 
+### K-fold cross validation training
+
+Firstly, Replace training default policy form base to:
+
+```yaml
+training:
+  policy:
+    name: "k-fold"
+    config:
+      k: 5
+``` 
+
+The **k** is the number of fold. Your can refer to the configuration file in:
+
+```
+./confis/glue_zh/tnews_k_fold.yml
+```
+
+Then run training script as usual.
+
 ### Average checkpoints
 
 ```
@@ -145,7 +165,7 @@ We have integrated multiple pre-trained language models and are constantly expan
 |xlnet|2|0|no|[transformers](https://github.com/huggingface/transformers)|Processing|
 |xlnet_chinese|2|2|yes|[Chinese-PreTrained-XLNets](https://github.com/ymcui/Chinese-PreTrained-XLNets)|Done|
 |ernie|4|2|yes|[ERNIE](https://github.com/PaddlePaddle/ERNIE)|Done|
-|NEZHA|-|-|-|[NEZHA](https://github.com/huawei-noah/Pretrained-Language-Model)|Processing|
+|NEZHA|4|4|yes|[NEZHA](https://github.com/huawei-noah/Pretrained-Language-Model)|Done|
 |TinyBERT|-|-|-|[TinyBERT](https://github.com/huawei-noah/Pretrained-Language-Model)|Processing|
 |electra_chinese|4|4|yes|[Chinese-ELECTR](https://github.com/ymcui/Chinese-ELECTRA)|Done|
 
@@ -207,7 +227,10 @@ Specify different pretrained model, please change ***includes*** and ***pretrain
 |chinese_electra_small_ex|59.900|58.078|55.525|56.194|
 |chinese_electra_base|60.500|60.090|58.267|58.909|
 |chinese_electra_large|60.500|60.362|57.653|58.336|
-    
+|nezha-base|58.940|57.909|55.650|55.630|
+|nezha-base-wwm|58.800|60.060|54.859|55.831|
+
+
 **NOTE**: The hyper-parameters used here have not been fine-tuned.
 
 ## Todos

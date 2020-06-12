@@ -7,8 +7,7 @@
 import tensorflow as tf
 
 from aispace.utils.hparams import Hparams
-from aispace.utils.tf_utils import get_initializer, get_shape
-
+from aispace.utils.tf_utils import get_initializer, get_shape, generate_relative_positions_embeddings
 
 __all__ = [
     "MultiHeadAttention"
@@ -23,6 +22,10 @@ class MultiHeadAttention(tf.keras.layers.Layer):
                 f"The hidden size {hparams.hidden_size} is not a multiple of the number of attention "
                 f"heads {hparams.num_attention_heads}")
         self.output_attentions = hparams.output_attentions
+
+        self.use_relative_position = False
+        if "use_relative_position" in hparams:
+            self.use_relative_position = hparams.use_relative_position
 
         self.num_attention_heads = hparams.num_attention_heads
         assert hparams.hidden_size % hparams.num_attention_heads == 0
@@ -66,6 +69,29 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         # Take the dot product between "query" and "key" to get the raw attention scores.
         attention_scores = tf.matmul(query_layer, key_layer,
                                      transpose_b=True)  # (batch size, num_heads, seq_len_q, seq_len_k)
+        attention_shape = get_shape(attention_scores)
+        from_seq_length = attention_shape[2]
+        to_seq_length = attention_shape[3]
+        if self.use_relative_position:
+            max_relative_position = 64
+            relations_keys = generate_relative_positions_embeddings(
+                to_seq_length, self.attention_head_size, max_relative_position, "relative_positions_keys",
+                cache=False)
+            # query_layer_t is [F, B, N, H]
+            query_layer_t = tf.transpose(query_layer, [2, 0, 1, 3])
+            # query_layer_r is [F, B * N, H]
+            query_layer_r = tf.reshape(query_layer_t,
+                                       [from_seq_length, batch_size * self.num_attention_heads,
+                                        self.attention_head_size])
+            # key_position_scores is [F, B * N, F|T]
+            key_position_scores = tf.matmul(query_layer_r, relations_keys, transpose_b=True)
+            # key_position_scores_r is [F, B , N, F|T]
+            key_position_scores_r = tf.reshape(key_position_scores,
+                                               [from_seq_length, batch_size, self.num_attention_heads, from_seq_length])
+            # key_position_scores_r_t is [B, N, F, F|T]
+            key_position_scores_r_t = tf.transpose(key_position_scores_r, [1, 2, 0, 3])
+            attention_scores += key_position_scores_r_t
+
         dk = tf.cast(get_shape(key_layer)[-1], tf.float32)  # scale attention_scores
         attention_scores = attention_scores / tf.math.sqrt(dk)
 
