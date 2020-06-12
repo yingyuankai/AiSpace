@@ -49,7 +49,7 @@ Table of Contents
 
 ## Requirements
 
-```
+```text
 git clone https://github.com/yingyuankai/AiSpace.git
 cd AiSpace && pip install -r requirements
 ```

@@ -83,10 +83,10 @@ def k_fold_experiment(hparams: Hparams):
     # build dataset
 
     model_saved_dirs = []
-    with strategy.scope():
-        for idx, (train_dataset, dev_dataset, dataset_info) in enumerate(load_dataset(hparams, ret_test=False)):
-            logger.info(f"Start {idx}th-fold training")
 
+    for idx, (train_dataset, dev_dataset, dataset_info) in enumerate(load_dataset(hparams, ret_test=False)):
+        logger.info(f"Start {idx}th-fold training")
+        with strategy.scope():
             # build model
             model, (losses, loss_weights), metrics, optimizer = build_model(hparams)
             # build callbacks
@@ -135,16 +135,16 @@ def k_fold_experiment(hparams: Hparams):
 
             logger.info(f'{idx}th-fold experiment Finish!')
 
-        # eval on test dataset after average_checkpoints
-        logger.info("Average models of all fold models.")
-        checkpoints = [f'{itm}/model' for itm in model_saved_dirs]
-        average_checkpoints(model, checkpoints)
+    # eval on test dataset after average_checkpoints
+    logger.info("Average models of all fold models.")
+    checkpoints = [f'{itm}/model' for itm in model_saved_dirs]
+    average_checkpoints(model, checkpoints)
 
-        logger.info(f"Save averaged model in {hparams.get_model_filename()}")
-        model.save_weights(hparams.get_model_filename(), save_format="tf")
-        evaluation(hparams)
+    logger.info(f"Save averaged model in {hparams.get_model_filename()}")
+    model.save_weights(hparams.get_model_filename(), save_format="tf")
+    evaluation(hparams)
 
-        logger.info('Experiment Finish!')
+    logger.info('Experiment Finish!')
 
 
 def deploy(hparams: Hparams):

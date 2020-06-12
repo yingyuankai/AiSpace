@@ -238,7 +238,7 @@ def tf_gather(from_tensor, indices):
     return gather_res
 
 
-@tf.function
+@tf.function(experimental_relax_shapes=True)
 def generate_relative_positions_matrix(length, max_relative_position,
                                        cache=False):
     """Generates matrix of relative positions between inputs."""
@@ -256,7 +256,7 @@ def generate_relative_positions_matrix(length, max_relative_position,
     return final_mat
 
 
-@tf.function
+@tf.function(experimental_relax_shapes=True)
 def generate_relative_positions_embeddings(length, depth,
                                            max_relative_position, name,
                                            cache=False):
