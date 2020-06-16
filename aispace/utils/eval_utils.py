@@ -12,6 +12,7 @@ import json
 from copy import deepcopy
 from pprint import pprint
 import tensorflow as tf
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ from aispace.utils.builder_utils import build_model, load_dataset
 
 
 # TODO more general
-def evaluation(hparams: Hparams, model=None, test_dataset=None):
+def evaluation(hparams: Hparams, checkpoints=None, model=None, test_dataset=None):
     """Evaluate the model and build report according to different task.
 
     :param model:
@@ -34,44 +35,97 @@ def evaluation(hparams: Hparams, model=None, test_dataset=None):
     """
     logger.info("Start Evaluate.")
     output_hparams = deepcopy(hparams.dataset.outputs)
+
+    if test_dataset is None:
+        test_dataset = next(load_dataset(hparams, ret_train=False, ret_dev=False, ret_info=False))[0]
+
     if model is None:
         # build model
         (model,) = build_model(hparams, return_losses=False, return_metrics=False, return_optimizer=False)
+
+    # predict using default model saved
+    if checkpoints is None:
+        # load weights
         if not os.path.exists(hparams.get_model_filename() + ".index"):
             logger.warning(f"Model from {hparams.get_model_filename()} is not exists, load nothing!")
         else:
             logger.info(f"Load model weights from {hparams.get_model_filename()}")
             model.load_weights(hparams.get_model_filename())
 
-    if test_dataset is None:
-        test_dataset = next(load_dataset(hparams, ret_train=False, ret_dev=False, ret_info=False))[0]
+        # prediction
+        # print(model.evaluate(test_dataset))
+        for inputs, outputs in tqdm(test_dataset):
+            model_outputs = model.predict(inputs)
+            if not isinstance(model_outputs, (tuple, list)):
+                model_outputs = (model_outputs,)
+            for idx, one_output_hparam in enumerate(output_hparams):
+                if "ground_truth" not in one_output_hparam:
+                    one_output_hparam["ground_truth"] = []
+                if "predictions" not in one_output_hparam:
+                    one_output_hparam['predictions'] = []
+                prediction_output = tf.nn.softmax(model_outputs[idx], -1)
+                tmp_name = one_output_hparam.name
+                tmp_type = one_output_hparam.type
+                tmp_ground_truth = outputs[tmp_name]
+                if tmp_type in [CLASSLABEL, LIST_OF_CLASSLABEL, LIST_OF_INT]:
+                    if tmp_type in [LIST_OF_INT]:
+                        tmp_tg = tf.argmax(tmp_ground_truth, -1)
+                    else:
+                        tmp_tg = tmp_ground_truth
+                    if one_output_hparam.task == NER: # [[sent1], [sent2]]
+                        one_output_hparam.ground_truth.extend(tmp_tg.numpy().tolist())
+                        tmp_predictions = tf.argmax(prediction_output, -1).numpy().tolist()
+                        one_output_hparam.predictions.extend(tmp_predictions)
+                    else: # [1, 0, 1, ...]
+                        one_output_hparam.ground_truth.extend(tmp_tg.numpy().reshape(-1).tolist())
+                        tmp_predictions = tf.argmax(prediction_output, -1).numpy().reshape(-1).tolist()
+                        one_output_hparam.predictions.extend(tmp_predictions)
+    elif isinstance(checkpoints, (tuple, list)):
+        # predict using multi checkpints from k-fold cross validation.
+        for i, ckpt in enumerate(checkpoints):
+            if not os.path.exists(ckpt + ".index"):
+                logger.warning(f"Model from {ckpt} is not exists, load nothing!")
+                continue
+            else:
+                logger.info(f"Load model weights from {ckpt}")
+                model.load_weights(ckpt)
 
-    # prediction
-    # print(model.evaluate(test_dataset))
-    for inputs, outputs in tqdm(test_dataset):
-        model_outputs = model.predict(inputs)
-        if not isinstance(model_outputs, (tuple, list)):
-            model_outputs = (model_outputs,)
+            for j, (inputs, outputs) in tqdm(enumerate(test_dataset)):
+                model_outputs = model.predict(inputs)
+                if not isinstance(model_outputs, (tuple, list)):
+                    model_outputs = (model_outputs,)
+                for idx, one_output_hparam in enumerate(output_hparams):
+                    prediction_output = tf.nn.softmax(model_outputs[idx], -1)
+                    if i == 0:
+                        if "ground_truth" not in one_output_hparam:
+                            one_output_hparam["ground_truth"] = []
+                        if "predictions" not in one_output_hparam:
+                            one_output_hparam['predictions'] = []
+                            one_output_hparam['tmp_preds'] = []
+                        one_output_hparam['tmp_preds'].append(prediction_output)
+                        tmp_name = one_output_hparam.name
+                        tmp_type = one_output_hparam.type
+                        tmp_ground_truth = outputs[tmp_name]
+                        if tmp_type in [CLASSLABEL, LIST_OF_CLASSLABEL, LIST_OF_INT]:
+                            if tmp_type in [LIST_OF_INT]:
+                                tmp_tg = tf.argmax(tmp_ground_truth, -1)
+                            else:
+                                tmp_tg = tmp_ground_truth
+                            if one_output_hparam.task == NER:  # [[sent1], [sent2]]
+                                one_output_hparam.ground_truth.extend(tmp_tg.numpy().tolist())
+                            else:  # [1, 0, 1, ...]
+                                one_output_hparam.ground_truth.extend(tmp_tg.numpy().reshape(-1).tolist())
+                    else:
+                        one_output_hparam['tmp_preds'][j] += prediction_output
+
         for idx, one_output_hparam in enumerate(output_hparams):
-            if "ground_truth" not in one_output_hparam:
-                one_output_hparam["ground_truth"] = []
-            if "predictions" not in one_output_hparam:
-                one_output_hparam['predictions'] = []
-            prediction_output = model_outputs[idx]
-            tmp_name = one_output_hparam.name
+            prediction_output = one_output_hparam['tmp_preds'][idx]
             tmp_type = one_output_hparam.type
-            tmp_ground_truth = outputs[tmp_name]
             if tmp_type in [CLASSLABEL, LIST_OF_CLASSLABEL, LIST_OF_INT]:
-                if tmp_type in [LIST_OF_INT]:
-                    tmp_tg = tf.argmax(tmp_ground_truth, -1)
-                else:
-                    tmp_tg = tmp_ground_truth
-                if one_output_hparam.task == NER: # [[sent1], [sent2]]
-                    one_output_hparam.ground_truth.extend(tmp_tg.numpy().tolist())
+                if one_output_hparam.task == NER:  # [[sent1], [sent2]]
                     tmp_predictions = tf.argmax(prediction_output, -1).numpy().tolist()
                     one_output_hparam.predictions.extend(tmp_predictions)
-                else: # [1, 0, 1, ...]
-                    one_output_hparam.ground_truth.extend(tmp_tg.numpy().reshape(-1).tolist())
+                else:  # [1, 0, 1, ...]
                     tmp_predictions = tf.argmax(prediction_output, -1).numpy().reshape(-1).tolist()
                     one_output_hparam.predictions.extend(tmp_predictions)
 

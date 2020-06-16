@@ -27,8 +27,8 @@ def get_dataset_split(hparams: Hparams):
 
     if hparams.training.policy.name == "k-fold":
         k = hparams.training.policy.config.k
-        train_split = [f'train[:{k}%]+train[{k + 10}%:]' for k in range(0, 100, 100 // k)]
-        validation_split = [f'train[{k}%:{k + 10}%]' for k in range(0, 100, 100 // k)]
+        train_split = [f'train[:{t}%]+train[{t + 100 // k}%:]' for t in range(0, 100, 100 // k)]
+        validation_split = [f'train[{t}%:{t + 100 // k}%]' for t in range(0, 100, 100 // k)]
         test_split = [hparams.dataset.source.test] * k
     else:
         train_split = [hparams.dataset.source.train]

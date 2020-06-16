@@ -124,25 +124,27 @@ def k_fold_experiment(hparams: Hparams):
             # save best model
             logger.info(f'Save {idx}th model in {hparams.get_model_filename()}')
             model.save_weights(hparams.get_model_filename(), save_format="tf")
-            logger.info(f"Move {hparams.get_saved_model_dir()} to {k_fold_dir}")
-            cur_model_saved_dir = shutil.move(hparams.get_saved_model_dir(), k_fold_dir)
-            model_saved_dirs.append(cur_model_saved_dir)
 
-            # eval on test dataset and make reports
-            evaluation(hparams)
-            logger.info(f"Move {hparams.get_report_dir()} to {k_fold_dir}")
-            shutil.move(hparams.get_report_dir(), k_fold_dir)
+        # eval on test dataset and make reports
+        evaluation(hparams)
+        logger.info(f"Move {hparams.get_report_dir()} to {k_fold_dir}")
+        shutil.move(hparams.get_report_dir(), k_fold_dir)
+        logger.info(f"Move {hparams.get_saved_model_dir()} to {k_fold_dir}")
+        cur_model_saved_dir = shutil.move(hparams.get_saved_model_dir(), k_fold_dir)
+        logger.info(f"New model saved path for {idx}th fold: {cur_model_saved_dir}")
+        model_saved_dirs.append(cur_model_saved_dir)
 
-            logger.info(f'{idx}th-fold experiment Finish!')
+        logger.info(f'{idx}th-fold experiment Finish!')
 
     # eval on test dataset after average_checkpoints
-    logger.info("Average models of all fold models.")
+    # logger.info("Average models of all fold models.")
     checkpoints = [f'{itm}/model' for itm in model_saved_dirs]
-    average_checkpoints(model, checkpoints)
+    # average_checkpoints(model, checkpoints)
 
-    logger.info(f"Save averaged model in {hparams.get_model_filename()}")
-    model.save_weights(hparams.get_model_filename(), save_format="tf")
-    evaluation(hparams)
+    # logger.info(f"Save averaged model in {hparams.get_model_filename()}")
+    # model.save_weights(hparams.get_model_filename(), save_format="tf")
+
+    evaluation(hparams, checkpoints=checkpoints)
 
     logger.info('Experiment Finish!')
 

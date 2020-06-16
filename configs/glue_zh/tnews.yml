@@ -33,6 +33,8 @@ training:
     # callback name
     early_stopping:
       switch: true
+      config:
+        patience: 1
 
 dataset:
   name: glue_zh/tnews
