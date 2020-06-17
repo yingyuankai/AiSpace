@@ -43,6 +43,14 @@ training:
     optimizer:
       name: adam_weight_decay_with_warm_up
 
+    # optimizer wrapper such as: SWA
+    # [Averaging Weights Leads to Wider Optima and Better Generalization](https://arxiv.org/abs/1803.05407)
+    optimizer_wrapper:
+        name: swa
+        switch: false
+        config:
+            start_epoch: 5
+
     # Callbacks
     callbacks:
         # callback name
@@ -78,15 +86,6 @@ training:
                 profile_batch: 0   # if set nonzero, will very slow to start loading data and training.
                 embeddings_freq: 0
                 embeddings_metadata: null
-        swa:
-            switch: false
-            config:
-                start_epoch: 1          # Starting epoch for SWA.
-                lr_schedule: manual   # Learning rate schedule. 'manual' , 'constant' or 'cyclic'.
-                swa_lr: 0.001          # Learning rate used when averaging weights.
-                swa_lr2: 0.003         # Upper bound of learning rate for the cyclic schedule.
-                swa_freq: 1          # Frequency of weight averagining. Used with cyclic schedules.
-                verbose: 0              # Verbosity mode, 0 or 1.
 
     # Should a lr scheduler be used
     lr_scheduler: false

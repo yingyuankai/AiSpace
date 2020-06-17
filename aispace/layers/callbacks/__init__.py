@@ -6,8 +6,6 @@
 
 import tensorflow as tf
 
-from swa.tfkeras import SWA
-
 __all__ = [
     "CALLBACKS"
 ]
@@ -19,5 +17,4 @@ CALLBACKS = {
         lambda config: tf.keras.callbacks.ModelCheckpoint(**config),
     'tensorboard':
         lambda config: tf.keras.callbacks.TensorBoard(**config),
-    # 'swa': SWA
 }

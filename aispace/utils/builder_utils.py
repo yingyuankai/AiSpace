@@ -308,7 +308,7 @@ def build_tf_model_optimizer(train_hparams: Hparams):
     :param train_hparams:
     :return:
     """
-    from aispace.layers.optimizers import OPTIMIZERS
+    from aispace.layers.optimizers import OPTIMIZERS, OPTIMIZER_WRAPPER
     optimizer_fn = OPTIMIZERS.get(train_hparams.optimizer.name)
     logger.info(f"Using optimizer [{train_hparams.optimizer.name}].")
     if optimizer_fn is None:
@@ -316,6 +316,19 @@ def build_tf_model_optimizer(train_hparams: Hparams):
         logger.warning(f"Change to default optimizer adma.")
         optimizer_fn = OPTIMIZERS.get('adam')
     optimizer = optimizer_fn(train_hparams)
+
+    # wrapper for optimizer
+    if train_hparams.optimizer_wrapper.switch:
+        if train_hparams.optimizer.name in ['adam_weight_decay_with_warm_up_xxx']:
+            logger.warning(f"Wrapper {train_hparams.optimizer_wrapper.name} may be err "
+                           f"for optimizer {train_hparams.optimizer.name}.")
+            optimizer = optimizer
+        else:
+            logger.info(f"Using optimizer wrapper [{train_hparams.optimizer_wrapper.name}]")
+            optimizer_wrapper = OPTIMIZER_WRAPPER.get(train_hparams.optimizer_wrapper.name)
+            if optimizer_wrapper is not None:
+                optimizer = optimizer_wrapper(optimizer, train_hparams)
+
     return optimizer
 
 

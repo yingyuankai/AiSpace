@@ -22,13 +22,14 @@ model_attributes:
 #      - 100
 
 training:
-  policy:
-    name: "k-fold"
-    config:
-      k: 5
+#  policy:
+#    name: "k-fold"
+#    config:
+#      k: 5
   learning_rate: 3e-5
   max_epochs: 30
   batch_size: 32
+
   callbacks:
     # callback name
     early_stopping:
