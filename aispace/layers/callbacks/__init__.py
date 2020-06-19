@@ -6,6 +6,8 @@
 
 import tensorflow as tf
 
+from aispace.layers.callbacks.lr_finder import LRFinder
+
 __all__ = [
     "CALLBACKS"
 ]
@@ -17,4 +19,5 @@ CALLBACKS = {
         lambda config: tf.keras.callbacks.ModelCheckpoint(**config),
     'tensorboard':
         lambda config: tf.keras.callbacks.TensorBoard(**config),
+    'lr_finder': lambda config: LRFinder(**config)
 }

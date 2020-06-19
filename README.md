@@ -83,6 +83,26 @@ python -u aispace/trainer.py \
 
 --model_resume_path is a path to initialization model.
 
+### lr finder
+
+Firstly, use optimizer adma and open lr_finder callback.
+
+```yaml
+policy:
+    name: "base"
+        
+optimizer:
+  name: adam
+    
+callbacks:
+    lr_finder:
+      switch: true
+```
+
+Then run training policy as base.
+
+Lastly, you can find **lr_finder.jpg** in you workspace.
+
 ### K-fold cross validation training
 
 Firstly, Replace training default policy form base to:

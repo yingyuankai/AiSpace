@@ -52,17 +52,23 @@ def experiment(hparams: Hparams):
             validation_steps=hparams.training.validation_steps,
         )
 
-    # load best model
-    checkpoint_dir = os.path.join(hparams.get_workspace_dir(), "checkpoint")
-    if hparams.eval_use_best and os.path.exists(checkpoint_dir):
-        logger.info(f"Load best model from {checkpoint_dir}")
-        average_checkpoints(model, checkpoint_dir)
-    # save best model
-    logger.info(f'Save model in {hparams.get_model_filename()}')
-    model.save_weights(hparams.get_model_filename(), save_format="tf")
+    # 进行lr finder
+    lr_finder_call_back = [cb for cb in callbacks if hasattr(cb, "lr_finder_plot")]
+    if len(lr_finder_call_back) != 0:
+        logger.info(f"Do lr finder, and save result in {hparams.get_lr_finder_jpg_file()}")
+        lr_finder_call_back[0].lr_finder_plot(hparams.get_lr_finder_jpg_file())
+    else:
+        # load best model
+        checkpoint_dir = os.path.join(hparams.get_workspace_dir(), "checkpoint")
+        if hparams.eval_use_best and os.path.exists(checkpoint_dir):
+            logger.info(f"Load best model from {checkpoint_dir}")
+            average_checkpoints(model, checkpoint_dir)
+        # save best model
+        logger.info(f'Save model in {hparams.get_model_filename()}')
+        model.save_weights(hparams.get_model_filename(), save_format="tf")
 
-    # eval on test dataset and make reports
-    evaluation(hparams)
+        # eval on test dataset and make reports
+        evaluation(hparams)
 
     logger.info('Experiment Finish!')
 

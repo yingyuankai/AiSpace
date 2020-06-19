@@ -18,30 +18,36 @@ model_attributes:
       - 100
 
 training:
-  policy:
-    name: "k-fold"
-    config:
-      k: 5
+#  policy:
+#    name: "k-fold"
+#    config:
+#      k: 5
   learning_rate: 1e-3
-  max_epochs: 30
-  batch_size: 512
+  max_epochs: 3
+  batch_size: 128
 
-#  optimizer:
-#    name: radam
-  optimizer_wrapper:
-    switch: true
+  optimizer:
+    name: adam
+
+#  optimizer_wrapper:
+#    switch: true
 
   callbacks:
     # callback name
     early_stopping:
-      switch: true
+      switch: false
       config:
         patience: 3
     checkpoint:
-      switch: true
+      switch: false
       config:
         monitor: val_macro_f1
         save_best_only: true
+    lr_finder:
+      switch: true
+#      config:
+#        max_steps: 100
+#        smoothing: 0.6
 
 
 dataset:

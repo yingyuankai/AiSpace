@@ -220,6 +220,10 @@ class Hparams(collections.OrderedDict):
         report_folder = os.path.join(self.get_workspace_dir(), "reports")
         return report_folder
 
+    def get_lr_finder_jpg_file(self):
+        lr_finder_jpg_file = os.path.join(self.get_workspace_dir(), "lr_find.jpg")
+        return lr_finder_jpg_file
+
     def notice(self, fields):
         for field in fields:
             if field not in self:
