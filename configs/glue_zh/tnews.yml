@@ -27,7 +27,7 @@ training:
 #    name: "k-fold"
 #    config:
 #      k: 5
-  learning_rate: 0.001
+  learning_rate: 3e-4
   max_epochs: 30
   batch_size: 32
 
@@ -47,7 +47,7 @@ training:
       switch: True
       config:
         multipliers:
-          bert_for_seq_classification/bert: 0.01
+          bert_for_seq_classification/bert: 0.1
 
 dataset:
   name: glue_zh/tnews
