@@ -45,11 +45,15 @@ training:
 
     # optimizer wrapper such as: SWA
     # [Averaging Weights Leads to Wider Optima and Better Generalization](https://arxiv.org/abs/1803.05407)
-    optimizer_wrapper:
-        name: swa
-        switch: false
-        config:
-            start_epoch: 5
+    optimizer_wrappers:
+        swa:
+            switch: false
+            config:
+                start_epoch: 5
+        lr_multiplier:
+            switch: false
+            config:
+                multipliers: null
 
     # Callbacks
     callbacks:

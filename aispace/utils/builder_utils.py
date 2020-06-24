@@ -318,16 +318,23 @@ def build_tf_model_optimizer(train_hparams: Hparams):
     optimizer = optimizer_fn(train_hparams)
 
     # wrapper for optimizer
-    if train_hparams.optimizer_wrapper.switch:
-        if train_hparams.optimizer.name in ['adam_weight_decay_with_warm_up_xxx']:
-            logger.warning(f"Wrapper {train_hparams.optimizer_wrapper.name} may be err "
-                           f"for optimizer {train_hparams.optimizer.name}.")
-            optimizer = optimizer
-        else:
-            logger.info(f"Using optimizer wrapper [{train_hparams.optimizer_wrapper.name}]")
-            optimizer_wrapper = OPTIMIZER_WRAPPER.get(train_hparams.optimizer_wrapper.name)
-            if optimizer_wrapper is not None:
-                optimizer = optimizer_wrapper(optimizer, train_hparams)
+    optimizer_wrappers = [(k, v.config) for k, v in train_hparams.optimizer_wrappers.items() if v.switch]
+    for pw_name, config in optimizer_wrappers:
+        logger.info(f"Using optimizer wrapper [{pw_name}]")
+        optimizer_wrapper = OPTIMIZER_WRAPPER.get(pw_name)
+        if optimizer_wrapper is not None:
+            optimizer = optimizer_wrapper(optimizer, config)
+
+    # if train_hparams.optimizer_wrapper.switch:
+    #     if train_hparams.optimizer.name in ['adam_weight_decay_with_warm_up_xxx']:
+    #         logger.warning(f"Wrapper {train_hparams.optimizer_wrapper.name} may be err "
+    #                        f"for optimizer {train_hparams.optimizer.name}.")
+    #         optimizer = optimizer
+    #     else:
+    #         logger.info(f"Using optimizer wrapper [{train_hparams.optimizer_wrapper.name}]")
+    #         optimizer_wrapper = OPTIMIZER_WRAPPER.get(train_hparams.optimizer_wrapper.name)
+    #         if optimizer_wrapper is not None:
+    #             optimizer = optimizer_wrapper(optimizer, train_hparams)
 
     return optimizer
 

@@ -1,6 +1,7 @@
 includes:
 #  - "../base.yml"
-  - "../pretrain/nezha.yml"
+  - "../pretrain/bert_huggingface.yml"
+#  - "../pretrain/nezha.yml"
 #  - "../pretrain/electra_chinese.yml"
 #  - "../pretrain/ernie.yml"
 #  - "../pretrain/xlnet_chinese.yml"
@@ -35,7 +36,18 @@ training:
     early_stopping:
       switch: true
       config:
-        patience: 1
+        patience: 2
+
+  optimizer_wrappers:
+    swa:
+      switch: false
+      config:
+        start_epoch: 5
+    lr_multiplier:
+      switch: True
+      config:
+        multipliers:
+          bert_for_seq_classification/bert: 0.1
 
 dataset:
   name: glue_zh/tnews
@@ -101,7 +113,8 @@ pretrained:
 #    name: ERNIE_1.0_max-len-512
 #    name: chinese_xlnet_mid
 #    name: chinese_electra_base
-    name: NEZHA-Base
+#    name: NEZHA-Base
+    name: bert-base-chinese-huggingface
     init_from_pretrained: true
 #    config:
 #      use_task_id: false

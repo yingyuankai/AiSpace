@@ -9,6 +9,7 @@ import tensorflow_addons as tfa
 from prettytable import PrettyTable
 
 from .adam_weight_decay_optimizer import create_awdwwu_optimizer
+from .lr_multiplier import LRMultiplier
 
 __all__ = [
     "OPTIMIZERS",
@@ -40,13 +41,17 @@ OPTIMIZER_WRAPPER = {
         lambda opt, training_hparams:
         tfa.optimizers.SWA(opt, start_averaging=training_hparams.steps_per_epoch *
                                                 training_hparams.optimizer_wrapper.config.start_epoch,
-                           average_period=training_hparams.steps_per_epoch // 10)
+                           average_period=training_hparams.steps_per_epoch // 10),
+    'lr_multiplier': lambda opt, training_hparams: LRMultiplier(opt, multipliers=training_hparams.multipliers)
 }
 
 
 def print_available():
     table = PrettyTable(["NAME"])
     for key in OPTIMIZERS:
+        table.add_row([key])
+
+    for key in OPTIMIZER_WRAPPER:
         table.add_row([key])
     print()
     print(table)

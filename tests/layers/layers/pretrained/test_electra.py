@@ -19,7 +19,7 @@ class TestElectra(unittest.TestCase):
 
         # ckpt = "/search/data1/yyk/workspace/projects/ERNIE/ernie/checkpoints"
         # ckpt_vars = [itm for itm in tf.train.list_variables(ckpt) if itm[0].find('adam') == -1]
-        ckpt_vars = [itm for itm in tf.train.list_variables(hparam.pretrained.model_path) if itm[0].find('adam') == -1]
+        # ckpt_vars = [itm for itm in tf.train.list_variables(hparam.pretrained.model_path) if itm[0].find('adam') == -1]
 
         model, (losses, loss_weights), metrics, optimizer = build_model(hparam)
         model.compile(optimizer=optimizer, loss=losses, metrics=metrics)

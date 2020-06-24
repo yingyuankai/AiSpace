@@ -44,7 +44,7 @@ training:
         monitor: val_macro_f1
         save_best_only: true
     lr_finder:
-      switch: true
+      switch: false
 #      config:
 #        max_steps: 100
 #        smoothing: 0.6
