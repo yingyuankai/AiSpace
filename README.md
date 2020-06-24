@@ -43,7 +43,7 @@ Table of Contents
 * Standardized process
 * Multi-GPU Training
 * K-fold cross validation training
-* Integrate lr finder
+* Integrate lr finder and lr multiplier
 * Integrate multiple pre-trained models, including chinese
 * Simple and fast deployment using [BentoML](https://github.com/bentoml/BentoML)
 * Integrated Chinese benchmarks [CLUE](https://github.com/CLUEbenchmark/CLUE)
@@ -103,6 +103,24 @@ callbacks:
 Then run training policy as base.
 
 Lastly, you can find **lr_finder.jpg** in you workspace.
+
+
+### lr multiplier
+
+Learning rate multiplier wrapper for optimizers.
+
+The multiplier for a weight is the value mapped from the longest matched prefix in the given dict, and the default multiplier 1.0 will be used if there is no prefix matched.
+
+```yaml
+optimizer_wrappers:
+  lr_multiplier:
+      switch: True
+      config:
+        multipliers:
+          bert_for_seq_classification/bert: 0.1
+```
+
+Ref to [keras-lr-multiplier](https://pypi.org/project/keras-lr-multiplier/).
 
 ### K-fold cross validation training
 
