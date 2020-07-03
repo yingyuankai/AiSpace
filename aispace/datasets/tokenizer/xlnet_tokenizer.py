@@ -11,7 +11,7 @@ from typing import List, Optional
 from aispace.datasets.vocabulary import Vocabulary
 from aispace.datasets.tokenizer.tokenizer_base import BaseTokenizer
 from aispace.utils.hparams import Hparams
-from aispace.utils.str_utils import truncate_seq_pair
+from aispace.utils.str_utils import truncate_seq_pair, preprocess_text
 
 __all__ = [
     "XlnetTokenizer"
@@ -66,17 +66,10 @@ class XlnetTokenizer(BaseTokenizer):
         self.sp_model.Load(self.vocab_file)
 
     def _preprocess_text(self, inputs):
-        if self.remove_space:
-            outputs = " ".join(inputs.strip().split())
-        else:
-            outputs = inputs
-        outputs = outputs.replace("``", '"').replace("''", '"')
-
-        if not self.keep_accents:
-            outputs = unicodedata.normalize("NFKD", outputs)
-            outputs = "".join([c for c in outputs if not unicodedata.combining(c)])
-        if self.do_lower_case:
-            outputs = outputs.lower()
+        outputs = preprocess_text(inputs,
+                                  lower=self.do_lower_case,
+                                  remove_space=self.remove_space,
+                                  keep_accents=self.keep_accents)
 
         return outputs
 

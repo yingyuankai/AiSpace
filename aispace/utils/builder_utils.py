@@ -65,6 +65,7 @@ def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, 
             if k in input_names:
                 inputs[k] = v
             elif k in output_names:
+                inputs[k] = v
                 outputs[k] = v
             else:
                 raise ValueError(f"{k} not in inputs or outputs.")
