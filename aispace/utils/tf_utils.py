@@ -435,13 +435,15 @@ def weighted_sum(seq, prob):
 def masked_softmax(logits, mask):
     if len(logits.shape.as_list()) != len(mask.shape.as_list()):
         mask = tf.sequence_mask(mask, tf.shape(logits)[1], dtype=tf.float32)
+    mask = tf.cast(mask, tf.float32)
 
-    return tf.nn.softmax(logits + (1.0 - mask) * tf.float32.min)
+    return tf.nn.softmax(logits + (1.0 - mask) * tf.float32.min, axis=-1)
 
 
 def mask_logits(logits, mask):
     if len(logits.shape.as_list()) != len(mask.shape.as_list()):
         mask = tf.sequence_mask(mask, tf.shape(logits)[1], dtype=tf.float32)
+    mask = tf.cast(mask, tf.float32)
 
     return logits + (1.0 - mask) * tf.float32.min
 
@@ -453,3 +455,55 @@ def add_seq_mask(inputs, seq_len, mode='mul', max_len=None):
     if mode == 'add':
         mask = (1 - mask) * tf.float32.min
         return inputs + mask
+
+
+def generate_onehot_label(input_data, input_depth):
+    """Generate one-hot label"""
+    return tf.one_hot(input_data, depth=input_depth, on_value=1.0, off_value=0.0, dtype=tf.float32)
+
+
+def pack_inputs(inputs):
+    """Pack a list of `inputs` tensors to a tuple.
+  Args:
+    inputs: a list of tensors.
+  Returns:
+    a tuple of tensors. if any input is None, replace it with a special constant
+    tensor.
+  """
+    inputs = tf.nest.flatten(inputs)
+    outputs = []
+    for x in inputs:
+        if x is None:
+            outputs.append(tf.constant(0, shape=[], dtype=tf.int32))
+        else:
+            outputs.append(x)
+    return tuple(outputs)
+
+
+def unpack_inputs(inputs):
+    """unpack a tuple of `inputs` tensors to a tuple.
+  Args:
+    inputs: a list of tensors.
+  Returns:
+    a tuple of tensors. if any input is a special constant tensor, replace it
+    with None.
+  """
+    inputs = tf.nest.flatten(inputs)
+    outputs = []
+    for x in inputs:
+        if is_special_none_tensor(x):
+            outputs.append(None)
+        else:
+            outputs.append(x)
+    x = tuple(outputs)
+
+    # To trick the very pointless 'unbalanced-tuple-unpacking' pylint check
+    # from triggering.
+    if len(x) == 1:
+        return x[0]
+    return tuple(outputs)
+
+
+def is_special_none_tensor(tensor):
+    """Checks if a tensor is a special None Tensor."""
+    return tensor.shape.ndims == 0 and tensor.dtype == tf.int32

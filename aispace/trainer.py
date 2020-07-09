@@ -45,7 +45,7 @@ def experiment(hparams: Hparams):
         # fit
         model.fit(
             train_dataset,
-            validation_data=dev_dataset,
+            # validation_data=dev_dataset,
             epochs=hparams.training.max_epochs,
             callbacks=callbacks,
             steps_per_epoch=hparams.training.steps_per_epoch,

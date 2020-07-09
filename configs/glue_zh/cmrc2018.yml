@@ -1,17 +1,20 @@
 includes:
 #  - "../base.yml"
-  - "../pretrain/bert_huggingface.yml"
+#  - "../pretrain/bert_huggingface.yml"
 #  - "../pretrain/nezha.yml"
 #  - "../pretrain/electra_chinese.yml"
 #  - "../pretrain/ernie.yml"
-#  - "../pretrain/xlnet_chinese.yml"
+  - "../pretrain/xlnet_chinese.yml"
 
-model_name: bert_for_classification
+model_name: bert_for_qa
 
 model_attributes:
     hidden_dropout_prob: 0.5
     initializer_range: 0.02
-    hidden_size: 1024
+    hidden_size: 798
+    start_n_top: 3
+    layer_norm_eps: 1e-12
+    qa_layer_name: "qa_with_impossible"
 
 training:
 #  policy:
@@ -20,7 +23,7 @@ training:
 #      k: 5
   learning_rate: 3e-4
   max_epochs: 30
-  batch_size: 32
+  batch_size: 4
 
   callbacks:
     # callback name
@@ -35,7 +38,7 @@ training:
       config:
         start_epoch: 5
     lr_multiplier:
-      switch: True
+      switch: false
       config:
         multipliers:
           bert_for_seq_classification/bert: 0.1
@@ -55,46 +58,77 @@ dataset:
     max_answer_length: 64
     doc_stride: 128
 
-#  inputs:
-#    - name: input_ids
-#      column: input_ids
-#      type: LIST_OF_INT
-#      max_len: 100
-#    - name: token_type_ids
-#      column: token_type_ids
-#      type: LIST_OF_INT
-#      max_len: 100
-#    - name: attention_mask
-#      column: attention_mask
-#      type: LIST_OF_INT
-#      max_len: 100
-#
-#  outputs:
-#    - name: output_1
-#      column: label
-#      type: CLASSLABEL
-#      num: 15
-#      labels: ["news_story", "news_culture", "news_entertainment", "news_sports", "news_finance",
-#               "news_house", "news_car", "news_edu", "news_tech", "news_military", "news_travel",
-#               "news_world", "news_stock", "news_agriculture", "news_game"]
-#      loss:
-#        name: sparse_categorical_crossentropy
-#        config:
-#          from_logits: true
-#      metrics:
-#        - name: sparse_categorical_accuracy
-#        - name: sparse_f1_score
-#          config:
-#            name: "macro_f1"
-#            num_classes: 15
-#            average: "macro"
+  inputs:
+    - name: input_ids
+      column: input_ids
+      type: LIST_OF_INT
+      max_len: 512
+    - name: token_type_ids
+      column: token_type_ids
+      type: LIST_OF_INT
+      max_len: 512
+    - name: attention_mask
+      column: attention_mask
+      type: LIST_OF_INT
+      max_len: 512
+    - name: p_mask
+      column: p_mask
+      type: LIST_OF_INT
+      max_len: 512
+    - name: start_position
+      column: start_position
+      type: INT
+
+  outputs:
+    - name: output_1
+      column: start_position
+      type: CLASSLABEL
+      num: 512
+      labels: use_num
+      weight: 0.5
+      loss:
+        name: sparse_categorical_crossentropy
+        config:
+          from_logits: true
+      metrics:
+        - name: sparse_categorical_accuracy
+        - name: sparse_f1_score
+          config:
+            name: "micro_f1"
+            num_classes: 512
+            average: "micro"
+    - name: output_2
+      column: end_position
+      type: CLASSLABEL
+      num: 512
+      labels: use_num
+      weight: 0.5
+      loss:
+        name: sparse_categorical_crossentropy
+        config:
+          from_logits: true
+      metrics:
+        - name: sparse_categorical_accuracy
+        - name: sparse_f1_score
+          config:
+            name: "micro_f1"
+            num_classes: 512
+            average: "micro"
+    - name: output_3
+      column: is_impossible
+      type: INT
+      weight: 0.5
+      loss:
+        name: sigmoid_cross_entropy
+      metrics:
+        - name: binary_accuracy
 
 pretrained:
 #    name: ERNIE_1.0_max-len-512
-#    name: chinese_xlnet_mid
+    name: chinese_xlnet_mid
 #    name: chinese_electra_base
 #    name: NEZHA-Base
-    name: bert-base-chinese-huggingface
+#    name: bert-base-chinese-huggingface
     init_from_pretrained: false
 #    config:
 #      use_task_id: false

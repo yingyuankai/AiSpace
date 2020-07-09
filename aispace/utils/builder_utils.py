@@ -60,12 +60,13 @@ def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, 
     def build_generator(fields):
         input_names = [itm.get('name') for itm in hparams.dataset.inputs]
         output_names = [itm.get('name') for itm in hparams.dataset.outputs]
+        # output_name2column = {itm.get('name'): itm.get('column') for itm in hparams.dataset.outputs}
         inputs, outputs = {}, {}
         for k, v in fields.items():
             if k in input_names:
                 inputs[k] = v
             elif k in output_names:
-                inputs[k] = v
+                # inputs[output_name2column.get(k, k)] = v
                 outputs[k] = v
             else:
                 raise ValueError(f"{k} not in inputs or outputs.")
@@ -247,6 +248,13 @@ def build_tf_model_inputs(dataset_hparams: Hparams):
                 shape=(item.max_len,), dtype=tf.int32, name=item.name
             )
             inputs[item.name] = input
+        elif item.type in [INT]:
+            input = tf.keras.layers.Input(
+                shape=(), dtype=tf.int32, name=item.name
+            )
+            inputs[item.name] = input
+        else:
+            raise NotImplementedError(f"Do not implement input type {item.type}")
     return inputs
 
 
@@ -263,6 +271,8 @@ def build_tf_model_losses(model, dataset_hparams: Hparams):
         name = output_hparam.name
         loss_weight = output_hparam.weight if "weight" in output_hparam else 1.
         loss_weights[name] = loss_weight
+        if "loss" not in output_hparam:
+            continue
         loss_hparam = output_hparam.loss
         loss_name = loss_hparam.name
         loss_fn = LOSSES.get(loss_name)

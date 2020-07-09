@@ -16,3 +16,4 @@ from aispace.layers import encoders
 from aispace.layers import decoders
 from aispace.layers.activations import ACT2FN
 from aispace.layers import adapters
+from aispace.layers import qa_layers

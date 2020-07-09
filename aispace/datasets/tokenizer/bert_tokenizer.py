@@ -73,7 +73,9 @@ class BertTokenizer(BaseTokenizer):
     def encode(self,
                text_a: str,
                text_b: Optional[str] = None,
-               max_seq_length: Optional[int] = None):
+               max_seq_length: Optional[int] = None,
+               return_mask=False, return_offset=False,
+               return_cls_index=False):
         """Adds special tokens to a sequence or sequence pair and computes the
         corresponding segment ids and input mask for BERT specific tasks.
         The sequence will be truncated if its length is larger than
@@ -105,24 +107,37 @@ class BertTokenizer(BaseTokenizer):
         sep_id = self.vocab.sep_id
 
         # transforming for text_a
-        token_ids_a = self.vocab.transformer(self.tokenize(text_a))
+        if isinstance(text_a, str):
+            token_a = self.tokenize(text_a)
+        elif isinstance(text_a, (tuple, list)):
+            token_a = text_a
+        token_ids_a = self.vocab.transformer(token_a)
         assert isinstance(token_ids_a, list)
 
         # transforming for text_a or text_b
         if text_b:
-            token_ids_b = self.vocab.transformer(self.tokenize(text_b))
+            if isinstance(text_b, str):
+                token_b = self.tokenize(text_b)
+            elif isinstance(text_b, (tuple, list)):
+                token_b = text_b
+            token_ids_b = self.vocab.transformer(token_b)
             assert isinstance(token_ids_b, list)
             # Modifies `token_ids_a` and `token_ids_b` in place so that the
             # total length is less than the specified length.
             # Account for [CLS], [SEP], [SEP] with "- 3"
             truncate_seq_pair(token_ids_a, token_ids_b, max_seq_length - 3)
 
-            input_ids = [cls_id] + token_ids_a + [sep_id] + token_ids_b + [sep_id]
-            segment_ids = [0] * (len(token_ids_a) + 2) + [1] * (len(token_ids_b) + 1)
+            # input_ids = [cls_id] + token_ids_a + [sep_id] + token_ids_b + [sep_id]
+            # segment_ids = [0] * (len(token_ids_a) + 2) + [1] * (len(token_ids_b) + 1)
         else:
             token_ids_a = token_ids_a[: max_seq_length - 2]
-            input_ids = [cls_id] + token_ids_a + [sep_id]
-            segment_ids = [0] * len(input_ids)
+            # input_ids = [cls_id] + token_ids_a + [sep_id]
+            # segment_ids = [0] * len(input_ids)
+
+        input_ids = self.build_inputs_with_special_tokens(token_ids_a, token_ids_b)
+        segment_ids = self.create_token_type_ids_from_sequences(token_ids_a, token_ids_b)
+        special_token_mask = self.get_special_tokens_mask(token_ids_a, token_ids_b)
+        a_mask, b_mask = self.get_tokens_mask(token_ids_a, token_ids_b)
 
         input_mask = [1] * len(input_ids)
 
@@ -130,12 +145,127 @@ class BertTokenizer(BaseTokenizer):
         input_ids = input_ids + [0] * (max_seq_length - len(input_ids))
         segment_ids = segment_ids + [0] * (max_seq_length - len(segment_ids))
         input_mask = input_mask + [0] * (max_seq_length - len(input_mask))
+        special_token_mask = special_token_mask + [0] * (max_seq_length - len(special_token_mask))
+        a_mask = a_mask + [0] * (max_seq_length - len(a_mask))
+        if b_mask is not None:
+            b_mask = b_mask + [0] * (max_seq_length - len(b_mask))
 
         assert len(input_ids) == max_seq_length
         assert len(segment_ids) == max_seq_length
         assert len(input_mask) == max_seq_length
+        assert len(special_token_mask) == max_seq_length
+        assert len(a_mask) == max_seq_length
 
-        return input_ids, segment_ids, input_mask
+        output = {
+            "input_ids": input_ids,
+            "segment_ids": segment_ids,
+            "input_mask": input_mask,
+        }
+
+        if return_mask:
+            output['a_mask'] = a_mask
+            output['b_mask'] = b_mask
+
+        if return_offset:
+            output['offset'] = 1
+
+        if return_cls_index:
+            output['cls_index'] = 0
+
+        return output
+
+        # return input_ids, segment_ids, input_mask
+
+    def build_inputs_with_special_tokens(
+        self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None
+    ) -> List[int]:
+        """
+        Build model inputs from a sequence or a pair of sequence for sequence classification tasks
+        by concatenating and adding special tokens.
+        An XLNet sequence has the following format:
+
+        - single sequence: ``X <sep> <cls>``
+        - pair of sequences: ``A <sep> B <sep> <cls>``
+
+        Args:
+            token_ids_0 (:obj:`List[int]`):
+                List of IDs to which the special tokens will be added
+            token_ids_1 (:obj:`List[int]`, `optional`, defaults to :obj:`None`):
+                Optional second list of IDs for sequence pairs.
+
+        Returns:
+            :obj:`List[int]`: list of `input IDs <../glossary.html#input-ids>`__ with the appropriate special tokens.
+        """
+        sep = [self.vocab.sep_id]
+        cls = [self.vocab.cls_id]
+        if token_ids_1 is None:
+            return cls + token_ids_0 + sep
+        return cls + token_ids_0 + sep + token_ids_1 + sep
+
+    def create_token_type_ids_from_sequences(
+        self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None
+    ) -> List[int]:
+        """
+        Creates a mask from the two sequences passed to be used in a sequence-pair classification task.
+        An XLNet sequence pair mask has the following format:
+        0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 2
+        | first sequence    | second sequence     | CLS segment ID
+
+        if token_ids_1 is None, only returns the first portion of the mask (0's).
+
+        Args:
+            token_ids_0 (:obj:`List[int]`):
+                List of ids.
+            token_ids_1 (:obj:`List[int]`, `optional`, defaults to :obj:`None`):
+                Optional second list of IDs for sequence pairs.
+
+        Returns:
+            :obj:`List[int]`: List of `token type IDs <../glossary.html#token-type-ids>`_ according to the given
+            sequence(s).
+        """
+        sep = [self.vocab.sep_id]
+        cls_segment_id = [0]
+
+        if token_ids_1 is None:
+            return cls_segment_id + len(token_ids_0 + sep) * [0]
+        return cls_segment_id + len(token_ids_0 + sep) * [0] + len(token_ids_1 + sep) * [1]
+
+    def get_tokens_mask(self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None):
+        if token_ids_1 is None:
+            return [0] + [1] * len(token_ids_0) + [0], None
+        return [0] + [1] * len(token_ids_0) + [0] + [0] * (len(token_ids_1) + 1), \
+               [0] * (len(token_ids_0) + 2) + [1] * len(token_ids_1) + [0]
+
+    def get_special_tokens_mask(
+        self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None, already_has_special_tokens: bool = False
+    ) -> List[int]:
+        """
+        Retrieves sequence ids from a token list that has no special tokens added. This method is called when adding
+        special tokens using the tokenizer ``prepare_for_model`` or ``encode_plus`` methods.
+
+        Args:
+            token_ids_0 (:obj:`List[int]`):
+                List of ids.
+            token_ids_1 (:obj:`List[int]`, `optional`, defaults to :obj:`None`):
+                Optional second list of IDs for sequence pairs.
+            already_has_special_tokens (:obj:`bool`, `optional`, defaults to :obj:`False`):
+                Set to True if the token list is already formatted with special tokens for the model
+
+        Returns:
+            :obj:`List[int]`: A list of integers in the range [0, 1]: 1 for a special token, 0 for a sequence token.
+        """
+
+        if already_has_special_tokens:
+            if token_ids_1 is not None:
+                raise ValueError(
+                    "You should not supply a second sequence if the provided sequence of "
+                    "ids is already formated with special tokens for the model."
+                )
+            return list(map(lambda x: 1 if x in [self.vocab.sep_id, self.vocab.cls_id] else 0, token_ids_0))
+
+        if token_ids_1 is not None:
+            return [1] + [0] * len(token_ids_0) + [1] + [0] * len(token_ids_1) + [1]
+        return [1] + ([0] * len(token_ids_0)) + [1]
 
     def decode(self, idx, skip_special_tokens=False):
         return self.vocab.transformer(idx, skip_special_tokens)
