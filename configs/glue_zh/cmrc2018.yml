@@ -23,7 +23,7 @@ training:
 #      k: 5
   learning_rate: 3e-4
   max_epochs: 30
-  batch_size: 4
+  batch_size: 8
 
   callbacks:
     # callback name

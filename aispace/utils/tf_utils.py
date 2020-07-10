@@ -437,7 +437,15 @@ def masked_softmax(logits, mask):
         mask = tf.sequence_mask(mask, tf.shape(logits)[1], dtype=tf.float32)
     mask = tf.cast(mask, tf.float32)
 
-    return tf.nn.softmax(logits + (1.0 - mask) * tf.float32.min, axis=-1)
+    return tf.nn.softmax(logits * mask + (1.0 - mask) * tf.float32.min, axis=-1)
+
+
+def masked_log_softmax(logits, mask):
+    if len(logits.shape.as_list()) != len(mask.shape.as_list()):
+        mask = tf.sequence_mask(mask, tf.shape(logits)[1], dtype=tf.float32)
+    mask = tf.cast(mask, tf.float32)
+
+    return tf.nn.log_softmax(logits * mask + (1.0 - mask) * tf.float32.min, axis=-1)
 
 
 def mask_logits(logits, mask):
@@ -445,7 +453,7 @@ def mask_logits(logits, mask):
         mask = tf.sequence_mask(mask, tf.shape(logits)[1], dtype=tf.float32)
     mask = tf.cast(mask, tf.float32)
 
-    return logits + (1.0 - mask) * tf.float32.min
+    return logits * mask + (1.0 - mask) * tf.float32.min
 
 
 def add_seq_mask(inputs, seq_len, mode='mul', max_len=None):
