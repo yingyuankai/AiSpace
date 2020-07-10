@@ -78,7 +78,7 @@ class QALayerWithImpossible(tf.keras.layers.Layer):
         start_top_prob, start_top_index, end_top_prob, end_top_index = [None] * 4
         # end
         if is_training:
-            start_index = generate_onehot_label(tf.expand_dims(start_position, axis=-1), self.seq_len)  # [b, 1, l]
+            start_index = generate_onehot_label(start_position, self.seq_len)  # [b, 1, l]
             feat_result = tf.matmul(start_index, seq_output)  # [b, 1, l], [b, l, h] --> [b, 1, h]
             feat_result = tf.tile(feat_result, multiples=[1, self.seq_len, 1])  # [b, 1, h] --> [b, l, h]
 
@@ -98,10 +98,10 @@ class QALayerWithImpossible(tf.keras.layers.Layer):
             end_result = tf.expand_dims(seq_output, axis=-2)  # [b, l, h] --> [b, l, 1, h]
             end_result = tf.tile(end_result, multiples=[1, 1, self.start_n_top, 1])  # [b, l, 1, h] --> [b, l, k, h]
             end_result = tf.concat([end_result, feat_result], axis=-1)  # [b, l, k, h], [b, l, k, h] --> [b, l, k, 2h]
-            print(get_shape(end_result))
             end_result = self.end_modeling(end_result)  # [b, l, k, 2h] --> [b, l, k, h]
-            print(get_shape(end_result))
-            end_result = self.layer_norm(end_result)  # [b, l, k, h] --> [b, l, k, h]
+            end_result = tf.reshape(end_result, [-1, self.seq_len * self.start_n_top, self.hidden_size])   # [b, l, k, h] --> [b, lk, h]
+            end_result = self.layer_norm(end_result)  # [b, lk, h] --> [b, lk, h]
+            end_result = tf.reshape(end_result, [-1, self.seq_len, self.start_n_top, self.hidden_size])  # [b, lk, h] --> [b, l, k, h]
             end_result = self.end_project(end_result)  # [b, l, k, h] --> [b, l, k, 1]
             end_result = tf.transpose(tf.squeeze(end_result, axis=-1), perm=[0, 2, 1])  # [b, l, k, 1] --> [b, k, l]
 
@@ -118,7 +118,7 @@ class QALayerWithImpossible(tf.keras.layers.Layer):
         answer_result = self.answer_modeling(answer_result)  # [b, 2h] --> [b, h]
         answer_result = self.answer_dropout(answer_result)  # [b, h]
         answer_prob = self.answer_project(answer_result)  # [b, h] --> [b, 1]
-        answer_prob = tf.squeeze(answer_prob, axis=-1)  # [b, 1] --> [b]
+        # answer_prob = tf.squeeze(answer_prob, axis=-1)  # [b, 1] --> [b]
         # answer_prob = tf.sigmoid(answer_result)  # [b]
 
         if is_training:

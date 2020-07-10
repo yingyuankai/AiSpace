@@ -65,8 +65,8 @@ class XLNetRelativeAttention(tf.keras.layers.Layer):
                                         initializer='zeros',
                                         trainable=True, name='r_w_bias')
         self.seg_embed = self.add_weight(shape=(2, self.n_head, self.d_head),
-                                        initializer=initializer,
-                                        trainable=True, name='seg_embed')
+                                         initializer=initializer,
+                                         trainable=True, name='seg_embed')
         super(XLNetRelativeAttention, self).build(input_shape)
 
     @staticmethod
@@ -429,9 +429,9 @@ class XLNet(BaseLayer):
 
             if bsz is not None:
                 # With bi_data, the batch size should be divisible by 2.
-                assert bsz%2 == 0
-                fwd_pos_emb = self.positional_embedding(fwd_pos_seq, inv_freq, bsz//2)
-                bwd_pos_emb = self.positional_embedding(bwd_pos_seq, inv_freq, bsz//2)
+                assert bsz % 2 == 0
+                fwd_pos_emb = self.positional_embedding(fwd_pos_seq, inv_freq, bsz // 2)
+                bwd_pos_emb = self.positional_embedding(bwd_pos_seq, inv_freq, bsz // 2)
             else:
                 fwd_pos_emb = self.positional_embedding(fwd_pos_seq, inv_freq)
                 bwd_pos_emb = self.positional_embedding(bwd_pos_seq, inv_freq)
@@ -448,7 +448,7 @@ class XLNet(BaseLayer):
         return pos_emb
 
     def call(self, inputs, attention_mask=None, mems=None, perm_mask=None, target_mapping=None,
-            token_type_ids=None, input_mask=None, head_mask=None, inputs_embeds=None, training=False):
+             token_type_ids=None, input_mask=None, head_mask=None, inputs_embeds=None, training=False):
         if isinstance(inputs, (tuple, list)):
             input_ids = inputs[0]
             attention_mask = inputs[1] if len(inputs) > 1 else attention_mask
@@ -512,7 +512,7 @@ class XLNet(BaseLayer):
 
         # data mask: input mask & perm mask
         assert input_mask is None or attention_mask is None, "You can only use one of input_mask (uses 1 for padding) " \
-            "or attention_mask (uses 0 for padding, added for compatbility with BERT). Please choose one."
+                                                             "or attention_mask (uses 0 for padding, added for compatbility with BERT). Please choose one."
         if input_mask is None and attention_mask is not None:
             attention_mask = tf.cast(attention_mask, tf.float32)
             input_mask = 1. - attention_mask
@@ -528,7 +528,7 @@ class XLNet(BaseLayer):
         if data_mask is not None:
             # all mems can be attended to
             mems_mask = tf.zeros([tf.shape(data_mask)[0], mlen, bsz],
-                                dtype=dtype_float)
+                                 dtype=dtype_float)
             data_mask = tf.concat([mems_mask, data_mask], axis=1)
             if attn_mask is None:
                 attn_mask = data_mask[:, :, :, None]
@@ -553,9 +553,9 @@ class XLNet(BaseLayer):
         output_h = self.dropout(word_emb_k, training=training)
         if target_mapping is not None:
             word_emb_q = tf.tile(self.mask_emb, [tf.shape(target_mapping)[0], bsz, 1])
-        # else:  # We removed the inp_q input which was same as target mapping
-        #     inp_q_ext = inp_q[:, :, None]
-        #     word_emb_q = inp_q_ext * self.mask_emb + (1 - inp_q_ext) * word_emb_k
+            # else:  # We removed the inp_q input which was same as target mapping
+            #     inp_q_ext = inp_q[:, :, None]
+            #     word_emb_q = inp_q_ext * self.mask_emb + (1 - inp_q_ext) * word_emb_k
             output_g = self.dropout(word_emb_q, training=training)
         else:
             output_g = None
@@ -589,7 +589,8 @@ class XLNet(BaseLayer):
                 head_mask = head_mask.expand(self.n_layer, -1, -1, -1, -1)
             elif head_mask.dim() == 2:
                 head_mask = head_mask.unsqueeze(1).unsqueeze(1).unsqueeze(1)
-            head_mask = head_mask.to(dtype=next(self.parameters()).dtype) # switch to fload if need + fp16 compatibility
+            head_mask = head_mask.to(
+                dtype=next(self.parameters()).dtype)  # switch to fload if need + fp16 compatibility
         else:
             head_mask = [None] * self.n_layer
 

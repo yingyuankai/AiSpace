@@ -46,5 +46,11 @@ class BertForQA(BaseModel):
         cls_output = encode_repr[1]  # [b, h]
         passage_mask = inputs['p_mask']
 
-        outputs = self.qa_layer([seq_output, cls_output, passage_mask, inputs.get('start_position')], training=is_training)
+        if is_training:
+            start_position = inputs['start_position']
+        else:
+            start_position = None
+
+        outputs = self.qa_layer([seq_output, cls_output, passage_mask, start_position], training=is_training)
+
         return outputs

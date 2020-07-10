@@ -60,13 +60,13 @@ def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, 
     def build_generator(fields):
         input_names = [itm.get('name') for itm in hparams.dataset.inputs]
         output_names = [itm.get('name') for itm in hparams.dataset.outputs]
-        # output_name2column = {itm.get('name'): itm.get('column') for itm in hparams.dataset.outputs}
+        output_name2column = {itm.get('name'): itm.get('column') for itm in hparams.dataset.outputs}
         inputs, outputs = {}, {}
         for k, v in fields.items():
             if k in input_names:
                 inputs[k] = v
             elif k in output_names:
-                # inputs[output_name2column.get(k, k)] = v
+                inputs[output_name2column.get(k, k)] = v
                 outputs[k] = v
             else:
                 raise ValueError(f"{k} not in inputs or outputs.")
@@ -186,7 +186,7 @@ def build_model(hparam: Hparams, return_losses=True, return_metrics=True, return
     model = BaseModel.by_name(hparam.model_name)(hparam)
     # build inputs and model
     inputs = build_tf_model_inputs(hparam.dataset)
-    model(inputs)
+    model(inputs, training=True)
 
     rets = ()
     # build losses
@@ -250,7 +250,7 @@ def build_tf_model_inputs(dataset_hparams: Hparams):
             inputs[item.name] = input
         elif item.type in [INT]:
             input = tf.keras.layers.Input(
-                shape=(), dtype=tf.int32, name=item.name
+                shape=[], dtype=tf.int32, name=item.name
             )
             inputs[item.name] = input
         else:

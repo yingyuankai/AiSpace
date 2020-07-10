@@ -530,6 +530,13 @@ def client(sys_argv):
         help='use mixed float16 while training.'
     )
     parser.add_argument(
+        '-ex',
+        '--enable_xla',
+        default=False,
+        type=ast.literal_eval,
+        help='enables XLA.'
+    )
+    parser.add_argument(
         '-mrp',
         '--model_resume_path',
         help='path of a the model directory to resume training of'

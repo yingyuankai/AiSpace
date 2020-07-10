@@ -12,7 +12,7 @@ import shutil
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from aispace.utils.hparams import client, Hparams
-from aispace.utils.misc import set_random_seed, set_visible_devices
+from aispace.utils.misc import set_random_seed, set_visible_devices, set_xla
 from aispace.utils.builder_utils import build_callbacks, load_dataset, build_model
 from aispace.constants import *
 from aispace.utils.eval_utils import evaluation
@@ -49,7 +49,7 @@ def experiment(hparams: Hparams):
             epochs=hparams.training.max_epochs,
             callbacks=callbacks,
             steps_per_epoch=hparams.training.steps_per_epoch,
-            validation_steps=hparams.training.validation_steps,
+            # validation_steps=hparams.training.validation_steps,
         )
 
     # 进行lr finder
@@ -188,6 +188,8 @@ def main(argv):
     hparams.stand_by()
     # set GPU
     set_visible_devices(hparams.gpus)
+    # set xla
+    set_xla(hparams.enable_xla)
     # set random seed for tensorflow, numpy, and random
     set_random_seed(hparams.random_seed)
     # print logo and version

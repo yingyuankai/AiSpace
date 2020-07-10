@@ -28,7 +28,7 @@ training:
   callbacks:
     # callback name
     early_stopping:
-      switch: true
+      switch: false
       config:
         patience: 2
 
