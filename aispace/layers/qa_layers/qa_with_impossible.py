@@ -17,6 +17,11 @@ __all__ = [
 
 @BaseLayer.register("qa_with_impossible")
 class QALayerWithImpossible(tf.keras.layers.Layer):
+    """
+    refs:
+    https://github.com/kamalkraj/ALBERT-TF2.0/blob/master/run_squad.py
+    https://github.com/stevezheng23/xlnet_extension_tf/blob/master/run_squad.py#L597
+    """
     def __init__(self, hidden_size, seq_len, start_n_top, end_n_top, initializer, dropout, layer_norm_eps=1e-12, **kwargs):
         super(QALayerWithImpossible, self).__init__(**kwargs)
         self.seq_len = seq_len
