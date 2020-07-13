@@ -7,7 +7,7 @@
 import tensorflow as tf
 
 from aispace.layers.base_layer import BaseLayer
-from aispace.utils.tf_utils import mask_logits, generate_onehot_label
+from aispace.utils.tf_utils import masked_softmax, generate_onehot_label
 from aispace.layers.activations import ACT2FN
 
 __all__ = [
@@ -79,8 +79,7 @@ class QALayerWithImpossible(tf.keras.layers.Layer):
 
         start_feature = self.start_project(seq_output)  # [b, l, h] --> [b, l, 1]
         start_feature = tf.squeeze(start_feature, axis=-1)  # [b, l, 1] --> [b, l]
-        start_logits_masked = mask_logits(start_feature, passage_mask)  # [b, l]
-        start_log_probs = tf.nn.log_softmax(start_logits_masked, axis=-1)
+        start_log_probs = masked_softmax(start_feature, passage_mask)  # [b, l]
 
         start_top_log_prob, start_top_index, end_top_log_prob, end_top_index = [None] * 4
         # end
@@ -95,8 +94,7 @@ class QALayerWithImpossible(tf.keras.layers.Layer):
             end_feature = self.layer_norm(end_feature)  # [b, l, h] --> [b, l, h]
             end_feature = self.end_project(end_feature)  # [b, l, h] --> [b, l, 1]
             end_feature = tf.squeeze(end_feature, axis=-1)  # [b, l, 1] --> [b, l]
-            end_logits_masked = mask_logits(end_feature, passage_mask)  # [b, l]
-            end_log_probs = tf.nn.log_softmax(end_logits_masked, axis=-1)
+            end_log_probs = masked_softmax(end_feature, passage_mask)  # [b, l]
         else:
             start_top_log_prob, start_top_index = tf.nn.top_k(start_log_probs, self.start_n_top)  # [b, l] --> [b, k], [b, k]
             start_index = generate_onehot_label(start_top_index, self.seq_len)  # [b, k] --> [b, k, l]
@@ -118,21 +116,19 @@ class QALayerWithImpossible(tf.keras.layers.Layer):
             end_passage_mask = tf.expand_dims(passage_mask, axis=1)  # [b, l] --> [b, 1, l]
             end_passage_mask = tf.tile(end_passage_mask, [1, self.start_n_top, 1])  # [b, 1, l] --> [b, k, l]
 
-            end_logits_masked = mask_logits(end_feature, end_passage_mask)  # [b, k, l]
-            end_log_probs = tf.nn.log_softmax(end_logits_masked, axis=-1)
+            end_log_probs = masked_softmax(end_feature, end_passage_mask)  # [b, k, l]
 
             end_top_log_prob, end_top_index = tf.nn.top_k(end_log_probs, self.start_n_top)  # [b, k, l] --> [b, k, k], [b, k, k]
 
         # answer
-        start_feature = tf.nn.softmax(start_logits_masked, axis=-1, name="softmax_start")
-        start_feature = tf.einsum('bl,blh->bh', start_feature, seq_output)  # [b, h]
+        start_feature = tf.einsum('bl,blh->bh', start_log_probs, seq_output)  # [b, h]
 
         answer_feature = tf.concat([cls_output, start_feature], axis=-1)  # [b, h], [b, h] --> [b, 2h]
         answer_feature = self.answer_modeling(answer_feature)  # [b, 2h] --> [b, h]
         answer_feature = self.answer_dropout(answer_feature)  # [b, h]
         answer_prob = self.answer_project(answer_feature)  # [b, h] --> [b, 1]
         # answer_prob = tf.squeeze(answer_prob, axis=-1)  # [b, 1] --> [b]
-        # answer_prob = tf.sigmoid(answer_result)  # [b]
+        answer_prob = tf.sigmoid(answer_prob)  # [b]
 
         if is_training:
             output = (start_log_probs, end_log_probs, answer_prob)

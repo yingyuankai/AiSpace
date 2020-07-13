@@ -21,7 +21,7 @@ training:
 #    name: "k-fold"
 #    config:
 #      k: 5
-  learning_rate: 3e-4
+  learning_rate: 3e-5
   max_epochs: 30
   batch_size: 8
 
