@@ -67,7 +67,21 @@ class BertTokenizer(BaseTokenizer):
     def detokenizer(self, tokens: List[str]) -> str:
         r"""Maps a sequence of tokens (string) to a single string."""
         link_word = "" if self._hparams.tokenize_chinese_chars else " "
-        out_string = f'{link_word}'.join(tokens).replace(f'{link_word}##', '').strip()
+
+        # out_string = f'{link_word}'.join(tokens).replace(f'{link_word}##', '').strip()
+        out_string = f'{link_word}'.join(tokens).replace(f'{link_word}##', ''.join([' '] * len(f'{link_word}##'))).strip()
+        # out_string = ""
+        # for i in range(len(tokens)):
+        #     if i == 0:
+        #         out_string += tokens[0]
+        #         continue
+        #     if self._is_english(tokens[i]) and self._is_english(tokens[i - 1]):
+        #         out_string += ' ' + tokens[i]
+        #         out_string = out_string.replace(f' ##', '').strip()
+        #     else:
+        #         out_string += link_word + tokens[i]
+        #         out_string = out_string.replace(f'##', '').strip()
+
         return out_string
 
     def encode(self,
@@ -269,3 +283,21 @@ class BertTokenizer(BaseTokenizer):
 
     def decode(self, idx, skip_special_tokens=False):
         return self.vocab.transformer(idx, skip_special_tokens)
+
+    def _is_english(self, word: str) -> bool:
+        """
+        Checks whether `word` is a english word.
+
+        Note: this function is not standard and should be considered for BERT
+        tokenization only. See the comments for more details.
+        :param word:
+        :return:
+        """
+        flag = True
+        for c in word:
+            if 'a' <= c <= 'z' or 'A' <= c <= 'Z' or c == '#':
+                continue
+            else:
+                flag = False
+                break
+        return flag

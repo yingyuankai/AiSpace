@@ -1,10 +1,10 @@
 includes:
 #  - "../base.yml"
-#  - "../pretrain/bert_huggingface.yml"
+  - "../pretrain/bert_huggingface.yml"
 #  - "../pretrain/nezha.yml"
 #  - "../pretrain/electra_chinese.yml"
 #  - "../pretrain/ernie.yml"
-  - "../pretrain/xlnet_chinese.yml"
+#  - "../pretrain/xlnet_chinese.yml"
 
 model_name: bert_for_qa
 
@@ -125,11 +125,11 @@ dataset:
 
 pretrained:
 #    name: ERNIE_1.0_max-len-512
-    name: chinese_xlnet_mid
+#    name: chinese_xlnet_mid
 #    name: chinese_electra_base
 #    name: NEZHA-Base
-#    name: bert-base-chinese-huggingface
-    init_from_pretrained: false
+    name: bert-base-chinese-huggingface
+    init_from_pretrained: true
 #    config:
 #      use_task_id: false
 

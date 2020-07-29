@@ -221,7 +221,7 @@ class BasicTokenizer:
         output = []
         for char in text:
             cp = ord(char)
-            if self._is_chinese_char(cp):
+            if self._is_chinese_char(cp) or _is_punctuation(char):
                 output.append(" ")
                 output.append(char)
                 output.append(" ")

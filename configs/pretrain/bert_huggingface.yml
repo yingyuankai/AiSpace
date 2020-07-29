@@ -55,7 +55,7 @@ pretrained:
                     do_lower_case:
                         to_replaces:
                             - dataset.tokenizer.do_lower_case
-                        value: false
+                        value: true
         bert-base-uncased-huggingface:
             model:
                 url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-uncased-tf_model.h5

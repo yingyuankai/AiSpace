@@ -98,11 +98,16 @@ class CMRC2018Transformer(BaseTransformer):
         output_path = os.path.join(output_path_base, f"{split}.json")
 
         with open(output_path, "w", encoding="utf8") as ouf:
-            for example in tqdm(self._read_next(data_path)):
-                query_tokens = self.tokenizer.tokenize(example['question_text'])
+            for e_i, example in tqdm(enumerate(self._read_next(data_path))):
+                question_text = example['question_text']
+                if self._hparams.dataset.tokenizer.do_lower_case:
+                    question_text = question_text.lower()
+                query_tokens = self.tokenizer.tokenize(question_text)
                 query_tokens = query_tokens[: self.max_query_length]
 
                 para_text = example['paragraph_text']
+                if self._hparams.dataset.tokenizer.do_lower_case:
+                    para_text = para_text.lower()
                 para_tokens = self.tokenizer.tokenize(para_text)
 
                 """
@@ -156,6 +161,9 @@ class CMRC2018Transformer(BaseTransformer):
                     else:
                         i = i - 1
 
+                # if para_text.startswith("安雅·罗素法"):
+                #     print(tokenized2raw_char_index)
+
                 if all(v is None for v in raw2tokenized_char_index) or mismatch:
                     logger.warning("raw and tokenized paragraph mismatch detected for example: %s" % example['qas_id'])
 
@@ -169,8 +177,14 @@ class CMRC2018Transformer(BaseTransformer):
                     end_pos = token2char_end_index[idx]
 
                     # raw char idx
+                    # try:
                     raw_start_pos = self._convert_tokenized_index(tokenized2raw_char_index, start_pos, N, is_start=True)
                     raw_end_pos = self._convert_tokenized_index(tokenized2raw_char_index, end_pos, N, is_start=False)
+                    # except:
+                    #     print(para_tokens[idx])
+                    #     print(''.join(para_tokens)[start_pos])
+                    #     print(''.join(para_tokens)[end_pos])
+
 
                     # matching between token and raw char idx
                     token2char_raw_start_index.append(raw_start_pos)
@@ -255,6 +269,19 @@ class CMRC2018Transformer(BaseTransformer):
                         "end_position": end_position,
                         "is_impossible": is_impossible
                     }
+
+                    if e_i == 0:
+                        logger.info("*** Example ***")
+                        logger.info(f"qas_id: {example['qas_id']}")
+                        logger.info(f"doc_idx: {doc_idx}")
+                        logger.info(f"input_ids: {input_ids}")
+                        logger.info(f"token_type_ids: {segment_ids}")
+                        logger.info(f"attention_mask: {input_mask}")
+                        logger.info(f"p_mask: {p_mask}")
+                        logger.info(f"start_position: {start_position}")
+                        logger.info(f"end_position: {end_position}")
+                        logger.info(f"is_impossible: {is_impossible}")
+
                     new_line = f"{json_dumps(item)}\n"
                     ouf.write(new_line)
 
