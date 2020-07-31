@@ -34,7 +34,7 @@ def experiment(hparams: Hparams):
         # build model
         model, (losses, loss_weights), metrics, optimizer = build_model(hparams)
         # build callbacks
-        callbacks = build_callbacks(hparams.training.callbacks)
+        callbacks = build_callbacks(hparams)
         # compile
         model.compile(
             optimizer=optimizer,
@@ -45,11 +45,11 @@ def experiment(hparams: Hparams):
         # fit
         model.fit(
             train_dataset,
-            # validation_data=dev_dataset,
+            validation_data=dev_dataset,
             epochs=hparams.training.max_epochs,
             callbacks=callbacks,
             steps_per_epoch=hparams.training.steps_per_epoch,
-            # validation_steps=hparams.training.validation_steps,
+            validation_steps=hparams.training.validation_steps,
         )
 
     # 进行lr finder

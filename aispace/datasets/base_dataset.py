@@ -93,6 +93,8 @@ class BaseDataset(Registry, tfds.core.GeneratorBasedBuilder):
                     tfds.features.Sequence(tfds.features.ClassLabel(
                         names=cur_labels
                     ))
+            elif itm.get("type") == STRING:
+                field_types[itm.get('name')] = tfds.features.Text()
         return field_types
 
     def _generate_examples_from_json(self, filepath, **kwargs):
@@ -113,13 +115,13 @@ class BaseDataset(Registry, tfds.core.GeneratorBasedBuilder):
                     field_value = row.get(field_column)
                     if field_value is None:
                         continue
-                    if isinstance(field_value, str):
-                        try:
-                            field_value = eval(field_value)
-                        except NameError:
-                            pass
-                        finally:
-                            field_value = field_value
+                    # if isinstance(field_value, str):
+                    #     try:
+                    #         field_value = eval(field_value)
+                    #     except NameError:
+                    #         pass
+                    #     finally:
+                    #         field_value = field_value
 
                     instance_final[field_name] = field_value
                 yield instance_final

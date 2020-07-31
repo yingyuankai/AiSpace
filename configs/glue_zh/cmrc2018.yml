@@ -22,8 +22,9 @@ training:
 #    config:
 #      k: 5
   learning_rate: 3e-5
-  max_epochs: 30
+  max_epochs: 4
   batch_size: 8
+  steps_per_epoch: 10
 
   callbacks:
     # callback name
@@ -31,6 +32,10 @@ training:
       switch: false
       config:
         patience: 2
+    evaluator_for_qa_with_impossible:
+      switch: True
+      config:
+        validation_dataset: null
 
   optimizer_wrappers:
     swa:
@@ -41,7 +46,7 @@ training:
       switch: false
       config:
         multipliers:
-          bert_for_seq_classification/bert: 0.1
+          bert_for_seq_classification/bert: 0.01
 
 dataset:
   name: glue_zh/cmrc2018
@@ -49,9 +54,9 @@ dataset:
   transformer: "glue_zh/cmrc2018"
 
   source:
-    train: "train[:80%]"
-    validation: "train[-20%:]"
-    test: "validation"
+    train: "train"
+    validation: 'validation'
+    test: "test"
 
   tokenizer:
     max_query_length: 64
@@ -59,6 +64,36 @@ dataset:
     doc_stride: 128
 
   inputs:
+    - name: unique_id
+      column: unique_id
+      type: INT
+      model_input: False
+    - name: qas_id
+      column: qas_id
+      type: STRING
+      model_input: False
+    - name: question_text
+      column: question_text
+      type: STRING
+      model_input: False
+    - name: context_text
+      column: context_text
+      type: STRING
+      model_input: False
+    - name: answer_text
+      column: answer_text
+      type: STRING
+      model_input: False
+    - name: token2char_raw_start_index
+      column: token2char_raw_start_index
+      type: LIST_OF_INT
+      max_len: 512
+      model_input: False
+    - name: doc_token2char_raw_end_index
+      column: doc_token2char_raw_end_index
+      type: LIST_OF_INT
+      max_len: 512
+      model_input: False
     - name: input_ids
       column: input_ids
       type: LIST_OF_INT

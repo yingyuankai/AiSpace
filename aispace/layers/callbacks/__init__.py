@@ -7,6 +7,7 @@
 import tensorflow as tf
 
 from aispace.layers.callbacks.lr_finder import LRFinder
+from aispace.layers.callbacks.qa_evaluators import EvaluatorForQaWithImpossible
 
 __all__ = [
     "CALLBACKS"
@@ -19,5 +20,7 @@ CALLBACKS = {
         lambda config: tf.keras.callbacks.ModelCheckpoint(**config),
     'tensorboard':
         lambda config: tf.keras.callbacks.TensorBoard(**config),
-    'lr_finder': lambda config: LRFinder(**config)
+    'lr_finder': lambda config: LRFinder(**config),
+    'evaluator_for_qa_with_impossible':
+        lambda config: EvaluatorForQaWithImpossible(**config)
 }

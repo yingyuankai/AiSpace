@@ -97,6 +97,8 @@ class CMRC2018Transformer(BaseTransformer):
             os.makedirs(output_path_base)
         output_path = os.path.join(output_path_base, f"{split}.json")
 
+        unique_id = 1000000000
+
         with open(output_path, "w", encoding="utf8") as ouf:
             for e_i, example in tqdm(enumerate(self._read_next(data_path))):
                 question_text = example['question_text']
@@ -231,6 +233,15 @@ class CMRC2018Transformer(BaseTransformer):
                     para_start += min(para_length, self.doc_stride)
 
                 for (doc_idx, doc_span) in enumerate(doc_spans):
+                    doc_token2char_raw_start_index = []
+                    doc_token2char_raw_end_index = []
+
+                    for i in range(doc_span['length']):
+                        token_idx = doc_span["start"] + i
+
+                        doc_token2char_raw_start_index.append(token2char_raw_start_index[token_idx])
+                        doc_token2char_raw_end_index.append(token2char_raw_end_index[token_idx])
+
                     encode_info = \
                         self.tokenizer.encode(
                             para_tokens[doc_span['start']: doc_span['start'] + doc_span['length']],
@@ -261,6 +272,13 @@ class CMRC2018Transformer(BaseTransformer):
                         end_position = cls_idx
 
                     item = {
+                        "unique_id": unique_id,
+                        "qas_id": example['qas_id'],
+                        "question_text": question_text,
+                        "context_text": para_text,
+                        "answer_text": example["orig_answer_text"],
+                        "token2char_raw_start_index": token2char_raw_start_index,
+                        "doc_token2char_raw_end_index": doc_token2char_raw_end_index,
                         "input_ids": input_ids,
                         "token_type_ids": segment_ids,
                         "attention_mask": input_mask,
@@ -270,8 +288,12 @@ class CMRC2018Transformer(BaseTransformer):
                         "is_impossible": is_impossible
                     }
 
-                    if e_i == 0:
+                    if e_i == 0 and split == "train":
                         logger.info("*** Example ***")
+                        logger.info(f"unique_id: {unique_id}")
+                        logger.info(f"question: {question_text}")
+                        logger.info(f"context: {para_text}")
+                        logger.info(f"answer: {example['orig_answer_text']}")
                         logger.info(f"qas_id: {example['qas_id']}")
                         logger.info(f"doc_idx: {doc_idx}")
                         logger.info(f"input_ids: {input_ids}")
@@ -284,6 +306,7 @@ class CMRC2018Transformer(BaseTransformer):
 
                     new_line = f"{json_dumps(item)}\n"
                     ouf.write(new_line)
+                    unique_id += 1
 
         return output_path
 

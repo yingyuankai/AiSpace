@@ -32,9 +32,10 @@ class TestGlue(unittest.TestCase):
         #                   download_and_prepare_kwargs={'download_config': download_config}
         #                   )
 
-        train_dataset, dev_dataset, dataset_info = next(load_dataset(hparams, ret_test=False))
+        # train_dataset, dev_dataset, dataset_info = next(load_dataset(hparams, ret_test=False))
+        test_dataset = next(load_dataset(hparams, ret_train=False, ret_dev=False, ret_info=False))[0]
 
-        for itm in train_dataset:
+        for itm in test_dataset:
             print(itm)
             break
         print()

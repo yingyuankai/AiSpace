@@ -392,6 +392,12 @@ class GlueZh(BaseDataset):
         ]
 
     def _generate_examples(self, filepath, **kwargs):
+        """
+        TODO 直接从原始数据到tfrecords, 不用生成中间的json文件
+        :param filepath:
+        :param kwargs:
+        :return:
+        """
         generator = self._generate_examples_from_json if "dataset" in self.hparams and \
                                                          "transformer" in self.hparams.dataset \
                                                          and self.hparams.dataset.transformer is not None \

@@ -44,9 +44,13 @@ def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, 
     if ret_train:
         train_datasets, dataset_info = build_dataset(hparams, train_split, with_info=True)
     if ret_dev:
-        dev_datasets, dataset_info = build_dataset(hparams, validation_split, with_info=True)
+        dev_datasets, dev_dataset_info = build_dataset(hparams, validation_split, with_info=True)
+        if dev_dataset_info is not None:
+            dataset_info = dev_dataset_info
     if ret_test:
-        test_datasets, dataset_info = build_dataset(hparams, test_split, with_info=True)
+        test_datasets, test_dataset_info = build_dataset(hparams, test_split, with_info=True)
+        if test_dataset_info is not None:
+            dataset_info = test_dataset_info
 
     # check the consistence of tokenizer using in building dataset and now using.
     if hparams.get("dataset", {}).get("tokenizer", {}).get("name", "") != "" and \
@@ -84,8 +88,11 @@ def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, 
                 training_hparams.max_epochs * train_data_size * training_hparams.warmup_factor / training_hparams.batch_size)
         num_warmup_steps = min(steps_per_epoch, num_warmup_steps)
 
-        validation_steps = int(
-            math.ceil(validation_data_size / training_hparams.batch_size))
+        if validation_data_size is not None:
+            validation_steps = int(
+                math.ceil(validation_data_size / training_hparams.batch_size))
+        else:
+            validation_steps = None
         logger.info("Reset some hparams according to dataset_info:")
         if "steps_per_epoch" not in training_hparams or training_hparams.steps_per_epoch <= 0:
             hparams.cascade_set('training.steps_per_epoch', steps_per_epoch)
@@ -106,27 +113,39 @@ def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, 
     for i in range(len(train_split)):
         # build batch
         if ret_train:
-            train_dataset = train_datasets[i].\
-                map(build_generator, num_parallel_calls=tf.data.experimental.AUTOTUNE). \
-                shuffle(hparams.training.shuffle_size).\
-                repeat(). \
-                batch(hparams.training.batch_size). \
-                prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-            logger.info("Train dataset has loaded.")
+            if train_datasets is not None and train_datasets[i] is not None:
+                train_dataset = train_datasets[i].\
+                    map(build_generator, num_parallel_calls=tf.data.experimental.AUTOTUNE). \
+                    shuffle(hparams.training.shuffle_size).\
+                    repeat(). \
+                    batch(hparams.training.batch_size). \
+                    prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+                logger.info("Train dataset has loaded.")
+            else:
+                train_dataset = None
+                logger.info("Train dateset get None.")
         if ret_dev:
-            dev_dataset = dev_datasets[i].\
-                map(build_generator, num_parallel_calls=tf.data.experimental.AUTOTUNE). \
-                repeat(). \
-                batch(hparams.training.batch_size). \
-                prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-            logger.info("Validation dataset has loaded.")
+            if dev_datasets is not None and dev_datasets[i] is not None:
+                dev_dataset = dev_datasets[i].\
+                    map(build_generator, num_parallel_calls=tf.data.experimental.AUTOTUNE). \
+                    repeat(). \
+                    batch(hparams.training.batch_size). \
+                    prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+                logger.info("Validation dataset has loaded.")
+            else:
+                dev_dataset = None
+                logger.info("Validation dataset get None.")
 
         if ret_test:
-            test_dataset = test_datasets[i]. \
-                map(build_generator, num_parallel_calls=tf.data.experimental.AUTOTUNE). \
-                batch(hparams.training.batch_size). \
-                prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-            logger.info("Test dataset has loaded.")
+            if test_datasets is not None and test_datasets[i] is not None:
+                test_dataset = test_datasets[i]. \
+                    map(build_generator, num_parallel_calls=tf.data.experimental.AUTOTUNE). \
+                    batch(hparams.training.batch_size). \
+                    prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+                logger.info("Test dataset has loaded.")
+            else:
+                test_dataset = None
+                logger.info("Test dataset get None.")
 
         result = ()
         if ret_train:
@@ -143,6 +162,10 @@ def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, 
 
 
 def build_dataset(hparams: Hparams, split=None, with_info=False):
+    if not split or (isinstance(split, (tuple, list)) and split[0] is None):
+        logger.info(f"Split is {split}, can not specify dataset.")
+        return None, None
+
     checksum_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../datasets/url_checksums")
     tfds.download.add_checksums_dir(checksum_dir)
     download_mode = tfds.core.download.GenerateMode.FORCE_REDOWNLOAD \
@@ -159,14 +182,21 @@ def build_dataset(hparams: Hparams, split=None, with_info=False):
 
 def build_callbacks(hparams: Hparams):
     from aispace.layers.callbacks import CALLBACKS
+    callback_hparam = hparams.training.callbacks
     callbacks = []
-    for name, config in hparams.items():
+    for name, config in callback_hparam.items():
         if not config.switch: continue
         fn = CALLBACKS.get(name)
         logger.info(f"Using callback [{name}].")
         if fn is None:
             logger.warning(f"Callback name {name} may be wrong.")
             continue
+
+        if name.startswith('evaluator'):
+            logger.info("Build validation dataset for evaluator callback.")
+            dev_dataset = next(load_dataset(hparams, ret_train=False, ret_test=False))[0]
+            config.config['validation_dataset'] = dev_dataset
+
         callbacks.append(fn(config.config))
     return callbacks
 
@@ -243,6 +273,8 @@ def build_tf_model_inputs(dataset_hparams: Hparams):
 
     inputs = {}
     for item in dataset_hparams.inputs:
+        if "model_input" in item and item.model_input is False:
+            continue
         if item.type in [LIST_OF_INT, LIST_OF_CLASSLABEL]:
             input = tf.keras.layers.Input(
                 shape=(item.max_len,), dtype=tf.int32, name=item.name
