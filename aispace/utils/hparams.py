@@ -145,11 +145,26 @@ class Hparams(collections.OrderedDict):
         """
         hparam_dict = collections.OrderedDict()
         for k, v in self.items():
+            if not self.is_jsonable(v):
+                v = None
+
             if isinstance(v, Hparams):
                 hparam_dict[k] = v.to_dict()
             else:
                 hparam_dict[k] = v
         return hparam_dict
+
+    def is_jsonable(self, input):
+        """
+        Check if an object is JSON serializable
+        :param input:
+        :return:
+        """
+        try:
+            json.dumps(input)
+            return True
+        except (TypeError, OverflowError):
+            return False
 
     def to_json(self) -> collections.OrderedDict:
         """Converts to dict format and save

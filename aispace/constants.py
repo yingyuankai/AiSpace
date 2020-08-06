@@ -41,7 +41,7 @@ STRING = "STRING"
 
 FEATURE_MAPPING = {
     LIST_OF_INT: tfds.features.Sequence(tf.float32),
-    INT: tf.int32,
+    INT: tf.float32,
 }
 
 # Task

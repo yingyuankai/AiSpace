@@ -33,11 +33,11 @@ class TestGlue(unittest.TestCase):
         #                   )
 
         # train_dataset, dev_dataset, dataset_info = next(load_dataset(hparams, ret_test=False))
-        test_dataset = next(load_dataset(hparams, ret_train=False, ret_dev=False, ret_info=False))[0]
+        test_dataset = next(load_dataset(hparams, ret_train=False, ret_dev=True, ret_test=False,ret_info=False))[0]
 
         for itm in test_dataset:
             print(itm)
-            break
+            # break
         print()
 
 # python -u aispace/trainer.py \

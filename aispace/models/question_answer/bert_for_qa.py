@@ -41,7 +41,12 @@ class BertForQA(BaseModel):
 
     def call(self, inputs, **kwargs):
         is_training = kwargs.get("training", False)
-        encode_repr = self.encode_pretrained(inputs, **kwargs)
+        new_inputs = {
+            "input_ids": inputs['input_ids'],
+            'token_type_ids': inputs['token_type_ids'],
+            "attention_mask": inputs['attention_mask']
+        }
+        encode_repr = self.encode_pretrained(new_inputs, **kwargs)
         seq_output = encode_repr[0]  # [b, l, h]
         cls_output = encode_repr[1]  # [b, h]
         passage_mask = inputs['p_mask']

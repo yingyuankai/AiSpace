@@ -22,9 +22,11 @@ training:
 #    config:
 #      k: 5
   learning_rate: 3e-5
-  max_epochs: 4
-  batch_size: 8
+  max_epochs: 1
+  batch_size: 2
   steps_per_epoch: 10
+  do_eval: false       # using callback doing evaluation instead of default eval because of different outputs of training stages.
+  validation_steps: 2
 
   callbacks:
     # callback name
@@ -36,6 +38,7 @@ training:
       switch: True
       config:
         validation_dataset: null
+        validation_steps: null
 
   optimizer_wrappers:
     swa:
@@ -84,15 +87,13 @@ dataset:
       column: answer_text
       type: STRING
       model_input: False
-    - name: token2char_raw_start_index
-      column: token2char_raw_start_index
-      type: LIST_OF_INT
-      max_len: 512
+    - name: doc_token2char_raw_start_index
+      column: doc_token2char_raw_start_index
+      type: STRING
       model_input: False
     - name: doc_token2char_raw_end_index
       column: doc_token2char_raw_end_index
-      type: LIST_OF_INT
-      max_len: 512
+      type: STRING
       model_input: False
     - name: input_ids
       column: input_ids
@@ -112,7 +113,9 @@ dataset:
       max_len: 512
     - name: start_position
       column: start_position
-      type: INT
+      type: CLASSLABEL
+      num: 512
+      labels: use_num
 
   outputs:
     - name: output_1

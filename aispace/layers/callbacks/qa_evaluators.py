@@ -13,12 +13,14 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
 
     ref: https://keras.io/examples/nlp/text_extraction_with_bert/
     """
-    def __init__(self, validation_dataset):
+    def __init__(self, validation_dataset, validation_steps):
         self.validation_dataset = validation_dataset
+        self.validation_steps = validation_steps
 
     def on_epoch_end(self, epoch, logs=None):
-
-        for itm in self.validation_dataset:
-            print(itm)
-            break
-        # validation_results = self.model.predict(self.validation_dataset)
+        try:
+            validation_results = self.model.predict(self.validation_dataset, steps=self.validation_steps)
+        except Exception as e:
+            print(e)
+        print(len(validation_results))
+        print(validation_results)

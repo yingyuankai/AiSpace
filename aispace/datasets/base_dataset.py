@@ -98,30 +98,40 @@ class BaseDataset(Registry, tfds.core.GeneratorBasedBuilder):
         return field_types
 
     def _generate_examples_from_json(self, filepath, **kwargs):
-        import json
+        # import json
         logger.info(f'generating examples from {filepath}')
         fields = [(itm.get('name'), itm.get('column', itm.get('name')))
                   for itm in self.hparams.dataset.inputs + self.hparams.dataset.outputs]
-        with open(filepath, 'r') as inf:
-            for line in inf:
-                try:
-                    row = json.loads(line)
-                except:
-                    logger.error("Read json Err!", exc_info=True)
-                    logger.error(line)
+        for row in self.transformer.transform(filepath, kwargs.get("split", "train")):
+            instance_final = {}
+            for field_name, field_column in fields:
+                field_value = row.get(field_column)
+                if field_value is None:
                     continue
-                instance_final = {}
-                for field_name, field_column in fields:
-                    field_value = row.get(field_column)
-                    if field_value is None:
-                        continue
-                    # if isinstance(field_value, str):
-                    #     try:
-                    #         field_value = eval(field_value)
-                    #     except NameError:
-                    #         pass
-                    #     finally:
-                    #         field_value = field_value
 
-                    instance_final[field_name] = field_value
-                yield instance_final
+                instance_final[field_name] = field_value
+            yield instance_final
+
+    # with open(filepath, 'r') as inf:
+        #     for line in inf:
+        #         try:
+        #             row = json.loads(line)
+        #         except:
+        #             logger.error("Read json Err!", exc_info=True)
+        #             logger.error(line)
+        #             continue
+        #         instance_final = {}
+        #         for field_name, field_column in fields:
+        #             field_value = row.get(field_column)
+        #             if field_value is None:
+        #                 continue
+        #             # if isinstance(field_value, str):
+        #             #     try:
+        #             #         field_value = eval(field_value)
+        #             #     except NameError:
+        #             #         pass
+        #             #     finally:
+        #             #         field_value = field_value
+        #
+        #             instance_final[field_name] = field_value
+        #         yield instance_final

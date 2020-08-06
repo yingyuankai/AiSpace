@@ -38,34 +38,34 @@ class TnewsTransformer(BaseTransformer):
         self.json_dir = os.path.join(kwargs.get("data_dir", self._hparams.dataset.data_dir), "json")
 
     def transform(self, data_path, split="train"):
-        output_path_base = os.path.join(os.path.dirname(data_path), "json")
-        if not os.path.exists(output_path_base):
-            os.makedirs(output_path_base)
-        output_path = os.path.join(output_path_base, f"{split}.json")
+        # output_path_base = os.path.join(os.path.dirname(data_path), "json")
+        # if not os.path.exists(output_path_base):
+        #     os.makedirs(output_path_base)
+        # output_path = os.path.join(output_path_base, f"{split}.json")
         with open(data_path, "r", encoding="utf8") as inf:
-            with open(output_path, "w", encoding="utf8") as ouf:
-                for line in tqdm(inf):
-                    if not line: continue
-                    line = line.strip()
-                    if len(line) == 0: continue
-                    line_json = json.loads(line)
-                    sentence = line_json.get("sentence", "").strip()
-                    keywords = line_json.get("keywords", "").strip()
-                    if len(sentence) == 0 and len(keywords) == 0: continue
-                    encode_info = self.tokenizer.encode(sentence, keywords)
-                    input_ids, token_type_ids, attention_mask = \
-                        encode_info['input_ids'], encode_info['segment_ids'], encode_info['input_mask']
-                    label = line_json.get("label_desc", "news_story")
-                    item = {
-                        "input_ids": input_ids,
-                        "token_type_ids": token_type_ids,
-                        "attention_mask": attention_mask,
-                        "label": label
-                    }
-
-                    new_line = f"{json_dumps(item)}\n"
-                    ouf.write(new_line)
-        return output_path
+            # with open(output_path, "w", encoding="utf8") as ouf:
+            for line in inf:
+                if not line: continue
+                line = line.strip()
+                if len(line) == 0: continue
+                line_json = json.loads(line)
+                sentence = line_json.get("sentence", "").strip()
+                keywords = line_json.get("keywords", "").strip()
+                if len(sentence) == 0 and len(keywords) == 0: continue
+                encode_info = self.tokenizer.encode(sentence, keywords)
+                input_ids, token_type_ids, attention_mask = \
+                    encode_info['input_ids'], encode_info['segment_ids'], encode_info['input_mask']
+                label = line_json.get("label_desc", "news_story")
+                item = {
+                    "input_ids": input_ids,
+                    "token_type_ids": token_type_ids,
+                    "attention_mask": attention_mask,
+                    "label": label
+                }
+                yield item
+                # new_line = f"{json_dumps(item)}\n"
+                # ouf.write(new_line)
+        # return output_path
 
 
 @BaseTransformer.register("glue_zh/cmrc2018")
@@ -92,223 +92,227 @@ class CMRC2018Transformer(BaseTransformer):
         :param split:
         :return:
         """
-        output_path_base = os.path.join(os.path.dirname(data_path), "json")
-        if not os.path.exists(output_path_base):
-            os.makedirs(output_path_base)
-        output_path = os.path.join(output_path_base, f"{split}.json")
+        # output_path_base = os.path.join(os.path.dirname(data_path), "json")
+        # if not os.path.exists(output_path_base):
+        #     os.makedirs(output_path_base)
+        # output_path = os.path.join(output_path_base, f"{split}.json")
 
         unique_id = 1000000000
 
-        with open(output_path, "w", encoding="utf8") as ouf:
-            for e_i, example in tqdm(enumerate(self._read_next(data_path))):
-                question_text = example['question_text']
-                if self._hparams.dataset.tokenizer.do_lower_case:
-                    question_text = question_text.lower()
-                query_tokens = self.tokenizer.tokenize(question_text)
-                query_tokens = query_tokens[: self.max_query_length]
+        # with open(output_path, "w", encoding="utf8") as ouf:
+        for e_i, example in enumerate(self._read_next(data_path)):
+            if e_i >= 100:
+                break
+            question_text = example['question_text']
+            if self._hparams.dataset.tokenizer.do_lower_case:
+                question_text = question_text.lower()
+            query_tokens = self.tokenizer.tokenize(question_text)
+            query_tokens = query_tokens[: self.max_query_length]
 
-                para_text = example['paragraph_text']
-                if self._hparams.dataset.tokenizer.do_lower_case:
-                    para_text = para_text.lower()
-                para_tokens = self.tokenizer.tokenize(para_text)
+            para_text = example['paragraph_text']
+            if self._hparams.dataset.tokenizer.do_lower_case:
+                para_text = para_text.lower()
+            para_tokens = self.tokenizer.tokenize(para_text)
 
-                """
-                For getting token to raw char matching:
-                1) getting matching between token and tokenized text
-                2) getting matching between raw text and tokenized text
-                3) So, can get matching between token and raw
-                """
+            """
+            For getting token to raw char matching:
+            1) getting matching between token and tokenized text
+            2) getting matching between raw text and tokenized text
+            3) So, can get matching between token and raw
+            """
 
-                # char idx to token idx
-                char2token_index = []
-                # token start idx to char idx
-                token2char_start_index = []
-                # token end idx to char idx
-                token2char_end_index = []
-                char_idx = 0
-                for i, token in enumerate(para_tokens):
-                    char_len = len(token)
-                    char2token_index.extend([i] * char_len)
-                    token2char_start_index.append(char_idx)
-                    char_idx += char_len
-                    token2char_end_index.append(char_idx - 1)
+            # char idx to token idx
+            char2token_index = []
+            # token start idx to char idx
+            token2char_start_index = []
+            # token end idx to char idx
+            token2char_end_index = []
+            char_idx = 0
+            for i, token in enumerate(para_tokens):
+                char_len = len(token)
+                char2token_index.extend([i] * char_len)
+                token2char_start_index.append(char_idx)
+                char_idx += char_len
+                token2char_end_index.append(char_idx - 1)
 
-                # raw text ->(tokenizer)-> tokens ->(detokenizer)-> tokenized text
-                tokenized_para_text = self.tokenizer.detokenizer(para_tokens)
+            # raw text ->(tokenizer)-> tokens ->(detokenizer)-> tokenized text
+            tokenized_para_text = self.tokenizer.detokenizer(para_tokens)
 
-                # matching between raw text and tokenized text
-                N, M = len(para_text), len(tokenized_para_text)
-                max_N, max_M = 1024, 1024
-                if N > max_N or M > max_M:
-                    max_N = max(N, max_N)
-                    max_M = max(M, max_M)
+            # matching between raw text and tokenized text
+            N, M = len(para_text), len(tokenized_para_text)
+            max_N, max_M = 1024, 1024
+            if N > max_N or M > max_M:
+                max_N = max(N, max_N)
+                max_M = max(M, max_M)
 
-                match_mapping, mismatch = self._generate_match_mapping(para_text, tokenized_para_text, N, M, max_N, max_M)
+            match_mapping, mismatch = self._generate_match_mapping(para_text, tokenized_para_text, N, M, max_N, max_M)
 
-                # raw idx to tokenized char idx
-                raw2tokenized_char_index = [None] * (N + 1)
-                # tokenized char idx to raw idx
-                tokenized2raw_char_index = [None] * (M + 1)
-                i, j = N - 1, M - 1
-                while i >= 0 and j >= 0:
-                    if (i, j) not in match_mapping:
-                        break
+            # raw idx to tokenized char idx
+            raw2tokenized_char_index = [None] * (N + 1)
+            # tokenized char idx to raw idx
+            tokenized2raw_char_index = [None] * (M + 1)
+            i, j = N - 1, M - 1
+            while i >= 0 and j >= 0:
+                if (i, j) not in match_mapping:
+                    break
 
-                    if match_mapping[(i, j)] == 2:
-                        raw2tokenized_char_index[i] = j
-                        tokenized2raw_char_index[j] = i
-                        i, j = i - 1, j - 1
-                    elif match_mapping[(i, j)] == 1:
-                        j = j - 1
-                    else:
-                        i = i - 1
-
-                # if para_text.startswith("安雅·罗素法"):
-                #     print(tokenized2raw_char_index)
-
-                if all(v is None for v in raw2tokenized_char_index) or mismatch:
-                    logger.warning("raw and tokenized paragraph mismatch detected for example: %s" % example['qas_id'])
-
-                # token start idx to raw char idx
-                token2char_raw_start_index = []
-                # token end idx to raw char idx
-                token2char_raw_end_index = []
-                for idx in range(len(para_tokens)):
-                    # token char idx
-                    start_pos = token2char_start_index[idx]
-                    end_pos = token2char_end_index[idx]
-
-                    # raw char idx
-                    # try:
-                    raw_start_pos = self._convert_tokenized_index(tokenized2raw_char_index, start_pos, N, is_start=True)
-                    raw_end_pos = self._convert_tokenized_index(tokenized2raw_char_index, end_pos, N, is_start=False)
-                    # except:
-                    #     print(para_tokens[idx])
-                    #     print(''.join(para_tokens)[start_pos])
-                    #     print(''.join(para_tokens)[end_pos])
-
-
-                    # matching between token and raw char idx
-                    token2char_raw_start_index.append(raw_start_pos)
-                    token2char_raw_end_index.append(raw_end_pos)
-
-                if not example['is_impossible']:
-                    # answer pos in raw text
-                    raw_start_char_pos = example['start_position']
-                    raw_end_char_pos = raw_start_char_pos + len(example['orig_answer_text']) - 1
-                    # answer pos in tokenized text
-                    tokenized_start_char_pos = self._convert_tokenized_index(raw2tokenized_char_index, raw_start_char_pos,
-                                                                             is_start=True)
-                    tokenized_end_char_pos = self._convert_tokenized_index(raw2tokenized_char_index, raw_end_char_pos,
-                                                                           is_start=False)
-                    # answer pos in tokens
-                    tokenized_start_token_pos = char2token_index[tokenized_start_char_pos]
-                    tokenized_end_token_pos = char2token_index[tokenized_end_char_pos]
-                    assert tokenized_start_token_pos <= tokenized_end_token_pos
+                if match_mapping[(i, j)] == 2:
+                    raw2tokenized_char_index[i] = j
+                    tokenized2raw_char_index[j] = i
+                    i, j = i - 1, j - 1
+                elif match_mapping[(i, j)] == 1:
+                    j = j - 1
                 else:
-                    tokenized_start_token_pos = tokenized_end_token_pos = -1
+                    i = i - 1
 
-                max_para_length = self._hparams.dataset.tokenizer.max_len - len(query_tokens) - 3
+            # if para_text.startswith("安雅·罗素法"):
+            #     print(tokenized2raw_char_index)
 
-                total_para_length = len(para_tokens)
+            if all(v is None for v in raw2tokenized_char_index) or mismatch:
+                logger.warning("raw and tokenized paragraph mismatch detected for example: %s" % example['qas_id'])
+                continue
 
-                # We can have documents that are longer than the maximum sequence length.
-                # To deal with this we do a sliding window approach, where we take chunks
-                # of the up to our max length with a stride of `doc_stride`.
-                doc_spans = []
-                para_start = 0
-                while para_start < total_para_length:
-                    para_length = total_para_length - para_start
-                    if para_length > max_para_length:
-                        para_length = max_para_length
+            # token start idx to raw char idx
+            token2char_raw_start_index = []
+            # token end idx to raw char idx
+            token2char_raw_end_index = []
+            for idx in range(len(para_tokens)):
+                # token char idx
+                start_pos = token2char_start_index[idx]
+                end_pos = token2char_end_index[idx]
 
-                    doc_spans.append({
-                        "start": para_start,
-                        "length": para_length
-                    })
+                # raw char idx
+                # try:
+                raw_start_pos = self._convert_tokenized_index(tokenized2raw_char_index, start_pos, N, is_start=True)
+                raw_end_pos = self._convert_tokenized_index(tokenized2raw_char_index, end_pos, N, is_start=False)
+                # except:
+                #     print(para_tokens[idx])
+                #     print(''.join(para_tokens)[start_pos])
+                #     print(''.join(para_tokens)[end_pos])
 
-                    if para_start + para_length == total_para_length:
-                        break
 
-                    para_start += min(para_length, self.doc_stride)
+                # matching between token and raw char idx
+                token2char_raw_start_index.append(raw_start_pos)
+                token2char_raw_end_index.append(raw_end_pos)
 
-                for (doc_idx, doc_span) in enumerate(doc_spans):
-                    doc_token2char_raw_start_index = []
-                    doc_token2char_raw_end_index = []
+            if not example['is_impossible']:
+                # answer pos in raw text
+                raw_start_char_pos = example['start_position']
+                raw_end_char_pos = raw_start_char_pos + len(example['orig_answer_text']) - 1
+                # answer pos in tokenized text
+                tokenized_start_char_pos = self._convert_tokenized_index(raw2tokenized_char_index, raw_start_char_pos,
+                                                                         is_start=True)
+                tokenized_end_char_pos = self._convert_tokenized_index(raw2tokenized_char_index, raw_end_char_pos,
+                                                                       is_start=False)
+                # answer pos in tokens
+                tokenized_start_token_pos = char2token_index[tokenized_start_char_pos]
+                tokenized_end_token_pos = char2token_index[tokenized_end_char_pos]
+                assert tokenized_start_token_pos <= tokenized_end_token_pos
+            else:
+                tokenized_start_token_pos = tokenized_end_token_pos = -1
 
-                    for i in range(doc_span['length']):
-                        token_idx = doc_span["start"] + i
+            max_para_length = self._hparams.dataset.tokenizer.max_len - len(query_tokens) - 3
 
-                        doc_token2char_raw_start_index.append(token2char_raw_start_index[token_idx])
-                        doc_token2char_raw_end_index.append(token2char_raw_end_index[token_idx])
+            total_para_length = len(para_tokens)
 
-                    encode_info = \
-                        self.tokenizer.encode(
-                            para_tokens[doc_span['start']: doc_span['start'] + doc_span['length']],
-                            query_tokens,
-                            return_mask=True,
-                            return_offset=True,
-                            return_cls_index=True)
-                    input_ids, segment_ids, input_mask, p_mask, q_mask, offset, cls_idx = \
-                        encode_info['input_ids'], encode_info['segment_ids'], encode_info['input_mask'], \
-                        encode_info['a_mask'], encode_info['b_mask'], encode_info['offset'], encode_info['cls_index']
+            # We can have documents that are longer than the maximum sequence length.
+            # To deal with this we do a sliding window approach, where we take chunks
+            # of the up to our max length with a stride of `doc_stride`.
+            doc_spans = []
+            para_start = 0
+            while para_start < total_para_length:
+                para_length = total_para_length - para_start
+                if para_length > max_para_length:
+                    para_length = max_para_length
 
-                    start_position = None
-                    end_position = None
-                    is_impossible = example["is_impossible"]
-                    if not is_impossible:
-                        # For training, if our document chunk does not contain an annotation, set default values.
-                        doc_start = doc_span["start"]
-                        doc_end = doc_start + doc_span["length"] - 1
-                        if tokenized_start_token_pos < doc_start or tokenized_end_token_pos > doc_end:
-                            start_position = cls_idx
-                            end_position = cls_idx
-                            is_impossible = 1
-                        else:
-                            start_position = tokenized_start_token_pos - doc_start + offset
-                            end_position = tokenized_end_token_pos - doc_start + offset
-                    else:
+                doc_spans.append({
+                    "start": para_start,
+                    "length": para_length
+                })
+
+                if para_start + para_length == total_para_length:
+                    break
+
+                para_start += min(para_length, self.doc_stride)
+
+            for (doc_idx, doc_span) in enumerate(doc_spans):
+                doc_token2char_raw_start_index = []
+                doc_token2char_raw_end_index = []
+
+                for i in range(doc_span['length']):
+                    token_idx = doc_span["start"] + i
+
+                    doc_token2char_raw_start_index.append(token2char_raw_start_index[token_idx])
+                    doc_token2char_raw_end_index.append(token2char_raw_end_index[token_idx])
+
+                encode_info = \
+                    self.tokenizer.encode(
+                        para_tokens[doc_span['start']: doc_span['start'] + doc_span['length']],
+                        query_tokens,
+                        return_mask=True,
+                        return_offset=True,
+                        return_cls_index=True)
+                input_ids, segment_ids, input_mask, p_mask, q_mask, offset, cls_idx = \
+                    encode_info['input_ids'], encode_info['segment_ids'], encode_info['input_mask'], \
+                    encode_info['a_mask'], encode_info['b_mask'], encode_info['offset'], encode_info['cls_index']
+
+                start_position = None
+                end_position = None
+                is_impossible = example["is_impossible"]
+                if not is_impossible:
+                    # For training, if our document chunk does not contain an annotation, set default values.
+                    doc_start = doc_span["start"]
+                    doc_end = doc_start + doc_span["length"] - 1
+                    if tokenized_start_token_pos < doc_start or tokenized_end_token_pos > doc_end:
                         start_position = cls_idx
                         end_position = cls_idx
+                        is_impossible = 1
+                    else:
+                        start_position = tokenized_start_token_pos - doc_start + offset
+                        end_position = tokenized_end_token_pos - doc_start + offset
+                else:
+                    start_position = cls_idx
+                    end_position = cls_idx
 
-                    item = {
-                        "unique_id": unique_id,
-                        "qas_id": example['qas_id'],
-                        "question_text": question_text,
-                        "context_text": para_text,
-                        "answer_text": example["orig_answer_text"],
-                        "token2char_raw_start_index": token2char_raw_start_index,
-                        "doc_token2char_raw_end_index": doc_token2char_raw_end_index,
-                        "input_ids": input_ids,
-                        "token_type_ids": segment_ids,
-                        "attention_mask": input_mask,
-                        "p_mask": p_mask,
-                        "start_position": start_position,
-                        "end_position": end_position,
-                        "is_impossible": is_impossible
-                    }
+                item = {
+                    "unique_id": unique_id,
+                    "qas_id": example['qas_id'],
+                    "question_text": question_text,
+                    "context_text": para_text,
+                    "answer_text": example["orig_answer_text"],
+                    "doc_token2char_raw_start_index": json.dumps(doc_token2char_raw_start_index),
+                    "doc_token2char_raw_end_index": json.dumps(doc_token2char_raw_end_index),
+                    "input_ids": input_ids,
+                    "token_type_ids": segment_ids,
+                    "attention_mask": input_mask,
+                    "p_mask": p_mask,
+                    "start_position": str(start_position),
+                    "end_position": str(end_position),
+                    "is_impossible": is_impossible
+                }
 
-                    if e_i == 0 and split == "train":
-                        logger.info("*** Example ***")
-                        logger.info(f"unique_id: {unique_id}")
-                        logger.info(f"question: {question_text}")
-                        logger.info(f"context: {para_text}")
-                        logger.info(f"answer: {example['orig_answer_text']}")
-                        logger.info(f"qas_id: {example['qas_id']}")
-                        logger.info(f"doc_idx: {doc_idx}")
-                        logger.info(f"input_ids: {input_ids}")
-                        logger.info(f"token_type_ids: {segment_ids}")
-                        logger.info(f"attention_mask: {input_mask}")
-                        logger.info(f"p_mask: {p_mask}")
-                        logger.info(f"start_position: {start_position}")
-                        logger.info(f"end_position: {end_position}")
-                        logger.info(f"is_impossible: {is_impossible}")
+                if e_i == 0 and split == "train":
+                    logger.info("*** Example ***")
+                    logger.info(f"unique_id: {unique_id}")
+                    logger.info(f"question: {question_text}")
+                    logger.info(f"context: {para_text}")
+                    logger.info(f"answer: {example['orig_answer_text']}")
+                    logger.info(f"qas_id: {example['qas_id']}")
+                    logger.info(f"doc_idx: {doc_idx}")
+                    logger.info(f"input_ids: {input_ids}")
+                    logger.info(f"token_type_ids: {segment_ids}")
+                    logger.info(f"attention_mask: {input_mask}")
+                    logger.info(f"p_mask: {p_mask}")
+                    logger.info(f"start_position: {start_position}")
+                    logger.info(f"end_position: {end_position}")
+                    logger.info(f"is_impossible: {is_impossible}")
 
-                    new_line = f"{json_dumps(item)}\n"
-                    ouf.write(new_line)
-                    unique_id += 1
+                # new_line = f"{json_dumps(item)}\n"
+                # ouf.write(new_line)
+                unique_id += 1
+                yield item
 
-        return output_path
+        # return output_path
 
     def _read_next(self, data_path):
         with open(data_path, "r", encoding="utf8") as inf:
