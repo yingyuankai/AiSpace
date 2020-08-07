@@ -22,11 +22,11 @@ training:
 #    config:
 #      k: 5
   learning_rate: 3e-5
-  max_epochs: 1
-  batch_size: 2
+  max_epochs: 10
+  batch_size: 8
   steps_per_epoch: 10
   do_eval: false       # using callback doing evaluation instead of default eval because of different outputs of training stages.
-  validation_steps: 2
+#  validation_steps: 2
 
   callbacks:
     # callback name
@@ -70,7 +70,7 @@ dataset:
     - name: unique_id
       column: unique_id
       type: INT
-      model_input: False
+      model_input: True
     - name: qas_id
       column: qas_id
       type: STRING
@@ -160,6 +160,9 @@ dataset:
         name: sigmoid_cross_entropy
       metrics:
         - name: binary_accuracy
+#    - name: unique_id
+#      column: unique_id
+#      type: INT
 
 pretrained:
 #    name: ERNIE_1.0_max-len-512

@@ -133,13 +133,13 @@ class QALayerWithImpossible(tf.keras.layers.Layer):
         if is_training:
             output = (start_log_probs, end_log_probs, answer_prob)
         else:
-            start_top_log_prob = tf.expand_dims(start_top_log_prob, axis=0)
-            start_top_index = tf.expand_dims(tf.cast(start_top_index, dtype=tf.float32), axis=0)
-            start_top_res = tf.concat([start_top_log_prob, start_top_index], axis=0)
+            start_top_log_prob = tf.expand_dims(start_top_log_prob, axis=-1)
+            start_top_index = tf.expand_dims(tf.cast(start_top_index, dtype=tf.float32), axis=-1)
+            start_top_res = tf.concat([start_top_log_prob, start_top_index], axis=-1)
 
-            end_top_log_prob = tf.expand_dims(end_top_log_prob, axis=0)
-            end_top_index = tf.expand_dims(tf.cast(end_top_index, dtype=tf.float32), axis=0)
-            end_top_res = tf.concat([end_top_log_prob, end_top_index], axis=0)
+            end_top_log_prob = tf.expand_dims(end_top_log_prob, axis=-1)
+            end_top_index = tf.expand_dims(tf.cast(end_top_index, dtype=tf.float32), axis=-1)
+            end_top_res = tf.concat([end_top_log_prob, end_top_index], axis=-1)
 
             # output = ((start_top_log_prob, start_top_index), (end_top_log_prob, end_top_index), answer_prob)
             output = (start_top_res, end_top_res, answer_prob)

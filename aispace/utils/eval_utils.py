@@ -22,6 +22,7 @@ from aispace.utils.metrics_utils import ConfusionMatrix, NEREvaluator
 from aispace.constants import *
 from aispace.utils.print_utils import print_boxed
 from aispace.utils.builder_utils import build_model, load_dataset
+from aispace.utils.str_utils import mixed_segmentation, find_lcs, remove_punctuation
 
 
 # TODO more general
@@ -193,3 +194,30 @@ def _id_to_label(seq, labels):
         return [_id_to_label(id, labels) for id in seq]
     else:
         raise ValueError("type err.")
+
+
+def calc_f1_score(answers, prediction):
+    f1_scores = []
+    for ans in answers:
+        ans_segs = mixed_segmentation(ans, rm_punc=True)
+        prediction_segs = mixed_segmentation(prediction, rm_punc=True)
+        lcs, lcs_len = find_lcs(ans_segs, prediction_segs)
+        if lcs_len == 0:
+            f1_scores.append(0)
+            continue
+        precision = 1.0 * lcs_len / len(prediction_segs)
+        recall = 1.0 * lcs_len / len(ans_segs)
+        f1 = (2 * precision * recall) / (precision + recall)
+        f1_scores.append(f1)
+    return max(f1_scores)
+
+
+def calc_em_score(answers, prediction):
+    em = 0
+    for ans in answers:
+        ans_ = remove_punctuation(ans)
+        prediction_ = remove_punctuation(prediction)
+        if ans_ == prediction_:
+            em = 1
+            break
+    return em

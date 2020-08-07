@@ -7,6 +7,8 @@
 from typing import Union, List
 import unicodedata
 import six
+import nltk
+import re
 
 
 def truncate_seq_pair(tokens_a: Union[List[int], List[str]],
@@ -85,3 +87,75 @@ def printable_text(text):
             raise ValueError("Unsupported string type: %s" % (type(text)))
     else:
         raise ValueError("Not running on Python2 or Python 3?")
+
+
+def mixed_segmentation(in_str, rm_punc=False):
+    """
+    split Chinese with English
+    :param in_str:
+    :param rm_punc:
+    :return:
+    """
+    in_str = str(in_str).lower().strip()
+    segs_out = []
+    temp_str = ""
+    sp_char = ['-', ':', '_', '*', '^', '/', '\\', '~', '`', '+', '=',
+               '，', '。', '：', '？', '！', '“', '”', '；', '’', '《', '》', '……', '·', '、',
+               '「', '」', '（', '）', '－', '～', '『', '』']
+    for char in in_str:
+        if rm_punc and char in sp_char:
+            continue
+        if re.search(r'[\u4e00-\u9fa5]', char) or char in sp_char:
+            if temp_str != "":
+                ss = nltk.word_tokenize(temp_str)
+                segs_out.extend(ss)
+                temp_str = ""
+            segs_out.append(char)
+        else:
+            temp_str += char
+
+    # handling last part
+    if temp_str != "":
+        ss = nltk.word_tokenize(temp_str)
+        segs_out.extend(ss)
+
+    return segs_out
+
+
+def remove_punctuation(in_str):
+    """
+    remove punctuation
+    :param in_str:
+    :return:
+    """
+    in_str = str(in_str).lower().strip()
+    sp_char = ['-', ':', '_', '*', '^', '/', '\\', '~', '`', '+', '=',
+               '，', '。', '：', '？', '！', '“', '”', '；', '’', '《', '》', '……', '·', '、',
+               '「', '」', '（', '）', '－', '～', '『', '』']
+    out_segs = []
+    for char in in_str:
+        if char in sp_char:
+            continue
+        else:
+            out_segs.append(char)
+    return ''.join(out_segs)
+
+
+def find_lcs(s1, s2):
+    """
+    find longest common string
+    :param s1:
+    :param s2:
+    :return:
+    """
+    m = [[0 for i in range(len(s2) + 1)] for j in range(len(s1) + 1)]
+    mmax = 0
+    p = 0
+    for i in range(len(s1)):
+        for j in range(len(s2)):
+            if s1[i] == s2[j]:
+                m[i + 1][j + 1] = m[i][j] + 1
+                if m[i + 1][j + 1] > mmax:
+                    mmax = m[i + 1][j + 1]
+                    p = i + 1
+    return s1[p - mmax:p], mmax

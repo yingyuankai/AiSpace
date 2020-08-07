@@ -97,12 +97,12 @@ class CMRC2018Transformer(BaseTransformer):
         #     os.makedirs(output_path_base)
         # output_path = os.path.join(output_path_base, f"{split}.json")
 
-        unique_id = 1000000000
+        unique_id = 10000000
 
         # with open(output_path, "w", encoding="utf8") as ouf:
         for e_i, example in enumerate(self._read_next(data_path)):
-            if e_i >= 100:
-                break
+            # if e_i >= 100:
+            #     break
             question_text = example['question_text']
             if self._hparams.dataset.tokenizer.do_lower_case:
                 question_text = question_text.lower()
@@ -293,6 +293,7 @@ class CMRC2018Transformer(BaseTransformer):
 
                 if e_i == 0 and split == "train":
                     logger.info("*** Example ***")
+                    logger.info(f"qas_id: {example['qas_id']}")
                     logger.info(f"unique_id: {unique_id}")
                     logger.info(f"question: {question_text}")
                     logger.info(f"context: {para_text}")
@@ -309,6 +310,7 @@ class CMRC2018Transformer(BaseTransformer):
 
                 # new_line = f"{json_dumps(item)}\n"
                 # ouf.write(new_line)
+                # logger.info(f"qas_id: {example['qas_id']}\tunique_id: {unique_id}")
                 unique_id += 1
                 yield item
 

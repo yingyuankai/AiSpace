@@ -113,13 +113,21 @@ def k_fold_experiment(hparams: Hparams):
                 loss_weights=loss_weights
             )
             # fit
+            if hparams.training.do_eval:
+                validation_data = dev_dataset
+                validation_steps = hparams.training.validation_steps
+            else:
+                logger.info("Do not evaluate.")
+                validation_data = None
+                validation_steps = None
+
             model.fit(
                 train_dataset,
-                validation_data=dev_dataset,
+                validation_data=validation_data,
                 epochs=hparams.training.max_epochs,
                 callbacks=callbacks,
                 steps_per_epoch=hparams.training.steps_per_epoch,
-                validation_steps=hparams.training.validation_steps,
+                validation_steps=validation_steps,
             )
 
             # build archive dir

@@ -341,6 +341,8 @@ def build_tf_model_metrics(dataset_hparams: Hparams):
     res_metrics = {}
     for output_hparam in dataset_hparams.outputs:
         name = output_hparam.name
+        if 'metrics' not in output_hparam:
+            continue
         metrics = output_hparam.metrics
         if name not in metrics:
             res_metrics[name] = []

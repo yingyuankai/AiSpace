@@ -58,4 +58,4 @@ class BertForQA(BaseModel):
 
         outputs = self.qa_layer([seq_output, cls_output, passage_mask, start_position], training=is_training)
 
-        return outputs
+        return outputs + (inputs['unique_id'], )
