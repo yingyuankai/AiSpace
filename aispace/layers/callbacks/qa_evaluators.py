@@ -42,7 +42,8 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
                 'start_top_log_prob': start_top_log_prob[i],
                 'start_top_index': start_top_index[i],
                 'end_top_log_prob': end_top_log_prob[i],
-                'end_top_index': end_top_index[i]
+                'end_top_index': end_top_index[i],
+                'is_impossible_prob': answer_prob[i][0]
             }
             results[unique_id] = itm
 
@@ -54,13 +55,16 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
             if idx >= self.validation_steps:
                 break
             unique_ids = inputs['unique_id'].numpy().astype(np.int).tolist()
+            offsets = inputs['offset'].numpy().astype(np.int).tolist()
             qas_ids = inputs['qas_id'].numpy().astype(str).tolist()
             doc_token2char_raw_start_indexs = inputs['doc_token2char_raw_start_index'].numpy().astype(str).tolist()
             doc_token2char_raw_end_indexs = inputs['doc_token2char_raw_end_index'].numpy().astype(str).tolist()
+            doc_token2doc_indexs = inputs['doc_token2doc_index'].numpy().astype(str).tolist()
             answer_texts = inputs['answer_text'].numpy().tolist()
             context_texts = inputs['context_text'].numpy().tolist()
             question_texts = inputs['question_text'].numpy().tolist()
             is_impossibles = inputs['is_impossible'].numpy().tolist()
+            p_masks = inputs['p_mask'].numpy().astype(np.int).tolist()
 
             for t in range(len(unique_ids)):
                 itm = {
@@ -71,7 +75,10 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
                     'answer_text': answer_texts[t].decode("utf8"),
                     'doc_token2char_raw_start_index': json.loads(doc_token2char_raw_start_indexs[t]),
                     'doc_token2char_raw_end_index': json.loads(doc_token2char_raw_end_indexs[t]),
-                    'is_impossible': is_impossibles[t]
+                    'doc_token2doc_index': json.loads(doc_token2doc_indexs[t]),
+                    'is_impossible': is_impossibles[t],
+                    'p_mask': p_masks[t],
+                    'offset': offsets[t]
                 }
                 unique_id_to_examples[unique_ids[t]] = itm
                 qas_id_to_examples[qas_ids[t]].append(itm)
@@ -83,8 +90,8 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
                 cur_unique_id = example['unique_id']
                 if cur_unique_id not in results:
                     continue
-                if example['is_impossible'] == 1:
-                    continue
+                # if example['is_impossible'] == 1:
+                #     continue
                 if example['answer_text'] not in answers:
                     answers.append(example['answer_text'])
                 cur_result = results.get(cur_unique_id)
@@ -93,15 +100,24 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
 
                 cur_end_top_log_prob = cur_result['end_top_log_prob']
                 cur_end_top_index = cur_result['end_top_index']
+
+                cur_p_mask = example['p_mask']
                 for i in range(start_n_top):
                     start_prob = cur_start_top_log_prob[i]
                     start_index = cur_start_top_index[i]
+
+                    if not cur_p_mask[start_index]:
+                        continue
+
                     for j in range(end_n_top):
                         end_prob = cur_end_top_log_prob[i, j]
                         end_index = cur_end_top_index[i, j]
 
                         answer_length = end_index - start_index + 1
                         if end_index < start_index or answer_length > self.max_answer_length:
+                            continue
+
+                        if not cur_p_mask[end_index]:
                             continue
 
                         itm = {
@@ -123,8 +139,8 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
                     break
 
                 example_feature = unique_id_to_examples[example_predict['unique_id']]
-                predict_start = example_feature['doc_token2char_raw_start_index'][example_predict['start_index']]
-                predict_end = example_feature['doc_token2char_raw_end_index'][example_predict['end_index']]
+                predict_start = example_feature['doc_token2char_raw_start_index'][example_predict['start_index'] - example_feature['offset']]
+                predict_end = example_feature['doc_token2char_raw_end_index'][example_predict['end_index'] - example_feature['offset']]
                 predict_text = example_feature['context_text'][predict_start: predict_end + 1].strip()
 
                 if predict_text in is_visited:
@@ -150,12 +166,30 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
 
             example_best_predict = example_top_predicts[0]
 
-            f1 += calc_f1_score(answers, example_best_predict['predict_text'])
-            em += calc_em_score(answers, example_best_predict['predict_text'])
+            cur_f1 = calc_f1_score(answers, example_best_predict['predict_text'])
+            cur_em = calc_em_score(answers, example_best_predict['predict_text'])
+
+            f1 += cur_f1
+            em += cur_em
+            # debug
+            if cur_f1 != 0 or cur_em != 0:
+                example_output = {}
+                example_output.update(example_best_predict)
+                example_output['answer'] = answers
+                example_output['f1'] = cur_f1
+                example_output['em'] = em
+                print(example_output)
 
         total_count = len(qas_id_to_examples)
-        f1_score = 100. * f1 / total_count
-        em_score = 100. * em / total_count
-        print(f"epoch: {epoch}, f1 score: {f1_score}, exact match: {em_score}")
+        f1_score = f1 / total_count
+        em_score = em / total_count
+        print(f"Epoch: {epoch}, val_f1_score: {f1_score:.4f}, val_em_score: {em_score:.4f}")
+
+        logs = logs or {}
+        logs['val_f1_score'] = f1_score
+        logs['val_em_score'] = em_score
+        logs['val_f1_em_avg_score'] = (em_score + f1_score) / 2.
+
+
 
 

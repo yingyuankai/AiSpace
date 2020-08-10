@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export CUDA_VISIBLE_DEVICES=4,6
+export CUDA_VISIBLE_DEVICES=5,7
 nohup python -u aispace/trainer.py \
     --experiment_name test \
     --model_name bert_for_qa \

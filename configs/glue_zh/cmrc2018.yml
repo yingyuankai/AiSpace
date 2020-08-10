@@ -24,15 +24,17 @@ training:
   learning_rate: 3e-5
   max_epochs: 10
   batch_size: 8
-  steps_per_epoch: 10
+#  steps_per_epoch: 10
   do_eval: false       # using callback doing evaluation instead of default eval because of different outputs of training stages.
-#  validation_steps: 2
+#  validation_steps: 10
 
   callbacks:
     # callback name
     early_stopping:
-      switch: false
+      switch: False
       config:
+        monitor: "val_f1_em_avg_score"
+        mode: "max"
         patience: 2
     evaluator_for_qa_with_impossible:
       switch: True
@@ -95,6 +97,14 @@ dataset:
       column: doc_token2char_raw_end_index
       type: STRING
       model_input: False
+    - name: doc_token2doc_index
+      column: doc_token2doc_index
+      type: STRING
+      model_input: False
+    - name: offset
+      column: offset
+      type: INT
+      model_input: False
     - name: input_ids
       column: input_ids
       type: LIST_OF_INT
@@ -127,14 +137,14 @@ dataset:
       loss:
         name: sparse_categorical_crossentropy
         config:
-          from_logits: true
+          from_logits: True
       metrics:
         - name: sparse_categorical_accuracy
         - name: sparse_f1_score
           config:
-            name: "micro_f1"
+            name: "macro_f1"
             num_classes: 512
-            average: "micro"
+            average: "macro"
     - name: output_2
       column: end_position
       type: CLASSLABEL
@@ -144,14 +154,14 @@ dataset:
       loss:
         name: sparse_categorical_crossentropy
         config:
-          from_logits: true
+          from_logits: True
       metrics:
         - name: sparse_categorical_accuracy
         - name: sparse_f1_score
           config:
-            name: "micro_f1"
+            name: "macro_f1"
             num_classes: 512
-            average: "micro"
+            average: "macro"
     - name: output_3
       column: is_impossible
       type: INT
@@ -160,9 +170,6 @@ dataset:
         name: sigmoid_cross_entropy
       metrics:
         - name: binary_accuracy
-#    - name: unique_id
-#      column: unique_id
-#      type: INT
 
 pretrained:
 #    name: ERNIE_1.0_max-len-512

@@ -238,12 +238,16 @@ class CMRC2018Transformer(BaseTransformer):
             for (doc_idx, doc_span) in enumerate(doc_spans):
                 doc_token2char_raw_start_index = []
                 doc_token2char_raw_end_index = []
+                doc_token2doc_index = {}
 
                 for i in range(doc_span['length']):
                     token_idx = doc_span["start"] + i
 
                     doc_token2char_raw_start_index.append(token2char_raw_start_index[token_idx])
                     doc_token2char_raw_end_index.append(token2char_raw_end_index[token_idx])
+
+                    best_doc_idx = self._find_max_context(doc_spans, token_idx)
+                    doc_token2doc_index[i] = (best_doc_idx == doc_idx)
 
                 encode_info = \
                     self.tokenizer.encode(
@@ -282,13 +286,15 @@ class CMRC2018Transformer(BaseTransformer):
                     "answer_text": example["orig_answer_text"],
                     "doc_token2char_raw_start_index": json.dumps(doc_token2char_raw_start_index),
                     "doc_token2char_raw_end_index": json.dumps(doc_token2char_raw_end_index),
+                    'doc_token2doc_index': json.dumps(doc_token2doc_index),
                     "input_ids": input_ids,
                     "token_type_ids": segment_ids,
                     "attention_mask": input_mask,
                     "p_mask": p_mask,
                     "start_position": str(start_position),
                     "end_position": str(end_position),
-                    "is_impossible": is_impossible
+                    "is_impossible": is_impossible,
+                    'offset': offset
                 }
 
                 if e_i == 0 and split == "train":
@@ -304,6 +310,10 @@ class CMRC2018Transformer(BaseTransformer):
                     logger.info(f"token_type_ids: {segment_ids}")
                     logger.info(f"attention_mask: {input_mask}")
                     logger.info(f"p_mask: {p_mask}")
+                    logger.info(f"offset: {offset}")
+                    logger.info(f"doc_token2char_raw_start_index: {doc_token2char_raw_start_index}")
+                    logger.info(f"doc_token2char_raw_end_index: {doc_token2char_raw_end_index}")
+                    logger.info(f"doc_token2doc_index: {doc_token2doc_index}")
                     logger.info(f"start_position: {start_position}")
                     logger.info(f"end_position: {end_position}")
                     logger.info(f"is_impossible: {is_impossible}")

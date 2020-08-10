@@ -128,7 +128,7 @@ class QALayerWithImpossible(tf.keras.layers.Layer):
         answer_feature = self.answer_dropout(answer_feature)  # [b, h]
         answer_prob = self.answer_project(answer_feature)  # [b, h] --> [b, 1]
         # answer_prob = tf.squeeze(answer_prob, axis=-1)  # [b, 1] --> [b]
-        answer_prob = tf.sigmoid(answer_prob)  # [b]
+        answer_prob = tf.sigmoid(answer_prob)  # [b, 1]
 
         if is_training:
             output = (start_log_probs, end_log_probs, answer_prob)
