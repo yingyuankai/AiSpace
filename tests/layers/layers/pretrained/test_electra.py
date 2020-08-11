@@ -14,7 +14,8 @@ from aispace.utils.builder_utils import build_model
 class TestElectra(unittest.TestCase):
     def test_electra_checkpoint(self):
         hparam = Hparams()
-        hparam.load_from_config_file('/search/data1/yyk/workspace/AiSpace/configs/glue_zh/tnews.yml')
+        # hparam.load_from_config_file('/search/data1/yyk/workspace/AiSpace/configs/glue_zh/tnews.yml')
+        hparam.load_from_config_file('/search/data1/yyk/workspace/AiSpace/configs/glue_zh/cmrc2018.yml')
         hparam.stand_by()
 
         # ckpt = "/search/data1/yyk/workspace/projects/ERNIE/ernie/checkpoints"

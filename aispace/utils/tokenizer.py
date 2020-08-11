@@ -290,6 +290,8 @@ class WordpieceTokenizer:
         This uses a greedy longest-match-first algorithm to perform tokenization
         using the given vocabulary.
 
+        For chinese or punctuation, just return
+
         For example:
             input = "unaffable"
             output = ["un", "##aff", "##able"]
@@ -301,6 +303,8 @@ class WordpieceTokenizer:
         Returns:
             A list of wordpiece tokens.
         """
+        if len(text) == 1 and (BasicTokenizer._is_chinese_char(ord(text)) or _is_punctuation(text)):
+            return [text]
         output_tokens = []
         for token in whitespace_tokenize(text):
             assert token is not None

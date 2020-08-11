@@ -103,6 +103,8 @@ class CMRC2018Transformer(BaseTransformer):
         for e_i, example in enumerate(self._read_next(data_path)):
             # if e_i >= 100:
             #     break
+            # if example['qas_id'] != "TRAIN_1756_QUERY_3":
+            #     continue
             question_text = example['question_text']
             if self._hparams.dataset.tokenizer.do_lower_case:
                 question_text = question_text.lower()
@@ -136,6 +138,7 @@ class CMRC2018Transformer(BaseTransformer):
                 token2char_end_index.append(char_idx - 1)
 
             # raw text ->(tokenizer)-> tokens ->(detokenizer)-> tokenized text
+            # TODO 优化
             tokenized_para_text = self.tokenizer.detokenizer(para_tokens)
 
             # matching between raw text and tokenized text
@@ -155,7 +158,8 @@ class CMRC2018Transformer(BaseTransformer):
             while i >= 0 and j >= 0:
                 if (i, j) not in match_mapping:
                     break
-
+                if 324 == i or 353 == j:
+                    print()
                 if match_mapping[(i, j)] == 2:
                     raw2tokenized_char_index[i] = j
                     tokenized2raw_char_index[j] = i
@@ -197,13 +201,13 @@ class CMRC2018Transformer(BaseTransformer):
 
             if not example['is_impossible']:
                 # answer pos in raw text
-                raw_start_char_pos = example['start_position']
+                raw_start_char_pos, new_answer = self._improve_answer_start(para_text, example['orig_answer_text'], example['start_position'])
+                example['orig_answer_text'] = new_answer
+                # raw_start_char_pos = example['start_position']
                 raw_end_char_pos = raw_start_char_pos + len(example['orig_answer_text']) - 1
                 # answer pos in tokenized text
-                tokenized_start_char_pos = self._convert_tokenized_index(raw2tokenized_char_index, raw_start_char_pos,
-                                                                         is_start=True)
-                tokenized_end_char_pos = self._convert_tokenized_index(raw2tokenized_char_index, raw_end_char_pos,
-                                                                       is_start=False)
+                tokenized_start_char_pos = self._convert_tokenized_index(raw2tokenized_char_index, raw_start_char_pos, is_start=True)
+                tokenized_end_char_pos = self._convert_tokenized_index(raw2tokenized_char_index, raw_end_char_pos, is_start=False)
                 # answer pos in tokens
                 tokenized_start_token_pos = char2token_index[tokenized_start_char_pos]
                 tokenized_end_token_pos = char2token_index[tokenized_end_char_pos]
@@ -251,14 +255,14 @@ class CMRC2018Transformer(BaseTransformer):
 
                 encode_info = \
                     self.tokenizer.encode(
-                        para_tokens[doc_span['start']: doc_span['start'] + doc_span['length']],
                         query_tokens,
+                        para_tokens[doc_span['start']: doc_span['start'] + doc_span['length']],
                         return_mask=True,
                         return_offset=True,
                         return_cls_index=True)
                 input_ids, segment_ids, input_mask, p_mask, q_mask, offset, cls_idx = \
                     encode_info['input_ids'], encode_info['segment_ids'], encode_info['input_mask'], \
-                    encode_info['a_mask'], encode_info['b_mask'], encode_info['offset'], encode_info['cls_index']
+                    encode_info['b_mask'], encode_info['a_mask'], encode_info['b_offset'], encode_info['cls_index']
 
                 start_position = None
                 end_position = None
@@ -278,12 +282,14 @@ class CMRC2018Transformer(BaseTransformer):
                     start_position = cls_idx
                     end_position = cls_idx
 
+
                 item = {
                     "unique_id": unique_id,
                     "qas_id": example['qas_id'],
                     "question_text": question_text,
                     "context_text": para_text,
                     "answer_text": example["orig_answer_text"],
+                    "all_answers": json.dumps(example["all_answers"]),
                     "doc_token2char_raw_start_index": json.dumps(doc_token2char_raw_start_index),
                     "doc_token2char_raw_end_index": json.dumps(doc_token2char_raw_end_index),
                     'doc_token2doc_index': json.dumps(doc_token2doc_index),
@@ -318,6 +324,18 @@ class CMRC2018Transformer(BaseTransformer):
                     logger.info(f"end_position: {end_position}")
                     logger.info(f"is_impossible: {is_impossible}")
 
+                if start_position != 0 and end_position != 0:
+                    ccc = para_text[raw_start_char_pos: raw_end_char_pos + 1]
+                    bbb = tokenized_para_text[tokenized_start_char_pos: tokenized_end_char_pos + 1]
+                    aaa = para_tokens[tokenized_start_token_pos: tokenized_end_token_pos + 1]
+                    ck_sp = start_position - offset
+                    ck_ep = end_position - offset
+                    raw_sp = doc_token2char_raw_start_index[ck_sp]
+                    raw_ep = doc_token2char_raw_end_index[ck_ep]
+                    answer_raw_span = para_text[raw_sp: raw_ep + 1]
+                    if answer_raw_span != example['orig_answer_text'].lower():
+                        logger.warning(f"Check Inputs: qas_id: {example['qas_id']}, unique_id: {unique_id}, orig_answer: {example['orig_answer_text']}, span_answer: {answer_raw_span}")
+
                 # new_line = f"{json_dumps(item)}\n"
                 # ouf.write(new_line)
                 # logger.info(f"qas_id: {example['qas_id']}\tunique_id: {unique_id}")
@@ -344,9 +362,11 @@ class CMRC2018Transformer(BaseTransformer):
                             answer = qa['answers'][0]
                             start_position = answer['answer_start']
                             orig_answer_text = answer['text']
+                            all_answers = [ans['text'].lower() for ans in qa['answers']]
                         else:
                             start_position = -1
                             orig_answer_text = ""
+                            all_answers = [orig_answer_text]
 
                         example = {
                             "qas_id": qas_id,
@@ -354,7 +374,8 @@ class CMRC2018Transformer(BaseTransformer):
                             "paragraph_text": paragraph_text,
                             "orig_answer_text": orig_answer_text,
                             "start_position": start_position,
-                            "is_impossible": is_impossible
+                            "is_impossible": is_impossible,
+                            "all_answers": all_answers
                         }
                         yield example
 
@@ -385,7 +406,11 @@ class CMRC2018Transformer(BaseTransformer):
             g = {}
 
             for i in range(N):
+                # if i == 324:
+                #     print()
                 for j in range(i - max_dist, i + max_dist):
+                    # if j == 353:
+                    #     print()
                     if j >= M or j < 0:
                         continue
 
@@ -399,7 +424,7 @@ class CMRC2018Transformer(BaseTransformer):
 
                     f_prev = f[i - 1, j - 1] if i > 0 and j > 0 else 0
 
-                    raw_char = preprocess_text(para_text[i], self.tokenizer._hparams.do_lower_case, remove_space=False)
+                    raw_char = preprocess_text(para_text[i], self.tokenizer._hparams.do_lower_case, remove_space=False, keep_accents=True)
                     tokenized_char = tokenized_para_text[j]
                     if raw_char == tokenized_char and f_prev + 1 > f[i, j]:
                         g[(i, j)] = 2
@@ -407,7 +432,7 @@ class CMRC2018Transformer(BaseTransformer):
 
             return f, g
 
-        max_dist = abs(N - M) + 5
+        max_dist = abs(N - M) + 10
         for _ in range(2):
             lcs_matrix, match_mapping = _lcs_match(para_text, tokenized_para_text, N, M, max_N, max_M, max_dist)
 
@@ -506,3 +531,11 @@ class CMRC2018Transformer(BaseTransformer):
                 best_doc_idx = doc_idx
 
         return best_doc_idx
+
+    def _improve_answer_start(self, para_text, answer, raw_answer_start):
+        answer = answer.lower().strip()
+        real_start = para_text.find(answer)
+        if real_start != -1:
+            return real_start, answer
+        else:
+            return raw_answer_start, answer

@@ -181,7 +181,9 @@ class BertTokenizer(BaseTokenizer):
             output['b_mask'] = b_mask
 
         if return_offset:
-            output['offset'] = 1
+            output['a_offset'] = 1
+            if text_b:
+                output['b_offset'] = 1 + len(token_ids_a) + 1
 
         if return_cls_index:
             output['cls_index'] = 0

@@ -12,7 +12,7 @@ model_attributes:
     hidden_dropout_prob: 0.5
     initializer_range: 0.02
     hidden_size: 798
-    start_n_top: 3
+    start_n_top: 5
     layer_norm_eps: 1e-12
     qa_layer_name: "qa_with_impossible"
 
@@ -23,7 +23,7 @@ training:
 #      k: 5
   learning_rate: 3e-5
   max_epochs: 10
-  batch_size: 8
+  batch_size: 24
 #  steps_per_epoch: 10
   do_eval: false       # using callback doing evaluation instead of default eval because of different outputs of training stages.
 #  validation_steps: 10
@@ -48,10 +48,10 @@ training:
       config:
         start_epoch: 5
     lr_multiplier:
-      switch: false
+      switch: True
       config:
         multipliers:
-          bert_for_seq_classification/bert: 0.01
+          bert_for_qa/bert: 0.01
 
 dataset:
   name: glue_zh/cmrc2018
@@ -61,7 +61,7 @@ dataset:
   source:
     train: "train"
     validation: 'validation'
-    test: "test"
+    test: "validation"
 
   tokenizer:
     max_query_length: 64
@@ -87,6 +87,10 @@ dataset:
       model_input: False
     - name: answer_text
       column: answer_text
+      type: STRING
+      model_input: False
+    - name: answer_text
+      column: all_answers
       type: STRING
       model_input: False
     - name: doc_token2char_raw_start_index
@@ -139,12 +143,17 @@ dataset:
         config:
           from_logits: True
       metrics:
-        - name: sparse_categorical_accuracy
-        - name: sparse_f1_score
+        - name: sparse_recall
           config:
-            name: "macro_f1"
+            name: "macro_recall"
             num_classes: 512
             average: "macro"
+#        - name: sparse_categorical_accuracy
+#        - name: sparse_f1_score
+#          config:
+#            name: "macro_f1"
+#            num_classes: 512
+#            average: "macro"
     - name: output_2
       column: end_position
       type: CLASSLABEL
@@ -156,16 +165,21 @@ dataset:
         config:
           from_logits: True
       metrics:
-        - name: sparse_categorical_accuracy
-        - name: sparse_f1_score
+        - name: sparse_recall
           config:
-            name: "macro_f1"
+            name: "macro_recall"
             num_classes: 512
             average: "macro"
+#        - name: sparse_categorical_accuracy
+#        - name: sparse_f1_score
+#          config:
+#            name: "macro_f1"
+#            num_classes: 512
+#            average: "macro"
     - name: output_3
       column: is_impossible
       type: INT
-      weight: 0.5
+      weight: 1.0
       loss:
         name: sigmoid_cross_entropy
       metrics:
@@ -177,7 +191,7 @@ pretrained:
 #    name: chinese_electra_base
 #    name: NEZHA-Base
     name: bert-base-chinese-huggingface
-    init_from_pretrained: true
+    init_from_pretrained: false
 #    config:
 #      use_task_id: false
 

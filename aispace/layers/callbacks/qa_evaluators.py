@@ -60,6 +60,7 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
             doc_token2char_raw_start_indexs = inputs['doc_token2char_raw_start_index'].numpy().astype(str).tolist()
             doc_token2char_raw_end_indexs = inputs['doc_token2char_raw_end_index'].numpy().astype(str).tolist()
             doc_token2doc_indexs = inputs['doc_token2doc_index'].numpy().astype(str).tolist()
+            all_answers = inputs['all_answers'].numpy().astype(str).tolist()
             answer_texts = inputs['answer_text'].numpy().tolist()
             context_texts = inputs['context_text'].numpy().tolist()
             question_texts = inputs['question_text'].numpy().tolist()
@@ -73,6 +74,7 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
                     'question_text': question_texts[t].decode("utf8"),
                     'context_text': context_texts[t].decode("utf8"),
                     'answer_text': answer_texts[t].decode("utf8"),
+                    'all_answers': json.loads(all_answers[t]),
                     'doc_token2char_raw_start_index': json.loads(doc_token2char_raw_start_indexs[t]),
                     'doc_token2char_raw_end_index': json.loads(doc_token2char_raw_end_indexs[t]),
                     'doc_token2doc_index': json.loads(doc_token2doc_indexs[t]),
@@ -85,15 +87,16 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
 
         for qas_id, examples in qas_id_to_examples.items():
             example_all_predicts = []
-            answers = []
+            answers = set()
             for example in examples:
                 cur_unique_id = example['unique_id']
                 if cur_unique_id not in results:
                     continue
                 # if example['is_impossible'] == 1:
                 #     continue
-                if example['answer_text'] not in answers:
-                    answers.append(example['answer_text'])
+                # if example['answer_text'] not in answers:
+                #     answers.append(example['answer_text'])
+                answers |= set(example['all_answers'])
                 cur_result = results.get(cur_unique_id)
                 cur_start_top_log_prob = cur_result['start_top_log_prob']
                 cur_start_top_index = cur_result['start_top_index']
@@ -166,8 +169,8 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
 
             example_best_predict = example_top_predicts[0]
 
-            cur_f1 = calc_f1_score(answers, example_best_predict['predict_text'])
-            cur_em = calc_em_score(answers, example_best_predict['predict_text'])
+            cur_f1 = calc_f1_score(list(answers), example_best_predict['predict_text'])
+            cur_em = calc_em_score(list(answers), example_best_predict['predict_text'])
 
             f1 += cur_f1
             em += cur_em
@@ -177,7 +180,7 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
                 example_output.update(example_best_predict)
                 example_output['answer'] = answers
                 example_output['f1'] = cur_f1
-                example_output['em'] = em
+                example_output['em'] = cur_em
                 print(example_output)
 
         total_count = len(qas_id_to_examples)
