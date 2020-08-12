@@ -8,6 +8,7 @@
 import numpy as np
 import tensorflow as tf
 import json
+from scipy.special import softmax
 from collections import defaultdict
 
 from aispace.utils.eval_utils import calc_em_score, calc_f1_score
@@ -116,11 +117,11 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
                         end_prob = cur_end_top_log_prob[i, j]
                         end_index = cur_end_top_index[i, j]
 
-                        answer_length = end_index - start_index + 1
-                        if end_index < start_index or answer_length > self.max_answer_length:
+                        if not cur_p_mask[end_index]:
                             continue
 
-                        if not cur_p_mask[end_index]:
+                        answer_length = end_index - start_index + 1
+                        if end_index < start_index or answer_length > self.max_answer_length:
                             continue
 
                         itm = {
@@ -178,6 +179,7 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
             if cur_f1 != 0 or cur_em != 0:
                 example_output = {}
                 example_output.update(example_best_predict)
+                example_output['question'] = examples[0]['question_text']
                 example_output['answer'] = answers
                 example_output['f1'] = cur_f1
                 example_output['em'] = cur_em

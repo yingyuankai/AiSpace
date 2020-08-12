@@ -131,14 +131,13 @@ class CMRC2018Transformer(BaseTransformer):
             token2char_end_index = []
             char_idx = 0
             for i, token in enumerate(para_tokens):
-                char_len = len(token)
+                char_len = len(token.replace("##", ''))
                 char2token_index.extend([i] * char_len)
                 token2char_start_index.append(char_idx)
                 char_idx += char_len
                 token2char_end_index.append(char_idx - 1)
 
             # raw text ->(tokenizer)-> tokens ->(detokenizer)-> tokenized text
-            # TODO 优化
             tokenized_para_text = self.tokenizer.detokenizer(para_tokens)
 
             # matching between raw text and tokenized text
@@ -158,8 +157,8 @@ class CMRC2018Transformer(BaseTransformer):
             while i >= 0 and j >= 0:
                 if (i, j) not in match_mapping:
                     break
-                if 324 == i or 353 == j:
-                    print()
+                # if 324 == i or 353 == j:
+                #     print()
                 if match_mapping[(i, j)] == 2:
                     raw2tokenized_char_index[i] = j
                     tokenized2raw_char_index[j] = i
@@ -282,6 +281,8 @@ class CMRC2018Transformer(BaseTransformer):
                     start_position = cls_idx
                     end_position = cls_idx
 
+                # if is_impossible == 1:
+                #     continue
 
                 item = {
                     "unique_id": unique_id,
@@ -539,3 +540,22 @@ class CMRC2018Transformer(BaseTransformer):
             return real_start, answer
         else:
             return raw_answer_start, answer
+
+
+    def _is_english(self, word: str) -> bool:
+        """
+        Checks whether `word` is a english word.
+
+        Note: this function is not standard and should be considered for BERT
+        tokenization only. See the comments for more details.
+        :param word:
+        :return:
+        """
+        flag = True
+        for c in word:
+            if 'a' <= c <= 'z' or 'A' <= c <= 'Z' or c == '#':
+                continue
+            else:
+                flag = False
+                break
+        return flag

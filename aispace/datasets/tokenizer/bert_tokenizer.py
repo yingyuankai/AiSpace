@@ -48,18 +48,18 @@ class BertTokenizer(BaseTokenizer):
 
     def tokenize(self, text: str, ret_full=False):
         split_tokens = []
-        raw_tokens = []
-        align_mapping = []
+        tok_to_orig_index = []
+        orig_to_tok_index = []
         if self._hparams.do_basic_tokenize:
-            for token in self.basic_tokenizer.tokenize(
-                    text, never_split=self.vocab.special_tokens()):
+            for i, token in enumerate(self.basic_tokenizer.tokenize(
+                    text, never_split=self.vocab.special_tokens())):
                 assert token is not None
-                raw_tokens.append(token)
+                orig_to_tok_index.append(len(split_tokens))
                 for sub_token in self.word_piece_tokenizer.tokenize(token):
-                    align_mapping.append(len(raw_tokens) - 1)
+                    tok_to_orig_index.append(i)
                     split_tokens.append(sub_token)
             if ret_full is True:
-                return split_tokens, raw_tokens, align_mapping
+                return split_tokens, tok_to_orig_index, orig_to_tok_index
         else:
             split_tokens = self.word_piece_tokenizer.tokenize(text)
         return split_tokens
@@ -68,19 +68,19 @@ class BertTokenizer(BaseTokenizer):
         r"""Maps a sequence of tokens (string) to a single string."""
         link_word = "" if self._hparams.tokenize_chinese_chars else " "
 
-        # out_string = f'{link_word}'.join(tokens).replace(f'{link_word}##', '').strip()
-        out_string = f'{link_word}'.join(tokens).replace(f'{link_word}##', ''.join([' '] * len(f'{link_word}##'))).strip()
+        out_string = f'{link_word}'.join(tokens).replace(f'{link_word}##', '').strip()
+        # out_string = f'{link_word}'.join(tokens).replace(f'{link_word}##', ''.join([' '] * len(f'{link_word}##'))).strip()
         # out_string = ""
         # for i in range(len(tokens)):
         #     if i == 0:
         #         out_string += tokens[0]
         #         continue
         #     if self._is_english(tokens[i]) and self._is_english(tokens[i - 1]):
-        #         out_string += ' ' + tokens[i]
-        #         out_string = out_string.replace(f' ##', '').strip()
+        #         out_string += '' + tokens[i]
+        #         out_string = out_string.replace('##', '').strip()
         #     else:
         #         out_string += link_word + tokens[i]
-        #         out_string = out_string.replace(f'##', '').strip()
+        #         out_string = out_string.replace('##', '').strip()
 
         return out_string
 

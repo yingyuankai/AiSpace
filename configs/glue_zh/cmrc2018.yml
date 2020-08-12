@@ -21,26 +21,31 @@ training:
 #    name: "k-fold"
 #    config:
 #      k: 5
-  learning_rate: 3e-5
+  learning_rate: 1e-5
   max_epochs: 10
-  batch_size: 24
-#  steps_per_epoch: 10
+  batch_size: 4
+  steps_per_epoch: 5
   do_eval: false       # using callback doing evaluation instead of default eval because of different outputs of training stages.
-#  validation_steps: 10
+  validation_steps: 5
 
   callbacks:
     # callback name
     early_stopping:
-      switch: False
+      switch: true
       config:
         monitor: "val_f1_em_avg_score"
         mode: "max"
         patience: 2
     evaluator_for_qa_with_impossible:
-      switch: True
+      switch: true
       config:
         validation_dataset: null
         validation_steps: null
+#    lr_finder:
+#      switch: true
+#
+#  optimizer:
+#    name: adam
 
   optimizer_wrappers:
     swa:
@@ -48,7 +53,7 @@ training:
       config:
         start_epoch: 5
     lr_multiplier:
-      switch: True
+      switch: false
       config:
         multipliers:
           bert_for_qa/bert: 0.01
@@ -89,7 +94,7 @@ dataset:
       column: answer_text
       type: STRING
       model_input: False
-    - name: answer_text
+    - name: all_answers
       column: all_answers
       type: STRING
       model_input: False
@@ -141,7 +146,7 @@ dataset:
       loss:
         name: sparse_categorical_crossentropy
         config:
-          from_logits: True
+          from_logits: true
       metrics:
         - name: sparse_recall
           config:
@@ -163,7 +168,7 @@ dataset:
       loss:
         name: sparse_categorical_crossentropy
         config:
-          from_logits: True
+          from_logits: true
       metrics:
         - name: sparse_recall
           config:
@@ -191,7 +196,7 @@ pretrained:
 #    name: chinese_electra_base
 #    name: NEZHA-Base
     name: bert-base-chinese-huggingface
-    init_from_pretrained: false
+    init_from_pretrained: true
 #    config:
 #      use_task_id: false
 

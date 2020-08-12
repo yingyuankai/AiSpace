@@ -438,7 +438,7 @@ def masked_softmax(logits, mask):
     mask = tf.cast(mask, tf.float32)
 
     # return tf.nn.softmax(logits * mask + (1.0 - mask) * tf.float32.min, axis=-1)
-    return tf.nn.softmax(logits * mask + (1.0 - mask) * -1e30, axis=-1)
+    return tf.nn.softmax(logits * mask + (1.0 - mask) * tf.float32.min, axis=-1)
 
 
 def masked_log_softmax(logits, mask):
