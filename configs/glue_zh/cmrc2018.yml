@@ -14,19 +14,20 @@ model_attributes:
     hidden_size: 798
     start_n_top: 5
     layer_norm_eps: 1e-12
-    qa_layer_name: "qa_with_impossible"
+#    qa_layer_name: "qa_with_impossible"
+    qa_layer_name: "qa_simple"
 
 training:
 #  policy:
 #    name: "k-fold"
 #    config:
 #      k: 5
-  learning_rate: 1e-5
-  max_epochs: 10
-  batch_size: 4
-  steps_per_epoch: 5
+  learning_rate: 3e-5
+  max_epochs: 30
+  batch_size: 20
+#  steps_per_epoch: 5
   do_eval: false       # using callback doing evaluation instead of default eval because of different outputs of training stages.
-  validation_steps: 5
+#  validation_steps: 5
 
   callbacks:
     # callback name
@@ -35,9 +36,11 @@ training:
       config:
         monitor: "val_f1_em_avg_score"
         mode: "max"
-        patience: 2
-    evaluator_for_qa_with_impossible:
+        patience: 5
+#    evaluator_for_qa_with_impossible:
+    evaluator_for_qa_simple:
       switch: true
+      priority: 2
       config:
         validation_dataset: null
         validation_steps: null
@@ -135,6 +138,10 @@ dataset:
       type: CLASSLABEL
       num: 512
       labels: use_num
+    - name: is_impossible
+      column: is_impossible
+      type: INT
+      model_input: False
 
   outputs:
     - name: output_1
@@ -181,14 +188,14 @@ dataset:
 #            name: "macro_f1"
 #            num_classes: 512
 #            average: "macro"
-    - name: output_3
-      column: is_impossible
-      type: INT
-      weight: 1.0
-      loss:
-        name: sigmoid_cross_entropy
-      metrics:
-        - name: binary_accuracy
+#    - name: output_3
+#      column: is_impossible
+#      type: INT
+#      weight: 1.0
+#      loss:
+#        name: sigmoid_cross_entropy
+#      metrics:
+#        - name: binary_accuracy
 
 pretrained:
 #    name: ERNIE_1.0_max-len-512

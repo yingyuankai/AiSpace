@@ -86,7 +86,7 @@ def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, 
         num_warmup_steps = \
             int(
                 training_hparams.max_epochs * train_data_size * training_hparams.warmup_factor / training_hparams.batch_size)
-        num_warmup_steps = min(steps_per_epoch, num_warmup_steps)
+        # num_warmup_steps = min(steps_per_epoch, num_warmup_steps)
 
         if validation_data_size is not None:
             validation_steps = int(
@@ -187,7 +187,7 @@ def build_callbacks(hparams: Hparams):
     from aispace.layers.callbacks import CALLBACKS
     callback_hparam = hparams.training.callbacks
     callbacks = []
-    for name, config in callback_hparam.items():
+    for name, config in sorted(callback_hparam.items(), key=lambda s: s[1]['priority'], reverse=True):
         if not config.switch: continue
         fn = CALLBACKS.get(name)
         logger.info(f"Using callback [{name}].")

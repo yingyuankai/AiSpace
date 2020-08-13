@@ -5,3 +5,4 @@
 # @File    : __init__.py
 
 from .qa_with_impossible import *
+from .qa_simple import *

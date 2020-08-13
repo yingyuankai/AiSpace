@@ -61,6 +61,7 @@ training:
         early_stopping:
             # Whether to use early stopping, (Default: false)
             switch: false
+            priority: 1
             config:
                 patience: 2 # Patience for early stopping
                 monitor: 'val_loss'
@@ -68,9 +69,10 @@ training:
                 verbose: 0
                 mode: 'auto'
                 baseline: null
-                restore_best_weights: false
+                restore_best_weights: true
         checkpoint:
             switch: false
+            priority: 1
             config:
                 filepath: "{{workspace_dir}}/checkpoint/ckpt_{epoch}"
                 monitor: 'val_loss'
@@ -81,6 +83,7 @@ training:
                 save_freq: 'epoch'
         tensorboard:
             switch: false
+            priority: 1
             config:
                 log_dir: '{{workspace_dir}}/logs'
                 histogram_freq: 0
@@ -92,6 +95,7 @@ training:
                 embeddings_metadata: null
         lr_finder:
             switch: false
+            priority: 1
             config:
                 start_lr: 1e-7
                 end_lr: 0.1
