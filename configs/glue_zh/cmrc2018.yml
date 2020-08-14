@@ -14,8 +14,8 @@ model_attributes:
     hidden_size: 798
     start_n_top: 5
     layer_norm_eps: 1e-12
-#    qa_layer_name: "qa_with_impossible"
-    qa_layer_name: "qa_simple"
+    qa_layer_name: "qa_with_impossible"
+#    qa_layer_name: "qa_simple"
 
 training:
 #  policy:
@@ -37,13 +37,17 @@ training:
         monitor: "val_f1_em_avg_score"
         mode: "max"
         patience: 5
-#    evaluator_for_qa_with_impossible:
-    evaluator_for_qa_simple:
+    evaluator_for_qa_with_impossible:
+#    evaluator_for_qa_simple:
       switch: true
       priority: 2
       config:
         validation_dataset: null
+        test_dataset: null
         validation_steps: null
+        report_dir: null
+        max_answer_length: 64
+        n_best_size: 5
 #    lr_finder:
 #      switch: true
 #
@@ -68,8 +72,8 @@ dataset:
 
   source:
     train: "train"
-    validation: 'validation'
-    test: "validation"
+    validation: 'validation[:50%]'
+    test: "validation[-50%:]"
 
   tokenizer:
     max_query_length: 64

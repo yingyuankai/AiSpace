@@ -76,7 +76,8 @@ def experiment(hparams: Hparams):
         model.save_weights(hparams.get_model_filename(), save_format="tf")
 
         # eval on test dataset and make reports
-        # evaluation(hparams)
+        if hparams.training.do_eval:
+            evaluation(hparams)
 
     logger.info('Experiment Finish!')
 
@@ -165,8 +166,8 @@ def k_fold_experiment(hparams: Hparams):
 
     # logger.info(f"Save averaged model in {hparams.get_model_filename()}")
     # model.save_weights(hparams.get_model_filename(), save_format="tf")
-
-    evaluation(hparams, checkpoints=checkpoints)
+    if hparams.training.do_eval:
+        evaluation(hparams, checkpoints=checkpoints)
 
     logger.info('Experiment Finish!')
 

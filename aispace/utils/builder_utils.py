@@ -82,6 +82,7 @@ def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, 
         training_hparams = hparams.training
         train_data_size = dataset_info.splits.get("train").num_examples
         validation_data_size = dataset_info.splits.get("validation").num_examples
+        test_data_size = dataset_info.splits.get("test").num_examples
         steps_per_epoch = int(train_data_size / training_hparams.batch_size)
         num_warmup_steps = \
             int(
@@ -93,6 +94,12 @@ def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, 
                 math.ceil(validation_data_size / training_hparams.batch_size))
         else:
             validation_steps = None
+
+        if test_data_size is not None:
+            test_steps = int(
+                math.ceil(test_data_size / training_hparams.batch_size))
+        else:
+            test_steps = None
         logger.info("Reset some hparams according to dataset_info:")
         if "steps_per_epoch" not in training_hparams or training_hparams.steps_per_epoch <= 0:
             hparams.cascade_set('training.steps_per_epoch', steps_per_epoch)
@@ -104,6 +111,11 @@ def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, 
             logger.info(f"Set training.validation_steps to {validation_steps}")
         else:
             logger.info(f"Get training.validation_steps is {hparams.training.validation_steps}")
+        if "test_steps" not in training_hparams or training_hparams.test_steps <= 0:
+            hparams.cascade_set('training.test_steps', test_steps)
+            logger.info(f"Set training.test_steps to {test_steps}")
+        else:
+            logger.info(f"Get training.test_steps is {hparams.training.test_steps}")
         if "num_warmup_steps" not in training_hparams or training_hparams.num_warmup_steps <= 0:
             hparams.cascade_set('training.num_warmup_steps', num_warmup_steps)
             logger.info(f"Set training.num_warmup_steps to {num_warmup_steps}")
@@ -196,10 +208,13 @@ def build_callbacks(hparams: Hparams):
             continue
 
         if name.startswith('evaluator'):
-            logger.info("Build validation dataset for evaluator callback.")
-            dev_dataset = next(load_dataset(hparams, ret_train=False, ret_test=False))[0]
+            logger.info("Build validation and test dataset for evaluator callback.")
+            dev_dataset, test_dataset = next(load_dataset(hparams, ret_train=False))[: 2]
             config.config['validation_dataset'] = dev_dataset
             config.config['validation_steps'] = hparams.training.validation_steps
+            config.config['test_dataset'] = test_dataset
+            config.config['test_steps'] = hparams.training.test_steps
+            config.config['report_dir'] = hparams.get_report_dir()
 
         callbacks.append(fn(config.config))
     return callbacks

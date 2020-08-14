@@ -263,7 +263,7 @@ class CMRC2018Transformer(BaseTransformer):
                     encode_info['input_ids'], encode_info['segment_ids'], encode_info['input_mask'], \
                     encode_info['b_mask'], encode_info['a_mask'], encode_info['b_offset'], encode_info['cls_index']
 
-                p_mask[cls_idx] = 1
+                # p_mask[offset - 1] = 1
                 start_position = None
                 end_position = None
                 is_impossible = example["is_impossible"]
@@ -326,7 +326,7 @@ class CMRC2018Transformer(BaseTransformer):
                     logger.info(f"end_position: {end_position}")
                     logger.info(f"is_impossible: {is_impossible}")
 
-                if start_position != 0 and end_position != 0 and split != 'test':
+                if start_position != offset - 1 and end_position != offset - 1 and split != 'test':
                     ccc = para_text[raw_start_char_pos: raw_end_char_pos + 1]
                     bbb = tokenized_para_text[tokenized_start_char_pos: tokenized_end_char_pos + 1]
                     aaa = para_tokens[tokenized_start_token_pos: tokenized_end_token_pos + 1]

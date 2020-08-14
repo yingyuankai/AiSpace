@@ -5,14 +5,16 @@
 # @File    : qa_evaluators.py
 
 
+import os
 import logging
 import numpy as np
 import tensorflow as tf
 import json
-from scipy.special import softmax
 from collections import defaultdict
 
 from aispace.utils.eval_utils import calc_em_score, calc_f1_score
+from aispace.utils.io_utils import save_json
+from aispace.utils.print_utils import print_boxed
 
 __all__ = [
     'EvaluatorForQaSimple',
@@ -28,19 +30,36 @@ class EvaluatorForQaSimple(tf.keras.callbacks.Callback):
     ref: https://keras.io/examples/nlp/text_extraction_with_bert/
     """
 
-    def __init__(self, validation_dataset, validation_steps, max_answer_length=64, n_best_size=5):
+    def __init__(self, validation_dataset, validation_steps, test_dataset, test_steps, report_dir, max_answer_length=64, n_best_size=5):
         self.validation_dataset = validation_dataset
         self.validation_steps = validation_steps
+        self.test_dataset = test_dataset
+        self.test_steps = test_steps
         self.max_answer_length = max_answer_length
         self.n_best_size = n_best_size
+        self.report_dir = report_dir
 
     def on_epoch_end(self, epoch, logs=None):
+        new_logs = self.eval_process(self.validation_dataset, self.validation_steps)
+        logs = logs or {}
+        logs.update(new_logs)
+        logger.info(f"Epoch: {epoch + 1}, val_f1_score: {logs['val_f1_score']:.4f}, val_em_score: {logs['val_em_score']:.4f}, "
+                    f"val_f1_em_avg_score: {logs['val_f1_em_avg_score']:.4f}")
+
+    def on_train_end(self, logs=None):
+        logger.info("Start Evaluate.")
+        new_logs = self.eval_process(self.test_dataset, self.test_steps)
+        save_json(os.path.join(self.report_dir, 'performance.json'), new_logs)
+        print_boxed(f"Question Answer Evaluation")
+        logger.info(f"Save question answer reports in {self.report_dir}")
+
+    def eval_process(self, dataset, n_steps=None):
         f1 = 0
         em = 0
         total_count = 0
+        skip_count = 0
 
-        start_top_res, end_top_res, answer_prob, unique_id_res = self.model.predict(self.validation_dataset,
-                                                                                    steps=self.validation_steps)
+        start_top_res, end_top_res, unique_id_res = self.model.predict(dataset, steps=n_steps)
         start_top_log_prob, start_top_index = start_top_res[:, :, 0], start_top_res[:, :, 1].astype(np.int)  # [b, k]
         end_top_log_prob, end_top_index = end_top_res[:, :, 0], end_top_res[:, :, 1].astype(np.int)  # [b, k]
         unique_id_res = unique_id_res.astype(np.int)
@@ -54,16 +73,15 @@ class EvaluatorForQaSimple(tf.keras.callbacks.Callback):
                 'start_top_index': start_top_index[i],
                 'end_top_log_prob': end_top_log_prob[i],
                 'end_top_index': end_top_index[i],
-                'is_impossible_prob': answer_prob[i][0]
             }
             results[unique_id] = itm
 
         # raw inputs
-        start_n_top, end_n_top = end_top_index.shape[1:]
+        start_n_top, end_n_top = start_top_index.shape[-1], end_top_index.shape[-1]
         qas_id_to_examples = defaultdict(list)
         unique_id_to_examples = {}
-        for idx, (inputs, outputs) in enumerate(self.validation_dataset):
-            if idx >= self.validation_steps:
+        for idx, (inputs, outputs) in enumerate(dataset):
+            if n_steps is not None and idx >= n_steps:
                 break
             unique_ids = inputs['unique_id'].numpy().astype(np.int).tolist()
             offsets = inputs['offset'].numpy().astype(np.int).tolist()
@@ -146,6 +164,9 @@ class EvaluatorForQaSimple(tf.keras.callbacks.Callback):
 
             if len(answers) != 0:
                 total_count += 1
+            else:
+                skip_count += 1
+                continue
 
             example_all_predicts.sort(key=lambda s: s['predict_score'], reverse=True)
 
@@ -203,13 +224,13 @@ class EvaluatorForQaSimple(tf.keras.callbacks.Callback):
         # total_count = len(qas_id_to_examples)
         f1_score = f1 / total_count
         em_score = em / total_count
-        logger.info(f"Epoch: {epoch + 1}, val_f1_score: {f1_score:.4f}, val_em_score: {em_score:.4f}, "
-                    f"val_f1_em_avg_score: {(em_score + f1_score) / 2.:.4f}")
-
-        logs = logs or {}
+        logs = {}
+        logs['skip_count'] = skip_count
+        logs['total'] = total_count
         logs['val_f1_score'] = f1_score
         logs['val_em_score'] = em_score
         logs['val_f1_em_avg_score'] = (em_score + f1_score) / 2.
+        return logs
 
 
 class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
@@ -218,19 +239,36 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
     ref: https://keras.io/examples/nlp/text_extraction_with_bert/
     """
 
-    def __init__(self, validation_dataset, validation_steps, max_answer_length=64, n_best_size=5):
+    def __init__(self, validation_dataset, validation_steps, test_dataset, test_steps, report_dir, max_answer_length=64, n_best_size=5):
         self.validation_dataset = validation_dataset
         self.validation_steps = validation_steps
+        self.test_dataset = test_dataset
+        self.test_steps = test_steps
         self.max_answer_length = max_answer_length
         self.n_best_size = n_best_size
+        self.report_dir = report_dir
 
     def on_epoch_end(self, epoch, logs=None):
+        new_logs = self.eval_process(self.validation_dataset, self.validation_steps)
+        logs = logs or {}
+        logs.update(new_logs)
+        logger.info(f"Epoch: {epoch + 1}, val_f1_score: {logs['val_f1_score']:.4f}, val_em_score: {logs['val_em_score']:.4f}, "
+                    f"val_f1_em_avg_score: {logs['val_f1_em_avg_score']:.4f}")
+
+    def on_train_end(self, logs=None):
+        logger.info("Start Evaluate.")
+        new_logs = self.eval_process(self.test_dataset, self.test_steps)
+        save_json(os.path.join(self.report_dir, 'performance.json'), new_logs)
+        print_boxed(f"Question Answer Evaluation")
+        logger.info(f"Save question answer reports in {self.report_dir}")
+
+    def eval_process(self, dataset, n_steps=None):
         f1 = 0
         em = 0
         total_count = 0
+        skip_count = 0
 
-        start_top_res, end_top_res, answer_prob, unique_id_res = self.model.predict(self.validation_dataset,
-                                                                                    steps=self.validation_steps)
+        start_top_res, end_top_res, answer_prob, unique_id_res = self.model.predict(dataset, steps=n_steps)
         start_top_log_prob, start_top_index = start_top_res[:, :, 0], start_top_res[:, :, 1].astype(np.int)  # [b, k]
         end_top_log_prob, end_top_index = end_top_res[:, :, :, 0], end_top_res[:, :, :, 1].astype(np.int)  # [b, k, k]
         unique_id_res = unique_id_res.astype(np.int)
@@ -252,8 +290,8 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
         start_n_top, end_n_top = end_top_index.shape[1:]
         qas_id_to_examples = defaultdict(list)
         unique_id_to_examples = {}
-        for idx, (inputs, outputs) in enumerate(self.validation_dataset):
-            if idx >= self.validation_steps:
+        for idx, (inputs, outputs) in enumerate(dataset):
+            if n_steps is not None and idx >= n_steps:
                 break
             unique_ids = inputs['unique_id'].numpy().astype(np.int).tolist()
             offsets = inputs['offset'].numpy().astype(np.int).tolist()
@@ -336,6 +374,9 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
 
             if len(answers) != 0:
                 total_count += 1
+            else:
+                skip_count += 1
+                continue
 
             example_all_predicts.sort(key=lambda s: s['predict_score'], reverse=True)
 
@@ -393,10 +434,13 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
         # total_count = len(qas_id_to_examples)
         f1_score = f1 / total_count
         em_score = em / total_count
-        logger.info(f"Epoch: {epoch + 1}, val_f1_score: {f1_score:.4f}, val_em_score: {em_score:.4f}, "
-                    f"val_f1_em_avg_score: {(em_score + f1_score) / 2.:.4f}")
 
-        logs = logs or {}
+        logs = {}
+        logs['skip_count'] = skip_count
+        logs['total'] = total_count
         logs['val_f1_score'] = f1_score
         logs['val_em_score'] = em_score
         logs['val_f1_em_avg_score'] = (em_score + f1_score) / 2.
+
+        return logs
+
