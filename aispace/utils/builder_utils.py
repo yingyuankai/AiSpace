@@ -90,14 +90,12 @@ def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, 
         # num_warmup_steps = min(steps_per_epoch, num_warmup_steps)
 
         if validation_data_size is not None:
-            validation_steps = int(
-                math.ceil(validation_data_size / training_hparams.batch_size))
+            validation_steps = validation_data_size // training_hparams.batch_size
         else:
             validation_steps = None
 
         if test_data_size is not None:
-            test_steps = int(
-                math.ceil(test_data_size / training_hparams.batch_size))
+            test_steps = test_data_size // training_hparams.batch_size
         else:
             test_steps = None
         logger.info("Reset some hparams according to dataset_info:")

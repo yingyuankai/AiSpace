@@ -14,15 +14,15 @@ model_attributes:
     hidden_size: 798
     start_n_top: 5
     layer_norm_eps: 1e-12
-    qa_layer_name: "qa_with_impossible"
-#    qa_layer_name: "qa_simple"
+#    qa_layer_name: "qa_with_impossible"
+    qa_layer_name: "qa_simple"
 
 training:
 #  policy:
 #    name: "k-fold"
 #    config:
 #      k: 5
-  learning_rate: 3e-5
+  learning_rate: 1e-5
   max_epochs: 30
   batch_size: 20
 #  steps_per_epoch: 5
@@ -37,8 +37,8 @@ training:
         monitor: "val_f1_em_avg_score"
         mode: "max"
         patience: 5
-    evaluator_for_qa_with_impossible:
-#    evaluator_for_qa_simple:
+#    evaluator_for_qa_with_impossible:
+    evaluator_for_qa_simple:
       switch: true
       priority: 2
       config:
@@ -63,7 +63,7 @@ training:
       switch: false
       config:
         multipliers:
-          bert_for_qa/bert: 0.01
+          bert_for_qa/bert: 0.1
 
 dataset:
   name: glue_zh/cmrc2018

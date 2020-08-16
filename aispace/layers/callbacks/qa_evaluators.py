@@ -48,9 +48,12 @@ class EvaluatorForQaSimple(tf.keras.callbacks.Callback):
 
     def on_train_end(self, logs=None):
         logger.info("Start Evaluate.")
+        if not os.path.exists(self.report_dir):
+            os.makedirs(self.report_dir)
         new_logs = self.eval_process(self.test_dataset, self.test_steps)
         save_json(os.path.join(self.report_dir, 'performance.json'), new_logs)
         print_boxed(f"Question Answer Evaluation")
+        print(new_logs)
         logger.info(f"Save question answer reports in {self.report_dir}")
 
     def eval_process(self, dataset, n_steps=None):
@@ -257,9 +260,12 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
 
     def on_train_end(self, logs=None):
         logger.info("Start Evaluate.")
+        if not os.path.exists(self.report_dir):
+            os.makedirs(self.report_dir)
         new_logs = self.eval_process(self.test_dataset, self.test_steps)
         save_json(os.path.join(self.report_dir, 'performance.json'), new_logs)
         print_boxed(f"Question Answer Evaluation")
+        print(new_logs)
         logger.info(f"Save question answer reports in {self.report_dir}")
 
     def eval_process(self, dataset, n_steps=None):
