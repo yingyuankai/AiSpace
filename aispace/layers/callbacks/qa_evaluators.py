@@ -10,6 +10,7 @@ import logging
 import numpy as np
 import tensorflow as tf
 import json
+from pprint import pprint
 from collections import defaultdict
 
 from aispace.utils.eval_utils import calc_em_score, calc_f1_score
@@ -53,7 +54,7 @@ class EvaluatorForQaSimple(tf.keras.callbacks.Callback):
         new_logs = self.eval_process(self.test_dataset, self.test_steps)
         save_json(os.path.join(self.report_dir, 'performance.json'), new_logs)
         print_boxed(f"Question Answer Evaluation")
-        print(new_logs)
+        pprint(new_logs)
         logger.info(f"Save question answer reports in {self.report_dir}")
 
     def eval_process(self, dataset, n_steps=None):
@@ -265,7 +266,7 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
         new_logs = self.eval_process(self.test_dataset, self.test_steps)
         save_json(os.path.join(self.report_dir, 'performance.json'), new_logs)
         print_boxed(f"Question Answer Evaluation")
-        print(new_logs)
+        pprint(new_logs)
         logger.info(f"Save question answer reports in {self.report_dir}")
 
     def eval_process(self, dataset, n_steps=None):

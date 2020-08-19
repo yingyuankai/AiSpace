@@ -33,5 +33,36 @@ Specify different pretrained model, please change ***includes*** and ***pretrain
 |chinese_wwm_ext|65.020|65.048|62.017|62.688|
 |chinese_roberta_wwm_ext|64.860|64.819|63.275|**63.591**|
 |chinese_roberta_wwm_large_ext|**65.700**|62.342|61.527|61.664|
+|ERNIE_stable-1.0.1|**66.330**|66.903|63.704|64.524|
+|ERNIE_1.0_max-len-512|66.010|65.301|62.230|62.884|
+|chinese_xlnet_base|65.110|64.377|**64.862**|64.169|
+|chinese_xlnet_mid|66.000|66.377|63.874|**64.708**|
+|chinese_electra_small|60.370|60.223|57.161|57.206|
+|chinese_electra_small_ex|59.900|58.078|55.525|56.194|
+|chinese_electra_base|60.500|60.090|58.267|58.909|
+|chinese_electra_large|60.500|60.362|57.653|58.336|
+|nezha-base|58.940|57.909|55.650|55.630|
+|nezha-base-wwm|58.800|60.060|54.859|55.831|
 
 **NOTE**: The hyper-parameters used here have not been fine-tuned.
+
+## glue_zh/cmrc2018
+
+```
+python -u aispace/trainer.py \
+    --experiment_name test \
+    --model_name bert_for_qa \
+    --schedule train_and_eval \
+    --enable_xla False \
+    --config_name cmrc2018 \
+    --config_dir ./configs/glue_zh \
+    --gpus 0 1 2 3 \
+    > err.log 2>&1 &
+```
+
+|Model|F1|EM|
+|---|---|---|
+|bert-base-chinese-huggingface|71.718|44.419|
+|albert_base_zh|69.463|41.643|
+|chinese_wwm|72.081|44.419|
+|chinese_roberta_wwm_ext|71.523|44.362|
