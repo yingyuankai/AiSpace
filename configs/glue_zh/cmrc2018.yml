@@ -2,10 +2,10 @@ includes:
 #  - "../base.yml"
 #  - "../pretrain/bert_huggingface.yml"
 #  - "../pretrain/albert_chinese.yml"
-  - "../pretrain/bert_wwm.yml"
+#  - "../pretrain/bert_wwm.yml"
 #  - "../pretrain/nezha.yml"
 #  - "../pretrain/electra_chinese.yml"
-#  - "../pretrain/ernie.yml"
+  - "../pretrain/ernie.yml"
 #  - "../pretrain/xlnet_chinese.yml"
 
 model_name: bert_for_qa
@@ -26,7 +26,7 @@ training:
 #      k: 5
   learning_rate: 1e-5
   max_epochs: 30
-  batch_size: 16
+  batch_size: 20
 #  steps_per_epoch: 5
   do_eval: false       # using callback doing evaluation instead of default eval because of different outputs of training stages.
 #  validation_steps: 5
@@ -211,7 +211,8 @@ pretrained:
 #    name: bert-base-chinese-huggingface
 #    name: albert_xlarge_zh_183k
 #    name: chinese_wwm
-    name: chinese_roberta_wwm_ext
+#    name: chinese_roberta_wwm_ext
+    name: ERNIE_stable-1.0.1
     init_from_pretrained: true
 #    config:
 #      use_task_id: false
