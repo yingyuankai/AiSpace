@@ -1,7 +1,8 @@
 includes:
 #  - "../base.yml"
-  - "../pretrain/bert_huggingface.yml"
+#  - "../pretrain/bert_huggingface.yml"
 #  - "../pretrain/nezha.yml"
+  - "../pretrain/albert_chinese.yml"
 #  - "../pretrain/electra_chinese.yml"
 #  - "../pretrain/ernie.yml"
 #  - "../pretrain/xlnet_chinese.yml"
@@ -27,9 +28,12 @@ training:
 #    name: "k-fold"
 #    config:
 #      k: 5
-  learning_rate: 3e-4
+  learning_rate: 3e-5
   max_epochs: 30
   batch_size: 32
+
+#  optimizer:
+#    name: adam
 
   callbacks:
     # callback name
@@ -37,6 +41,10 @@ training:
       switch: true
       config:
         patience: 2
+    lr_finder:
+      switch: false
+      config:
+        end_lr: 1e-3
 
   optimizer_wrappers:
     swa:
@@ -44,10 +52,11 @@ training:
       config:
         start_epoch: 5
     lr_multiplier:
-      switch: True
+      switch: false
       config:
         multipliers:
           bert_for_seq_classification/bert: 0.1
+
 
 dataset:
   name: glue_zh/tnews
@@ -114,7 +123,8 @@ pretrained:
 #    name: chinese_xlnet_mid
 #    name: chinese_electra_base
 #    name: NEZHA-Base
-    name: bert-base-chinese-huggingface
+#    name: bert-base-chinese-huggingface
+    name: albert_large_zh_google
     init_from_pretrained: true
 #    config:
 #      use_task_id: false

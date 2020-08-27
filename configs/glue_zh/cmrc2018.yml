@@ -1,11 +1,11 @@
 includes:
 #  - "../base.yml"
 #  - "../pretrain/bert_huggingface.yml"
-#  - "../pretrain/albert_chinese.yml"
+  - "../pretrain/albert_chinese.yml"
 #  - "../pretrain/bert_wwm.yml"
 #  - "../pretrain/nezha.yml"
 #  - "../pretrain/electra_chinese.yml"
-  - "../pretrain/ernie.yml"
+#  - "../pretrain/ernie.yml"
 #  - "../pretrain/xlnet_chinese.yml"
 
 model_name: bert_for_qa
@@ -211,8 +211,9 @@ pretrained:
 #    name: bert-base-chinese-huggingface
 #    name: albert_xlarge_zh_183k
 #    name: chinese_wwm
+    name: albert_base_zh_google
 #    name: chinese_roberta_wwm_ext
-    name: ERNIE_stable-1.0.1
+#    name: ERNIE_stable-1.0.1
     init_from_pretrained: true
 #    config:
 #      use_task_id: false

@@ -40,6 +40,8 @@ training:
 
     shuffle_size: 1024
 
+    do_eval: true
+
     optimizer:
       name: adam_weight_decay_with_warm_up
 

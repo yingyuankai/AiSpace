@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export CUDA_VISIBLE_DEVICES=1,4
+export CUDA_VISIBLE_DEVICES=0,6
 nohup python -u aispace/trainer.py \
     --experiment_name test \
     --model_name bert_for_classification \
@@ -8,7 +8,7 @@ nohup python -u aispace/trainer.py \
     --config_name tnews \
     --config_dir ./configs/glue_zh \
     --gpus 0 1 \
-    > err.log 2>&1 &
+    > tnew_err.log 2>&1 &
 
 
 #nohup python -u aispace/trainer.py \

@@ -29,6 +29,7 @@ Specify different pretrained model, please change ***includes*** and ***pretrain
 |albert_tiny_zh_google|60.860|59.500|57.556|57.702|
 |albert_xlarge_zh_177k|63.380|63.603|60.168|60.596|
 |albert_xlarge_zh_183k|63.210|**67.161**|59.220|59.599|
+|albert_base_zh_google|59.340|59.787|55.659|56.788|
 |chinese_wwm|64.000|62.747|**64.509**|63.042|
 |chinese_wwm_ext|65.020|65.048|62.017|62.688|
 |chinese_roberta_wwm_ext|64.860|64.819|63.275|**63.591**|
@@ -64,5 +65,6 @@ python -u aispace/trainer.py \
 |---|---|---|
 |bert-base-chinese-huggingface|71.718|44.419|
 |albert_base_zh|69.463|41.643|
+|albert_base_zh_google|68.538|39.320|
 |chinese_wwm|72.081|44.419|
 |chinese_roberta_wwm_ext|71.523|44.362|
