@@ -368,4 +368,3 @@ pretrained:
                         to_replaces:
                             - pretrained.adapter
                         value: tf_huggingface_albert_chinese_google_adapter
-        #TODO Chinese models are released by albert official, https://github.com/google-research/albert
