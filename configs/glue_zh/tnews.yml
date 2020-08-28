@@ -28,7 +28,7 @@ training:
 #    name: "k-fold"
 #    config:
 #      k: 5
-  learning_rate: 3e-5
+  learning_rate: 5e-6
   max_epochs: 30
   batch_size: 32
 
@@ -124,7 +124,7 @@ pretrained:
 #    name: chinese_electra_base
 #    name: NEZHA-Base
 #    name: bert-base-chinese-huggingface
-    name: albert_large_zh_google
+    name: albert_xlarge_zh_google
     init_from_pretrained: true
 #    config:
 #      use_task_id: false

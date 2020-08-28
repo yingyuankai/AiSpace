@@ -30,6 +30,7 @@ Specify different pretrained model, please change ***includes*** and ***pretrain
 |albert_xlarge_zh_177k|63.380|63.603|60.168|60.596|
 |albert_xlarge_zh_183k|63.210|**67.161**|59.220|59.599|
 |albert_base_zh_google|59.340|59.787|55.659|56.788|
+|albert_large_zh_google|58.210|59.465|54.548|55.308|
 |chinese_wwm|64.000|62.747|**64.509**|63.042|
 |chinese_wwm_ext|65.020|65.048|62.017|62.688|
 |chinese_roberta_wwm_ext|64.860|64.819|63.275|**63.591**|
