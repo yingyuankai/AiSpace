@@ -1,8 +1,8 @@
 includes:
 #  - "../base.yml"
-#  - "../pretrain/bert_huggingface.yml"
+  - "../pretrain/bert_huggingface.yml"
 #  - "../pretrain/nezha.yml"
-  - "../pretrain/albert_chinese.yml"
+#  - "../pretrain/albert_chinese.yml"
 #  - "../pretrain/electra_chinese.yml"
 #  - "../pretrain/ernie.yml"
 #  - "../pretrain/xlnet_chinese.yml"
@@ -44,7 +44,7 @@ training:
     lr_finder:
       switch: false
       config:
-        end_lr: 1e-3
+        end_lr: 1e-4
 
   optimizer_wrappers:
     swa:
@@ -123,8 +123,8 @@ pretrained:
 #    name: chinese_xlnet_mid
 #    name: chinese_electra_base
 #    name: NEZHA-Base
-#    name: bert-base-chinese-huggingface
-    name: albert_xlarge_zh_google
+    name: bert-base-chinese-huggingface
+#    name: albert_xlarge_zh_google
     init_from_pretrained: true
 #    config:
 #      use_task_id: false

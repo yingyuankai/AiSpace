@@ -68,7 +68,9 @@ class BertTokenizer(BaseTokenizer):
         r"""Maps a sequence of tokens (string) to a single string."""
         link_word = "" if self._hparams.tokenize_chinese_chars else " "
 
-        out_string = f'{link_word}'.join(tokens).replace(f'{link_word}##', '').strip()
+        # out_string = f'{link_word}'.join(tokens).replace(f'{link_word}##', '').strip()
+        tokens = [t.replace(f'{link_word}##', '') for t in tokens]
+        out_string = f'{link_word}'.join(tokens).strip()
         # out_string = f'{link_word}'.join(tokens).replace(f'{link_word}##', ''.join([' '] * len(f'{link_word}##'))).strip()
         # out_string = ""
         # for i in range(len(tokens)):
