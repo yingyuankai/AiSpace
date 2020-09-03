@@ -24,7 +24,11 @@ class SparseRecall(tfa.metrics.FBetaScore):
             dtype=None,
             **kwargs
     ):
-        super().__init__(num_classes, average, 1.0, threshold, name=name, dtype=dtype)
+        if tf.version.VERSION > '2.0.0':
+            super().__init__(num_classes, average, 1.0, threshold, name=name, dtype=dtype)
+        else:
+            super().__init__(num_classes, average, 1.0, name=name, dtype=dtype)
+            self.threshold = threshold
 
     def get_config(self):
         base_config = super().get_config()

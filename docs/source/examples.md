@@ -69,3 +69,8 @@ python -u aispace/trainer.py \
 |albert_base_zh_google|68.538|39.320|
 |chinese_wwm|72.081|44.419|
 |chinese_roberta_wwm_ext|71.523|44.362|
+
+## dureader/robust
+|Model|F1|EM|
+|---|---|---|
+|bert-base-chinese-huggingface|65.320|50.549|

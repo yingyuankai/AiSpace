@@ -37,15 +37,16 @@ class TestGlue(unittest.TestCase):
 
         total, zero = 0, 0
         for itm in test_dataset:
-            tt = itm[0]['start_position'].numpy().tolist()
+            tt = itm[0]['input_ids'].numpy().tolist()
             # print(itm[0]['p_mask'].numpy().tolist())
             # print(itm[0]['start_position'].numpy().tolist())
             # print(itm[0]['end_position'].numpy().tolist())
-            # break
-            total += len(tt)
-            zero += len([t for t in tt if t == 0])
-        print()
-        print(f"{zero}, {total}, {zero / float(total)}")
+            print(tt)
+            break
+            # total += len(tt)
+            # zero += len([t for t in tt if t == 0])
+        # print()
+        # print(f"{zero}, {total}, {zero / float(total)}")
 
 # python -u aispace/trainer.py \
 #    --experiment_name test \

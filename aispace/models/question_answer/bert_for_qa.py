@@ -42,7 +42,7 @@ class BertForQA(BaseModel):
     def call(self, inputs, **kwargs):
         is_training = kwargs.get("training", False)
         new_inputs = {
-            "input_ids": inputs['input_ids'],
+            "input_ids": tf.cast(inputs['input_ids'], tf.int32),
             'token_type_ids': inputs['token_type_ids'],
             "attention_mask": inputs['attention_mask']
         }

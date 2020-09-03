@@ -17,9 +17,9 @@ training:
 #    name: "k-fold"
 #    config:
 #      k: 5
-  learning_rate: 1e-5
+  learning_rate: 5e-5
   max_epochs: 30
-  batch_size: 20
+  batch_size: 15
 #  steps_per_epoch: 5
   do_eval: false       # using callback doing evaluation instead of default eval because of different outputs of training stages.
 #  validation_steps: 5
@@ -42,7 +42,7 @@ training:
         validation_steps: null
         report_dir: null
         max_answer_length: 64
-        n_best_size: 5
+        n_best_size: 10
 #    lr_finder:
 #      switch: true
 #
