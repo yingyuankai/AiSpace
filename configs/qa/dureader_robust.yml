@@ -1,5 +1,6 @@
 includes:
-  - "../pretrain/bert_huggingface.yml"
+#  - "../pretrain/bert_huggingface.yml"
+  - "../pretrain/bert_wwm.yml"
 
 model_name: bert_for_qa
 
@@ -17,7 +18,7 @@ training:
 #    name: "k-fold"
 #    config:
 #      k: 5
-  learning_rate: 5e-5
+  learning_rate: 1e-5
   max_epochs: 30
   batch_size: 15
 #  steps_per_epoch: 5
@@ -178,7 +179,8 @@ dataset:
 
 
 pretrained:
-    name: bert-base-chinese-huggingface
+#    name: bert-base-chinese-huggingface
+    name: chinese_roberta_wwm_ext
     init_from_pretrained: true
 
 

@@ -74,3 +74,5 @@ python -u aispace/trainer.py \
 |Model|F1|EM|
 |---|---|---|
 |bert-base-chinese-huggingface|65.320|50.549|
+|chinese_wwm|67.007|53.434|
+|chinese_roberta_wwm_ext|65.521|50.274|
