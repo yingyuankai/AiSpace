@@ -1,6 +1,6 @@
 includes:
-  - "../pretrain/bert_huggingface.yml"
-#  - "../pretrain/xlnet_chinese.yml"
+#  - "../pretrain/bert_huggingface.yml"
+  - "../pretrain/ernie.yml"
 
 model_name: bert_for_qa
 
@@ -20,7 +20,7 @@ training:
 #      k: 5
   learning_rate: 1e-5
   max_epochs: 30
-  batch_size: 15
+  batch_size: 10
 #  steps_per_epoch: 5
   do_eval: false       # using callback doing evaluation instead of default eval because of different outputs of training stages.
 #  validation_steps: 5
@@ -179,8 +179,8 @@ dataset:
 
 
 pretrained:
-    name: bert-base-chinese-huggingface
-#    name: chinese_xlnet_base
+#    name: bert-base-chinese-huggingface
+    name: ERNIE_stable-1.0.1
     init_from_pretrained: true
 
 

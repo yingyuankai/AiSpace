@@ -11,7 +11,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from tensorflow_datasets.core.download import DownloadConfig
-
+from tqdm import tqdm
 from aispace.datasets import *
 from aispace.utils.hparams import Hparams
 from aispace.utils.builder_utils import load_dataset
@@ -33,20 +33,21 @@ class TestGlue(unittest.TestCase):
         #                   )
 
         # train_dataset, dev_dataset, dataset_info = next(load_dataset(hparams, ret_test=False))
-        test_dataset = next(load_dataset(hparams, ret_train=False, ret_dev=True, ret_test=False,ret_info=False))[0]
+        test_dataset = next(load_dataset(hparams, ret_train=False, ret_dev=True, ret_test=False, ret_info=True))[0]
 
         total, zero = 0, 0
-        for itm in test_dataset:
-            tt = itm[0]['input_ids'].numpy().tolist()
+        for itm in tqdm(test_dataset):
+            # tt = itm[0]['input_ids'].numpy().tolist()
             # print(itm[0]['p_mask'].numpy().tolist())
             # print(itm[0]['start_position'].numpy().tolist())
             # print(itm[0]['end_position'].numpy().tolist())
-            print(tt)
-            break
-            # total += len(tt)
+            # print(tt)
+            # break
+            total += 1
             # zero += len([t for t in tt if t == 0])
         # print()
         # print(f"{zero}, {total}, {zero / float(total)}")
+        print(total)
 
 # python -u aispace/trainer.py \
 #    --experiment_name test \
