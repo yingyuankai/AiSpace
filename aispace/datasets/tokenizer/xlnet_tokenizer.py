@@ -182,7 +182,9 @@ class XlnetTokenizer(BaseTokenizer):
             output['b_mask'] = b_mask
 
         if return_offset:
-            output['offset'] = offset
+            output['a_offset'] = offset
+            if text_b:
+                output['b_offset'] = offset + len(token_ids_a) + 1
 
         if return_cls_index:
             output['cls_index'] = len(input_ids) - 1

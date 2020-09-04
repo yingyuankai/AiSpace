@@ -1,6 +1,6 @@
 includes:
-#  - "../pretrain/bert_huggingface.yml"
-  - "../pretrain/bert_wwm.yml"
+  - "../pretrain/bert_huggingface.yml"
+#  - "../pretrain/xlnet_chinese.yml"
 
 model_name: bert_for_qa
 
@@ -179,8 +179,8 @@ dataset:
 
 
 pretrained:
-#    name: bert-base-chinese-huggingface
-    name: chinese_roberta_wwm_ext
+    name: bert-base-chinese-huggingface
+#    name: chinese_xlnet_base
     init_from_pretrained: true
 
 

@@ -27,8 +27,8 @@ class BertForQA(BaseModel):
         self.start_n_top = model_hparams.start_n_top
         self.seq_len = hparams.dataset.tokenizer.max_len
 
-        # assert pretrained_hparams.norm_name in ['bert', 'albert', 'albert_brightmart', "ernie"], \
-        #     ValueError(f"{pretrained_hparams.norm_name} not be supported.")
+        assert pretrained_hparams.norm_name in ["xlnet_chinese"], \
+            ValueError(f"{pretrained_hparams.norm_name} not be supported.")
         self.encode_pretrained = BaseLayer.by_name(pretrained_hparams.norm_name)(pretrained_hparams)
 
         self.qa_layer = BaseLayer.by_name(model_hparams.qa_layer_name)(
