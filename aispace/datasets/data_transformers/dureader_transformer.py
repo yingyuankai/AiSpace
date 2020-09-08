@@ -57,7 +57,7 @@ class DuReaderRobustTransformer(BaseTransformer):
         for e_i, example in enumerate(self._read_next(data_path)):
             # if e_i >= 100:
             #     break
-            # if example['qas_id'] != "bad6c426e057dbf7f3de245a4c3516d8":
+            # if example['qas_id'] != "94a9969c797e642ff8fb16459114b666":
             #     continue
             question_text = example['question_text']
             if self._hparams.dataset.tokenizer.do_lower_case:
@@ -399,6 +399,8 @@ class DuReaderRobustTransformer(BaseTransformer):
             max_dist *= 2
 
         mismatch = lcs_matrix[N - 1, M - 1] < 0.8 * N
+        if lcs_matrix[N - 1, M - 1] == min(M, N):
+            mismatch = False
         return match_mapping, mismatch
 
     def _convert_tokenized_index(self,

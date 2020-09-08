@@ -256,7 +256,7 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
         new_logs = self.eval_process(self.validation_dataset, self.validation_steps)
         logs = logs or {}
         logs.update(new_logs)
-        logger.info(f"Epoch: {epoch + 1}, val_f1_score: {logs['val_f1_score']:.4f}, val_em_score: {logs['val_em_score']:.4f}, "
+        logger.info(f"\nEpoch: {epoch + 1}, val_f1_score: {logs['val_f1_score']:.4f}, val_em_score: {logs['val_em_score']:.4f}, "
                     f"val_f1_em_avg_score: {logs['val_f1_em_avg_score']:.4f}")
 
     def on_train_end(self, logs=None):

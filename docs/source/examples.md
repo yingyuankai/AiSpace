@@ -73,6 +73,7 @@ python -u aispace/trainer.py \
 ## dureader/robust
 |Model|F1|EM|
 |---|---|---|
-|bert-base-chinese-huggingface|65.320|50.549|
+|bert-base-chinese-huggingface|66.624|51.856|
 |chinese_wwm|67.007|53.434|
 |chinese_roberta_wwm_ext|65.521|50.274|
+|ERNIE_stable-1.0.1|75.268|61.675|

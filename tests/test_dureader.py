@@ -33,7 +33,7 @@ class TestGlue(unittest.TestCase):
         #                   )
 
         # train_dataset, dev_dataset, dataset_info = next(load_dataset(hparams, ret_test=False))
-        test_dataset = next(load_dataset(hparams, ret_train=False, ret_dev=True, ret_test=False, ret_info=True))[0]
+        test_dataset = next(load_dataset(hparams, ret_train=True, ret_dev=True, ret_test=True, ret_info=True))[0]
 
         total, zero = 0, 0
         for itm in tqdm(test_dataset):

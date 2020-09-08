@@ -163,7 +163,8 @@ class Dureader(BaseDataset):
 
         metadata = None
         if "dataset" in self.hparams and "tokenizer" in self.hparams.dataset and "name" in self.hparams.dataset.tokenizer:
-            metadata = tfds.core.MetadataDict({"tokenizer": self.hparams.dataset.tokenizer.name})
+            metadata = tfds.core.MetadataDict({"tokenizer": self.hparams.dataset.tokenizer.name,
+                                               "vocab_size": self.hparams.pretrained.config.vocab_size})
 
         return tfds.core.DatasetInfo(
             builder=self,
