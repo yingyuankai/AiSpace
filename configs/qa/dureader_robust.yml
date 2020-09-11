@@ -1,6 +1,6 @@
 includes:
 #  - "../pretrain/bert_huggingface.yml"
-  - "../pretrain/bert_wwm.yml"
+  - "../pretrain/ernie.yml"
 
 model_name: bert_for_qa
 
@@ -18,9 +18,9 @@ training:
 #    name: "k-fold"
 #    config:
 #      k: 5
-  learning_rate: 1e-6
+  learning_rate: 1e-5
   max_epochs: 30
-  batch_size: 32
+  batch_size: 12
 #  steps_per_epoch: 5
   do_eval: false       # using callback doing evaluation instead of default eval because of different outputs of training stages.
 #  validation_steps: 5
@@ -179,8 +179,8 @@ dataset:
 
 
 pretrained:
-    name: chinese_wwm
-#    name: ERNIE_stable-1.0.1
+#    name: chinese_roberta_wwm_ext
+    name: ERNIE_1.0_max-len-512
     init_from_pretrained: true
 
 

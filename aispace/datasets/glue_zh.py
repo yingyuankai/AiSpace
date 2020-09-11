@@ -63,7 +63,7 @@ class GlueConfig(tfds.core.BuilderConfig):
         # 0.0.1: Initial version.
         super(GlueConfig, self).__init__(
             version=tfds.core.Version(
-                "1.0.0",
+                "4.0.0",
                 # experiments={tfds.core.Experiment.S3: False}
             ),
             # supported_versions=[
@@ -325,7 +325,8 @@ class GlueZh(BaseDataset):
 
         metadata = None
         if "dataset" in self.hparams and "tokenizer" in self.hparams.dataset and "name" in self.hparams.dataset.tokenizer:
-            metadata = tfds.core.MetadataDict({"tokenizer": self.hparams.dataset.tokenizer.name})
+            metadata = tfds.core.MetadataDict({"tokenizer": self.hparams.dataset.tokenizer.name,
+                                               "vocab_size": self.hparams.pretrained.config.vocab_size})
 
         return tfds.core.DatasetInfo(
             builder=self,

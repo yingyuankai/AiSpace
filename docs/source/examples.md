@@ -69,6 +69,8 @@ python -u aispace/trainer.py \
 |albert_base_zh_google|68.538|39.320|
 |chinese_wwm|72.081|44.419|
 |chinese_roberta_wwm_ext|71.523|44.362|
+|ERNIE_stable-1.0.1|83.835|64.898|
+|ERNIE_1.0_max-len-512|83.363|65.293|
 
 ## dureader/robust
 |Model|F1|EM|
@@ -77,3 +79,4 @@ python -u aispace/trainer.py \
 |chinese_wwm|67.007|53.434|
 |chinese_roberta_wwm_ext|65.521|50.274|
 |ERNIE_stable-1.0.1|75.268|61.675|
+|ERNIE_1.0_max-len-512|83.609|72.328|
