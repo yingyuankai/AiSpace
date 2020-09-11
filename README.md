@@ -270,6 +270,50 @@ Specify different pretrained model, please change ***includes*** and ***pretrain
 |nezha-base|58.940|57.909|55.650|55.630|
 |nezha-base-wwm|58.800|60.060|54.859|55.831|
 
+## glue_zh/cmrc2018
+
+```
+python -u aispace/trainer.py \
+    --experiment_name test \
+    --model_name bert_for_qa \
+    --schedule train_and_eval \
+    --enable_xla False \
+    --config_name cmrc2018 \
+    --config_dir ./configs/glue_zh \
+    --gpus 0 1 2 3 \
+    > err.log 2>&1 &
+```
+
+|Model|F1|EM|
+|---|---|---|
+|bert-base-chinese-huggingface|71.718|44.419|
+|albert_base_zh|69.463|41.643|
+|albert_base_zh_google|68.538|39.320|
+|chinese_wwm|72.081|44.419|
+|chinese_roberta_wwm_ext|71.523|44.362|
+|ERNIE_stable-1.0.1|83.835|64.898|
+|ERNIE_1.0_max-len-512|83.363|65.293|
+
+## dureader/robust
+
+```
+python -u aispace/trainer.py \
+    --experiment_name test \
+    --model_name bert_for_qa \
+    --schedule train_and_eval \
+    --enable_xla False \
+    --config_name dureader_robust \
+    --config_dir ./configs/qa \
+    --gpus 0 1 \
+    > err.log 2>&1 &
+```
+|Model|F1|EM|
+|---|---|---|
+|bert-base-chinese-huggingface|66.624|51.856|
+|chinese_wwm|67.007|53.434|
+|chinese_roberta_wwm_ext|65.521|50.274|
+|ERNIE_stable-1.0.1|75.268|61.675|
+|ERNIE_1.0_max-len-512|83.609|72.328|
 
 **NOTE**: The hyper-parameters used here have not been fine-tuned.
 
