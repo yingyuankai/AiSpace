@@ -5,3 +5,4 @@
 # @File    : __init__.py
 
 from .multi_head_attention import MultiHeadAttention
+from .attention_family import *

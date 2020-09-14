@@ -49,6 +49,11 @@ class TestGlue(unittest.TestCase):
         # print(f"{zero}, {total}, {zero / float(total)}")
         print(total)
 
+    def test_tttt(self):
+        import math
+
+        print(math.perm(3, 2))
+
 # python -u aispace/trainer.py \
 #    --experiment_name test \
 #    --model_name bert_for_classification \

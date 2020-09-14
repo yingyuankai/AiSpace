@@ -1,5 +1,5 @@
 includes:
-  - "../pretrain/ernie.yml"
+  - "../pretrain/electra_chinese.yml"
 
 model_name: bert_for_qa
 
@@ -19,7 +19,7 @@ training:
 #      k: 5
   learning_rate: 1e-5
   max_epochs: 30
-  batch_size: 12
+  batch_size: 32
 #  steps_per_epoch: 5
   do_eval: false       # using callback doing evaluation instead of default eval because of different outputs of training stages.
 #  validation_steps: 5
@@ -197,7 +197,7 @@ dataset:
 #        - name: binary_accuracy
 
 pretrained:
-    name: ERNIE_stable-1.0.1
+    name: chinese_electra_base
     init_from_pretrained: true
 
 
