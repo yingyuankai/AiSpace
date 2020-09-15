@@ -6,10 +6,13 @@
     <br>
 <p>
 
-<p align="center">
-    <a href="https://travis-ci.com/yingyuankai/AiSpace.svg?branch=master">
+<!-- close temporary -->
+<!-- <a href="https://travis-ci.com/yingyuankai/AiSpace.svg?branch=master">
         <img alt="Build" src="https://travis-ci.com/yingyuankai/AiSpace.svg?branch=master">
     </a>
+-->
+
+<p align="center">
     <a href="https://github.com/yingyuankai/AiSpace/blob/master/LICENSE">
         <img alt="GitHub" src="https://img.shields.io/github/license/yingyuankai/AiSpace.svg?color=blue">
     </a>
