@@ -24,6 +24,9 @@ _GLUE_CITATION = "TODO"
 
 logger = logging.getLogger(__name__)
 
+ROBUST_NAME = 'robust'
+YESNO_NAME = 'yesno'
+
 
 class DuReaderConfig(tfds.core.BuilderConfig):
     """BuilderConfig for DuReader."""
@@ -93,7 +96,7 @@ class Dureader(BaseDataset):
     BUILDER_CONFIGS = [
 
         DuReaderConfig(
-            name="robust",
+            name=ROBUST_NAME,
             description="""
                 阅读理解模型的鲁棒性是衡量该技术能否在实际应用中大规模落地的重要指标之一。
                 随着当前技术的进步，模型虽然能够在一些阅读理解测试集上取得较好的性能，但在实际应用中，这些模型所表现出的鲁棒性仍然难以令人满意。
@@ -118,7 +121,7 @@ class Dureader(BaseDataset):
             url="https://aistudio.baidu.com/aistudio/competition/detail/49"
         ),
         DuReaderConfig(
-            name="yesno",
+            name=YESNO_NAME,
             description="""
             机器阅读理解评测中常用的F1、EM等指标虽然能够很好的衡量抽取式模型所预测的答案和真实答案的匹配程度，但在处理观点类问题时，该类指标难以衡量模型是否真正理解答案所代表的含义，例如答案中包含的观点极性。DuReaderyesno是一个以观点极性判断为目标任务的数据集，通过引入该数据集，可以弥补抽取类数据集的不足，从而更好地评价模型的自然语言理解能力。
 
@@ -129,11 +132,11 @@ class Dureader(BaseDataset):
             No：否定观点，否定观点通常指的是答案较为明确的给出了与问题相反的态度。
             Depends：无法确定/分情况，主要指的是事情本身存在多种情况，不同情况下对应的观点不一致；或者答案本身对问题表示不确定，要具体具体情况才能判断。""",
             text_features={
-                "documents": "documents",
                 "id": "id",
-                "context": "context",
+                "documents": "documents",
                 "question": "question",
-                "answer": "answer"
+                "answer": "answer",
+                "yesno_answer": "yesno_answer"
             },
             label_column=None,
             data_url="https://dataset-bj.cdn.bcebos.com/qianyan/dureader_yesno-data.tar.gz",
@@ -181,21 +184,30 @@ class Dureader(BaseDataset):
             for text_feature in six.iterkeys(self.builder_config.text_features)
         }
 
-        features["answers"] = tfds.features.Sequence(
-            {
-                "text": tfds.features.Text(),
-                "answer_start": tf.int32
-            }
-        )
+        if self.builder_config.name == ROBUST_NAME:
+            features["answers"] = tfds.features.Sequence(
+                {
+                    "text": tfds.features.Text(),
+                    "answer_start": tf.int32
+                }
+            )
+        else:
+            features['documents'] = tfds.features.Sequence(
+                {
+                    "title": tfds.features.Text(),
+                    "paragraphs": tfds.features.Sequence(tfds.features.Text())
+                }
+            )
         return features
 
     def _split_generators(self, dl_manager):
         dl_dir = dl_manager.download_and_extract(self.builder_config.data_url)
         data_dir = os.path.join(dl_dir, self.builder_config.data_dir)
+
         data_train_json, data_validation_json, data_test_json = \
-            os.path.join(data_dir, "dureader_robust-data/train.json"), \
-            os.path.join(data_dir, "dureader_robust-data/dev.json"), \
-            os.path.join(data_dir, "dureader_robust-data/test.json")
+            os.path.join(data_dir, f"dureader_{self.builder_config.name}-data/train.json"), \
+            os.path.join(data_dir, f"dureader_{self.builder_config.name}-data/dev.json"), \
+            os.path.join(data_dir, f"dureader_{self.builder_config.name}-data/test.json")
         return [
             tfds.core.SplitGenerator(
                 name=tfds.Split.TRAIN,
@@ -230,27 +242,33 @@ class Dureader(BaseDataset):
 
     def _generate_examples_from_raw(self, filepath, **kwargs):
         with open(filepath, 'r', encoding="utf8") as inf:
-            cmrc = json.load(inf)
-            for article in cmrc["data"]:
-                title = article.get("title", "").strip()
-                for paragraph in article["paragraphs"]:
-                    context = paragraph["context"].strip()
-                    for qa in paragraph["qas"]:
-                        question = qa["question"].strip()
-                        id_ = qa["id"]
+            if self.builder_config.name == ROBUST_NAME:
+                one_doc = json.load(inf)
+                for article in one_doc["data"]:
+                    title = article.get("title", "").strip()
+                    for paragraph in article["paragraphs"]:
+                        context = paragraph["context"].strip()
+                        for qa in paragraph["qas"]:
+                            question = qa["question"].strip()
+                            id_ = qa["id"]
 
-                        answer_starts = [answer["answer_start"] for answer in qa["answers"]]
-                        answers = [answer["text"].strip() for answer in qa["answers"]]
+                            answer_starts = [answer["answer_start"] for answer in qa["answers"]]
+                            answers = [answer["text"].strip() for answer in qa["answers"]]
 
-                        # Features currently used are "context", "question", and "answers".
-                        # Others are extracted here for the ease of future expansions.
-                        yield {
-                            "title": title,
-                            "context": context,
-                            "question": question,
-                            "id": id_,
-                            "answers": {
-                                "answer_start": answer_starts,
-                                "text": answers,
-                            },
-                        }
+                            # Features currently used are "context", "question", and "answers".
+                            # Others are extracted here for the ease of future expansions.
+                            yield {
+                                "title": title,
+                                "context": context,
+                                "question": question,
+                                "id": id_,
+                                "answers": {
+                                    "answer_start": answer_starts,
+                                    "text": answers,
+                                },
+                            }
+            else:
+                for line in inf:
+                    one_doc = json.loads(line)
+                    one_doc['id'] = str(one_doc['id'])
+                    yield one_doc

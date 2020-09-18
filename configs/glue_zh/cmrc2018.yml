@@ -1,5 +1,5 @@
 includes:
-  - "../pretrain/electra_chinese.yml"
+  - "../pretrain/bert_huggingface.yml"
 
 model_name: bert_for_qa
 
@@ -19,7 +19,7 @@ training:
 #      k: 5
   learning_rate: 1e-5
   max_epochs: 30
-  batch_size: 32
+  batch_size: 20
 #  steps_per_epoch: 5
   do_eval: false       # using callback doing evaluation instead of default eval because of different outputs of training stages.
 #  validation_steps: 5
@@ -197,7 +197,7 @@ dataset:
 #        - name: binary_accuracy
 
 pretrained:
-    name: chinese_electra_base
+    name: bert-base-chinese-huggingface
     init_from_pretrained: true
 
 

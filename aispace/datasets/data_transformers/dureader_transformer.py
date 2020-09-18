@@ -13,7 +13,7 @@ import numpy as np
 from .base_transformer import BaseTransformer
 from aispace.datasets import BaseTokenizer
 from aispace.utils.io_utils import json_dumps
-from aispace.utils.str_utils import preprocess_text
+from aispace.utils.str_utils import preprocess_text, text_to_ngrams
 
 __all__ = [
     "DuReaderRobustTransformer",
@@ -335,6 +335,266 @@ class DuReaderRobustTransformer(BaseTransformer):
                             "all_answers": all_answers
                         }
                         yield example
+
+    def _generate_match_mapping(self,
+                                para_text,
+                                tokenized_para_text,
+                                N,
+                                M,
+                                max_N,
+                                max_M):
+        """Generate match mapping for raw and tokenized paragraph"""
+
+        def _lcs_match(para_text,
+                       tokenized_para_text,
+                       N,
+                       M,
+                       max_N,
+                       max_M,
+                       max_dist):
+            """longest common sub-sequence
+
+            f[i, j] = max(f[i - 1, j], f[i, j - 1], f[i - 1, j - 1] + match(i, j))
+
+            unlike standard LCS, this is specifically optimized for the setting
+            because the mismatch between sentence pieces and original text will be small
+            """
+            f = np.zeros((max_N, max_M), dtype=np.float32)
+            g = {}
+
+            for i in range(N):
+                # if i == 324:
+                #     print()
+                for j in range(i - max_dist, i + max_dist):
+                    # if j == 353:
+                    #     print()
+                    if j >= M or j < 0:
+                        continue
+
+                    if i > 0:
+                        g[(i, j)] = 0
+                        f[i, j] = f[i - 1, j]
+
+                    if j > 0 and f[i, j - 1] > f[i, j]:
+                        g[(i, j)] = 1
+                        f[i, j] = f[i, j - 1]
+
+                    f_prev = f[i - 1, j - 1] if i > 0 and j > 0 else 0
+
+                    raw_char = preprocess_text(para_text[i], self.tokenizer._hparams.do_lower_case, remove_space=False, keep_accents=True)
+                    tokenized_char = tokenized_para_text[j]
+                    if raw_char == tokenized_char and f_prev + 1 > f[i, j]:
+                        g[(i, j)] = 2
+                        f[i, j] = f_prev + 1
+
+            return f, g
+
+        max_dist = abs(N - M) + 10
+        for _ in range(2):
+            lcs_matrix, match_mapping = _lcs_match(para_text, tokenized_para_text, N, M, max_N, max_M, max_dist)
+
+            if lcs_matrix[N - 1, M - 1] > 0.8 * N:
+                break
+
+            max_dist *= 2
+
+        mismatch = lcs_matrix[N - 1, M - 1] < 0.8 * N
+        if lcs_matrix[N - 1, M - 1] == min(M, N):
+            mismatch = False
+        return match_mapping, mismatch
+
+    def _convert_tokenized_index(self,
+                                 index,
+                                 pos,
+                                 M=None,
+                                 is_start=True):
+        """Convert index for tokenized text"""
+        if index[pos] is not None:
+            return index[pos]
+
+        N = len(index)
+        rear = pos
+        while rear < N - 1 and index[rear] is None:
+            rear += 1
+
+        front = pos
+        while front > 0 and index[front] is None:
+            front -= 1
+
+        assert index[front] is not None or index[rear] is not None
+
+        if index[front] is None:
+            if index[rear] >= 1:
+                if is_start:
+                    return 0
+                else:
+                    return index[rear] - 1
+
+            return index[rear]
+
+        if index[rear] is None:
+            if M is not None and index[front] < M - 1:
+                if is_start:
+                    return index[front] + 1
+                else:
+                    return M - 1
+
+            return index[front]
+
+        if is_start:
+            if index[rear] > index[front] + 1:
+                return index[front] + 1
+            else:
+                return index[rear]
+        else:
+            if index[rear] > index[front] + 1:
+                return index[rear] - 1
+            else:
+                return index[front]
+
+    def _find_max_context(self,
+                          doc_spans,
+                          token_idx):
+        """Check if this is the 'max context' doc span for the token.
+        Because of the sliding window approach taken to scoring documents, a single
+        token can appear in multiple documents. E.g.
+          Doc: the man went to the store and bought a gallon of milk
+          Span A: the man went to the
+          Span B: to the store and bought
+          Span C: and bought a gallon of
+          ...
+
+        Now the word 'bought' will have two scores from spans B and C. We only
+        want to consider the score with "maximum context", which we define as
+        the *minimum* of its left and right context (the *sum* of left and
+        right context will always be the same, of course).
+
+        In the example the maximum context for 'bought' would be span C since
+        it has 1 left context and 3 right context, while span B has 4 left context
+        and 0 right context.
+        """
+        best_doc_score = None
+        best_doc_idx = None
+        for (doc_idx, doc_span) in enumerate(doc_spans):
+            doc_start = doc_span["start"]
+            doc_length = doc_span["length"]
+            doc_end = doc_start + doc_length - 1
+            if token_idx < doc_start or token_idx > doc_end:
+                continue
+
+            left_context_length = token_idx - doc_start
+            right_context_length = doc_end - token_idx
+            doc_score = min(left_context_length, right_context_length) + 0.01 * doc_length
+            if best_doc_score is None or doc_score > best_doc_score:
+                best_doc_score = doc_score
+                best_doc_idx = doc_idx
+
+        return best_doc_idx
+
+    def _improve_answer_start(self, para_text, answer, raw_answer_start):
+        answer = answer.lower().strip()
+        real_start = para_text.find(answer)
+        if real_start != -1:
+            return real_start, answer
+        else:
+            return raw_answer_start, answer
+
+
+    def _is_english(self, word: str) -> bool:
+        """
+        Checks whether `word` is a english word.
+
+        Note: this function is not standard and should be considered for BERT
+        tokenization only. See the comments for more details.
+        :param word:
+        :return:
+        """
+        flag = True
+        for c in word:
+            if 'a' <= c <= 'z' or 'A' <= c <= 'Z' or c == '#':
+                continue
+            else:
+                flag = False
+                break
+        return flag
+
+
+@BaseTransformer.register("dureader/yesno")
+class DuReaderYesnoTransformer(BaseTransformer):
+    def __init__(self, hparams, **kwargs):
+        super(DuReaderYesnoTransformer, self).__init__(hparams, **kwargs)
+
+        # tokenizer
+        self.tokenizer = \
+            BaseTokenizer. \
+                by_name(self._hparams.dataset.tokenizer.name) \
+                (self._hparams.dataset.tokenizer)
+
+        # json dir
+        self.json_dir = os.path.join(kwargs.get("data_dir", self._hparams.dataset.data_dir), "json")
+
+        self.max_query_length = self._hparams.dataset.tokenizer.max_query_length
+        self.doc_stride = self._hparams.dataset.tokenizer.doc_stride
+
+    def transform(self, data_path, split="train"):
+        """
+        :param data_path:
+        :param split:
+        :return:
+        """
+        for e_i, example in enumerate(self._read_next(data_path)):
+            item = self.tokenizer.encode(example['question'], example['answer'])
+            item['label'] = example['yesno_answer']
+            yield item
+
+    def _read_next(self, data_path):
+        with open(data_path, "r", encoding="utf8") as inf:
+            for line in inf:
+                one_doc = json.loads(line)
+                answer = one_doc.get('answer', '')
+                id_ = one_doc.get('id', '')
+                question = one_doc.get("question", '')
+                yesno_answer = one_doc.get("yesno_answer", '').lower().strip()
+                if yesno_answer not in ['no', 'yes', 'depends', '']:
+                    logger.warning(f"id: {id_}, yesno_answer is {yesno_answer} not in [no, yes, depends].")
+                    continue
+                if yesno_answer == '':
+                    yesno_answer = "depends"
+                docs = one_doc.get("documents", [])
+                all_paragraphs = []
+                for doc in docs:
+                    title = doc.get('title', '')
+                    paragraphs = doc.get('paragraphs', [])
+                    for p in paragraphs:
+                        all_paragraphs.append({"paragraph": p, "title": title})
+                if len(all_paragraphs) == 0:
+                    continue
+                # relevant_paragraph = self._select_paragraph(all_paragraphs, question, answer)
+
+                example = {
+                    'id': id_,
+                    # "title": relevant_paragraph['title'],
+                    # "context": relevant_paragraph['paragraph'],
+                    "question": question,
+                    "yesno_answer": yesno_answer,
+                    "answer": answer
+                }
+                yield example
+
+    def _select_paragraph(self, docs, question, answer):
+        self._get_sim_using_jaccard(docs, answer, 'a_sim')
+        self._get_sim_using_jaccard(docs, question, 'q_sim')
+        docs.sort(key=lambda d: d['q_sim'], reverse=True)
+        docs.sort(key=lambda d: d['a_sim'], reverse=True)
+        return docs[0]
+
+    def _get_sim_using_jaccard(self, docs, query, sim_name):
+        q_s = set(text_to_ngrams(query))
+        for doc in docs:
+            d_s = set(text_to_ngrams(doc['title'] + "。" + doc['paragraph']))
+            sim = len(q_s & d_s) / len(q_s)
+            doc[sim_name] = sim
+
 
     def _generate_match_mapping(self,
                                 para_text,

@@ -294,8 +294,9 @@ python -u aispace/trainer.py \
 |albert_base_zh_google|68.538|39.320|
 |chinese_wwm|72.081|44.419|
 |chinese_roberta_wwm_ext|71.523|44.362|
-|ERNIE_stable-1.0.1|83.835|64.898|
-|ERNIE_1.0_max-len-512|83.363|65.293|
+|ERNIE_stable-1.0.1|**83.835**|64.898|
+|ERNIE_1.0_max-len-512|83.363|**65.293**|
+|chinese_electra_small|72.172|46.314|
 
 ## dureader/robust
 
@@ -316,7 +317,26 @@ python -u aispace/trainer.py \
 |chinese_wwm|67.007|53.434|
 |chinese_roberta_wwm_ext|65.521|50.274|
 |ERNIE_stable-1.0.1|75.268|61.675|
-|ERNIE_1.0_max-len-512|83.609|72.328|
+|ERNIE_1.0_max-len-512|**83.609**|**72.328**|
+
+## dureader/yesno
+
+```
+python -u aispace/trainer.py \
+    --experiment_name test \
+    --model_name bert_for_classification \
+    --schedule train_and_eval \
+    --enable_xla False \
+    --config_name dureader_yesno \
+    --config_dir ./configs/qa \
+    --gpus 0 1 \
+    > err.log 2>&1 &
+```
+
+|Model|Accuracy|Macro_precision|Macro_recall|Macro_f1|
+|---|---|---|---|---|
+|bert-base-chinese-huggingface|76.565|73.315|69.958|71.230|
+|ERNIE_stable-1.0.1|85.756|82.919|81.627|82.213|
 
 **NOTE**: The hyper-parameters used here have not been fine-tuned.
 
@@ -328,6 +348,7 @@ python -u aispace/trainer.py \
 - More Chinese dataset;
 - Support Pytorch;
 - Improve the tokenizer to make it more versatile;
+- Build AiSpace server, make it can train and configure using UI.
 
 ## Refs
 

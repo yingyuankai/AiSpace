@@ -20,39 +20,40 @@ from aispace.utils.builder_utils import load_dataset
 class TestGlue(unittest.TestCase):
     def test_glue_load(self):
         hparams = Hparams()
-        hparams.load_from_config_file("../configs/qa/dureader_robust.yml")
+        hparams.load_from_config_file("../configs/qa/dureader_yesno.yml")
         hparams.stand_by()
-        # checksum_dir = "../aispace/datasets/url_checksums"
-        # tfds.download.add_checksums_dir(checksum_dir)
-        # download_config = DownloadConfig(register_checksums=True)
-        # dureader = tfds.load("dureader/robust",
-        #                   # data_dir="/search/data1/yyk/data/datasets/glue_zh",
-        #                   data_dir="../data/dureader",
-        #                   builder_kwargs={'hparams': hparams},
-        #                   download_and_prepare_kwargs={'download_config': download_config}
-        #                   )
+        checksum_dir = "../aispace/datasets/url_checksums"
+        tfds.download.add_checksums_dir(checksum_dir)
+        download_config = DownloadConfig(register_checksums=True)
+        print(tfds.list_builders())
+        dureader = tfds.load("dureader/yesno",
+                          # data_dir="/search/data1/yyk/data/datasets/glue_zh",
+                          data_dir="../data/dureader",
+                          builder_kwargs={'hparams': hparams},
+                          download_and_prepare_kwargs={'download_config': download_config}
+                          )
+        for itm in dureader['train']:
+            print(itm)
+            break
+        print()
 
         # train_dataset, dev_dataset, dataset_info = next(load_dataset(hparams, ret_test=False))
-        test_dataset = next(load_dataset(hparams, ret_train=True, ret_dev=True, ret_test=True, ret_info=True))[0]
+        # test_dataset = next(load_dataset(hparams, ret_train=True, ret_dev=True, ret_test=True, ret_info=True))[0]
 
-        total, zero = 0, 0
-        for itm in tqdm(test_dataset):
+        # total, zero = 0, 0
+        # for itm in tqdm(test_dataset):
             # tt = itm[0]['input_ids'].numpy().tolist()
             # print(itm[0]['p_mask'].numpy().tolist())
             # print(itm[0]['start_position'].numpy().tolist())
             # print(itm[0]['end_position'].numpy().tolist())
             # print(tt)
             # break
-            total += 1
+            # total += 1
             # zero += len([t for t in tt if t == 0])
         # print()
         # print(f"{zero}, {total}, {zero / float(total)}")
-        print(total)
+        # print(total)
 
-    def test_tttt(self):
-        import math
-
-        print(math.perm(3, 2))
 
 # python -u aispace/trainer.py \
 #    --experiment_name test \

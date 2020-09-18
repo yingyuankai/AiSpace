@@ -72,7 +72,8 @@ python -u aispace/trainer.py \
 |ERNIE_stable-1.0.1|**83.835**|64.898|
 |ERNIE_1.0_max-len-512|83.363|**65.293**|
 |chinese_electra_small|72.172|46.314|
-|chinese_electra_small_ex|66.102|40.121|
+|chinese_electra_base|70.673|43.894|
+|chinese_electra_large|||
 
 ## dureader/robust
 
@@ -94,3 +95,21 @@ python -u aispace/trainer.py \
 |chinese_roberta_wwm_ext|65.521|50.274|
 |ERNIE_stable-1.0.1|75.268|61.675|
 |ERNIE_1.0_max-len-512|**83.609**|**72.328**|
+
+## dureader/yesno
+
+```
+python -u aispace/trainer.py \
+    --experiment_name test \
+    --model_name bert_for_classification \
+    --schedule train_and_eval \
+    --enable_xla False \
+    --config_name dureader_yesno \
+    --config_dir ./configs/qa \
+    --gpus 0 1 \
+    > err.log 2>&1 &
+```
+
+|Model|Accuracy|Macro_precision|Macro_recall|Macro_f1|
+|---|---|---|---|---|
+|bert-base-chinese-huggingface|76.565|73.315|69.958|71.230|

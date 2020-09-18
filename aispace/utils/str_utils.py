@@ -8,6 +8,7 @@ from typing import Union, List
 import unicodedata
 import six
 import nltk
+from nltk.util import ngrams
 import re
 
 
@@ -159,3 +160,13 @@ def find_lcs(s1, s2):
                     mmax = m[i + 1][j + 1]
                     p = i + 1
     return s1[p - mmax:p], mmax
+
+
+def text_to_ngrams(sequence, n_gram=3):
+    result = []
+    if isinstance(sequence, list):
+        sequence = ''.join(sequence)
+    for i in range(1, n_gram + 1):
+        subword = [''.join(itm) for itm in ngrams(sequence, i)]
+        result.extend(subword)
+    return result
