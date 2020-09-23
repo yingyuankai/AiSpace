@@ -113,3 +113,5 @@ python -u aispace/trainer.py \
 |Model|Accuracy|Macro_precision|Macro_recall|Macro_f1|
 |---|---|---|---|---|
 |bert-base-chinese-huggingface|76.565|73.315|69.958|71.230|
+|ERNIE_stable-1.0.1|85.756|82.919|81.627|82.213|
+|ERNIE_1.0_max-len-512|86.122|83.847|80.636|81.965|

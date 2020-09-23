@@ -10,6 +10,9 @@ import six
 import nltk
 from nltk.util import ngrams
 import re
+from random import randint
+from datetime import datetime
+import hashlib
 
 
 def truncate_seq_pair(tokens_a: Union[List[int], List[str]],
@@ -161,6 +164,13 @@ def find_lcs(s1, s2):
                     p = i + 1
     return s1[p - mmax:p], mmax
 
+def uuid_maker():
+    """
+    make uuid according time and random number
+    :return:
+    """
+    return '{0:%Y%m%d%H%M%S%f}'.format(datetime.now()) + ''.join(
+        [str(randint(1, 10)) for i in range(5)])
 
 def text_to_ngrams(sequence, n_gram=3):
     result = []
@@ -170,3 +180,8 @@ def text_to_ngrams(sequence, n_gram=3):
         subword = [''.join(itm) for itm in ngrams(sequence, i)]
         result.extend(subword)
     return result
+
+def compute_md5_hash(my_string):
+    m = hashlib.md5()
+    m.update(my_string.encode('utf-8'))
+    return m.hexdigest()

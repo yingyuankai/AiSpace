@@ -54,8 +54,19 @@ class BertForQA(BaseModel):
         if is_training:
             start_position = inputs['start_position']
         else:
-            start_position = None
+            start_position = tf.constant(0)
 
         outputs = self.qa_layer([seq_output, cls_output, passage_mask, start_position], training=is_training)
 
         return outputs + (inputs['unique_id'], )
+
+    def deploy(self):
+        from aispace.datasets.tokenizer import BertTokenizer
+        from .bento_services import BertQAService
+        tokenizer = BertTokenizer(self._hparams.dataset.tokenizer)
+        bento_service = BertQAService()
+        bento_service.pack("model", self)
+        bento_service.pack("tokenizer", tokenizer)
+        bento_service.pack("hparams", self._hparams)
+        saved_path = bento_service.save(self._hparams.get_deploy_dir())
+        return saved_path

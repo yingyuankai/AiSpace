@@ -190,6 +190,7 @@ class EvaluatorForQaSimple(tf.keras.callbacks.Callback):
                 if predict_text in is_visited:
                     continue
 
+                is_visited.add(predict_text)
                 itm = {
                     'predict_text': predict_text,
                     'start_prob': example_predict['start_prob'],
@@ -403,6 +404,7 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
                 if predict_text in is_visited:
                     continue
 
+                is_visited.add(predict_text)
                 itm = {
                     'predict_text': predict_text,
                     'start_prob': example_predict['start_prob'],

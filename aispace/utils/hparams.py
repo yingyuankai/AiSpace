@@ -178,7 +178,7 @@ class Hparams(collections.OrderedDict):
     def get_experiment_name(self, save_dir):
         if not os.path.isdir(save_dir):
             os.mkdir(save_dir)
-        base_exp_name = f'{self.experiment_name}_{self.model_name}_{self.random_seed}'
+        base_exp_name = f'{self.experiment_name}_{self.model_name}_{self.dataset.name.replace("/", "__")}_{self.random_seed}'
         suffix = 0
         found_previous_result = os.path.isdir(os.path.join(save_dir, f'{base_exp_name}_{suffix}'))
         while found_previous_result:
@@ -188,14 +188,14 @@ class Hparams(collections.OrderedDict):
         return exp_dir
 
     def get_workspace_dir(self):
-        if 'workspace_dir' in self and self.workspace_dir is not None:
-            return self.workspace_dir
         if hasattr(self, "model_resume_path") and self.model_resume_path is not None:
             if os.path.exists(self.model_resume_path):
                 workspace_dir = self.model_resume_path
             else:
                 raise ValueError(f'{self.model_resume_path} does not exists!')
         else:
+            if 'workspace_dir' in self and self.workspace_dir is not None:
+                return self.workspace_dir
             save_dir = self.save_dir
             exp_name = self.get_experiment_name(save_dir)
             workspace_dir = os.path.join(save_dir, exp_name)

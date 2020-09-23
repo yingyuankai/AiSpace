@@ -232,7 +232,7 @@ def main(argv):
         elif hparams.schedule == "avg_checkpoints":
             avg_checkpints(hparams)
         else:
-            raise NotImplementedError
+            raise NotImplementedError(hparams.schedule)
     except Exception as e:
         logging.error("Error!", exc_info=True)
         hparams.to_json()

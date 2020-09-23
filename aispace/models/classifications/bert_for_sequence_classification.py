@@ -57,14 +57,17 @@ class BertForSeqClassification(BaseModel):
     def deploy(self):
         from aispace.datasets.tokenizer import BertTokenizer
         from .bento_services import BertTextClassificationService
-        # tf.saved_model.save(self, self._hparams.get_saved_model_dir())
         tokenizer = BertTokenizer(self._hparams.dataset.tokenizer)
-        bento_service = \
-            BertTextClassificationService.pack(
-                model=self,
-                tokenizer=tokenizer,
-                hparams=self._hparams,
-            )
+        # bento_service = \
+        #     BertTextClassificationService.pack(
+        #         model=self,
+        #         tokenizer=tokenizer,
+        #         hparams=self._hparams,
+        #     )
+        bento_service = BertTextClassificationService()
+        bento_service.pack("model", self)
+        bento_service.pack("tokenizer", tokenizer)
+        bento_service.pack("hparams", self._hparams)
         saved_path = bento_service.save(self._hparams.get_deploy_dir())
         return saved_path
 

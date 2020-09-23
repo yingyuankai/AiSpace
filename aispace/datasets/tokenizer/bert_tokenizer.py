@@ -147,6 +147,7 @@ class BertTokenizer(BaseTokenizer):
             # segment_ids = [0] * (len(token_ids_a) + 2) + [1] * (len(token_ids_b) + 1)
         else:
             token_ids_a = token_ids_a[: max_seq_length - 2]
+            token_ids_b = None
             # input_ids = [cls_id] + token_ids_a + [sep_id]
             # segment_ids = [0] * len(input_ids)
 
