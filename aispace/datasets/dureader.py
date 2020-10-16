@@ -31,7 +31,7 @@ YESNO_NAME = 'yesno'
 class DuReaderConfig(tfds.core.BuilderConfig):
     """BuilderConfig for DuReader."""
 
-    @tfds.core.disallow_positional_args
+    # @tfds.core.disallow_positional_args
     def __init__(self,
                  text_features=None,
                  label_column=None,
@@ -68,7 +68,7 @@ class DuReaderConfig(tfds.core.BuilderConfig):
         # 0.0.1: Initial version.
         super(DuReaderConfig, self).__init__(
             version=tfds.core.Version(
-                "1.0.0",
+                "3.0.0",
                 # experiments={tfds.core.Experiment.S3: False}
             ),
             # supported_versions=[

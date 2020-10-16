@@ -24,8 +24,9 @@ nohup python -u aispace/trainer.py \
 #    > err.log 2>&1 &
 
 ## Deploy using bentoml
-#DEPLOY_PATH="/search/odin/yyk/workspace/AiSpace/save/test_bert_for_qa_119_87/deploy/BertQAService/20200923203310_DA2F44"
+#DEPLOY_PATH="/search/odin/yyk/workspace/AiSpace/save/test_bert_for_qa_119_87/deploy/BertQAService/20201010113638_2A62F8"
 #DEPLOY_MODE="serve-gunicorn"
 ##DEPLOY_MODE="serve"
+##TF_FORCE_GPU_ALLOW_GROWTH=true CUDA_VISIBLE_DEVICES=0 bentoml ${DEPLOY_MODE} ${DEPLOY_PATH} --port 5001 --debug > dureader_robust_deploy.log 2>&1 &
 #TF_FORCE_GPU_ALLOW_GROWTH=true CUDA_VISIBLE_DEVICES=0 bentoml ${DEPLOY_MODE} ${DEPLOY_PATH} --port 5001 --debug --enable-microbatch --workers 1 > dureader_robust_deploy.log 2>&1 &
 #echo "Start dureader_robust service."

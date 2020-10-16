@@ -10,6 +10,7 @@ from prettytable import PrettyTable
 
 from .adam_weight_decay_optimizer import create_awdwwu_optimizer
 from .lr_multiplier import LRMultiplier
+# from keras_lr_multiplier import LRMultiplier
 
 __all__ = [
     "OPTIMIZERS",
@@ -40,9 +41,10 @@ OPTIMIZER_WRAPPER = {
     'swa':
         lambda opt, training_hparams:
         tfa.optimizers.SWA(opt, start_averaging=training_hparams.steps_per_epoch *
-                                                training_hparams.optimizer_wrapper.config.start_epoch,
+                                                training_hparams.optimizer_wrappers.get('swa').config.start_epoch,
                            average_period=training_hparams.steps_per_epoch // 10),
-    'lr_multiplier': lambda opt, training_hparams: LRMultiplier(opt, multipliers=training_hparams.multipliers)
+    # TODO
+    # 'lr_multiplier': lambda opt, training_hparams: LRMultiplier(opt, multipliers=training_hparams.optimizer_wrappers.get('lr_multiplier').config.multipliers)
 }
 
 

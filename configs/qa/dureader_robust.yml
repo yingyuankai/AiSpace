@@ -55,15 +55,16 @@ training:
       switch: false
       config:
         start_epoch: 5
-    lr_multiplier:
-      switch: false
-      config:
-        multipliers:
-          bert_for_qa/bert: 0.1
+#    lr_multiplier:
+#      switch: true
+#      config:
+#        multipliers:
+##          bert_for_qa/bert: 0.1
+#          bert_for_qa/ernie: 0.0
 
 dataset:
   name: "dureader/robust"
-  data_dir: "./data"
+  data_dir: "../data"
   transformer: "dureader/robust"
 
   source:
@@ -176,7 +177,14 @@ dataset:
             name: "macro_recall"
             num_classes: 512
             average: "macro"
-
+#    - name: output_3
+#      column: is_impossible
+#      type: INT
+#      weight: 0.1
+#      loss:
+#        name: sigmoid_cross_entropy
+#      metrics:
+#        - name: binary_accuracy
 
 pretrained:
 #    name: chinese_roberta_wwm_ext

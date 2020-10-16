@@ -147,5 +147,6 @@ class QALayerWithImpossible(tf.keras.layers.Layer):
 
             # output = ((start_top_log_prob, start_top_index), (end_top_log_prob, end_top_index), answer_prob)
             output = (start_top_res, end_top_res, answer_prob)
+            # output = (start_top_res, end_top_res)
 
         return output

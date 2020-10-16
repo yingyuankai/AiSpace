@@ -411,13 +411,13 @@ def build_tf_model_optimizer(train_hparams: Hparams):
         optimizer_fn = OPTIMIZERS.get('adam')
     optimizer = optimizer_fn(train_hparams)
 
-    # wrapper for optimizer
+    # wrapper of optimizer
     optimizer_wrappers = [(k, v.config) for k, v in train_hparams.optimizer_wrappers.items() if v.switch]
     for pw_name, config in optimizer_wrappers:
         logger.info(f"Using optimizer wrapper [{pw_name}]")
         optimizer_wrapper = OPTIMIZER_WRAPPER.get(pw_name)
         if optimizer_wrapper is not None:
-            optimizer = optimizer_wrapper(optimizer, config)
+            optimizer = optimizer_wrapper(optimizer, train_hparams)
 
     # if train_hparams.optimizer_wrapper.switch:
     #     if train_hparams.optimizer.name in ['adam_weight_decay_with_warm_up_xxx']:

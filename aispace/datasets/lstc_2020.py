@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 class GlueConfig(tfds.core.BuilderConfig):
     """BuilderConfig for 2020 LSTC."""
 
-    @tfds.core.disallow_positional_args
+    # @tfds.core.disallow_positional_args
     def __init__(self,
                  text_features=None,
                  label_column=None,

@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class GlueConfig(tfds.core.BuilderConfig):
     """BuilderConfig for GLUE."""
 
-    @tfds.core.disallow_positional_args
+    # @tfds.core.disallow_positional_args
     def __init__(self,
                  text_features=None,
                  label_column=None,

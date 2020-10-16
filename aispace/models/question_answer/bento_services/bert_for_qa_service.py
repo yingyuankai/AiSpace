@@ -41,23 +41,25 @@ class BertQAService(BentoService):
             n_best_size = one_json.get('n_best_size', 5)
             max_answer_length = one_json.get("max_answer_length", 64)
             max_query_length = one_json.get("max_query_length", 64)
-            query_text = one_json.get("query", "")
+            doc_stride = one_json.get("doc_stride", 128)
+            question_text = one_json.get("query", "")
             para_text = one_json.get("context", "")
-            if query_text == "" or para_text == "":
+            if question_text == "" or para_text == "":
                 # unique_id = uuid_maker()
+                print("[WARRING] query or context is empty!")
                 item = {
                     "unique_id": unique_id,
                     "qas_id": unique_id,
-                    "question_text": query_text,
+                    "question_text": question_text,
                     "context_text": para_text,
                     'n_best_size': n_best_size,
                     'max_answer_length': max_answer_length
                 }
                 yield item
 
-            qas_id = one_json.get('qas_id', compute_md5_hash(query_text + para_text))
+            qas_id = one_json.get('qas_id', compute_md5_hash(question_text + para_text))
             if self.artifacts.hparams.dataset.tokenizer.do_lower_case:
-                question_text = query_text.lower()
+                question_text = question_text.lower()
             query_tokens = self.artifacts.tokenizer.tokenize(question_text)
             query_tokens = query_tokens[: max_query_length]
 
@@ -117,8 +119,8 @@ class BertQAService(BentoService):
                     i = i - 1
 
             if all(v is None for v in raw2tokenized_char_index) or mismatch:
-                print("raw and tokenized paragraph mismatch detected")
-                unique_id = uuid_maker()
+                print("[WARRING] raw and tokenized paragraph mismatch detected")
+                # unique_id = uuid_maker()
                 item = {
                     "unique_id": unique_id,
                     "qas_id": qas_id,
@@ -168,7 +170,7 @@ class BertQAService(BentoService):
                 if para_start + para_length == total_para_length:
                     break
 
-                para_start += min(para_length, self.doc_stride)
+                para_start += min(para_length, doc_stride)
 
             for (doc_idx, doc_span) in enumerate(doc_spans):
                 doc_token2char_raw_start_index = []
@@ -220,6 +222,12 @@ class BertQAService(BentoService):
         input_data = {
             "input_ids": [], "token_type_ids": [], "attention_mask": [], "p_mask": [], "unique_id": [], "start_position": []
         }
+        no_answer_response = {
+                        'predict_text': "",
+                        'start_prob': 0.,
+                        'end_prob': 0.,
+                        'predict_score': 0.
+                    }
         pre_input_data = self.preprocessing(parsed_json)
 
         qas_id_2_examples = defaultdict(list)
@@ -242,7 +250,7 @@ class BertQAService(BentoService):
 
         if not input_data['input_ids']:
             print("[WARRING] Preprocessing some thing wrong!")
-            return []
+            return [no_answer_response]
 
         input_data['input_ids'] = tf.constant(input_data['input_ids'], name="input_ids")
         input_data['token_type_ids'] = tf.constant(input_data['token_type_ids'], name="token_type_ids")
@@ -273,7 +281,9 @@ class BertQAService(BentoService):
 
         no_answer_response = {
                         'predict_text': "",
+                        'span_start': 0,
                         'start_prob': 0.,
+                        'span_end': 0,
                         'end_prob': 0.,
                         'predict_score': 0.
                     }
@@ -344,7 +354,9 @@ class BertQAService(BentoService):
 
                 itm = {
                     'predict_text': predict_text,
+                    'span_start': predict_start,
                     'start_prob': example_predict['start_prob'],
+                    'span_end': predict_end,
                     'end_prob': example_predict['end_prob'],
                     'predict_score': example_predict['predict_score']
                 }
