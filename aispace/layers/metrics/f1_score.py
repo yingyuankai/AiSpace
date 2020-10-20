@@ -24,7 +24,8 @@ class SparseF1Score(tfa.metrics.FBetaScore):
         dtype=None,
         **kwargs
     ):
-        super().__init__(num_classes, average, 1.0, threshold, name=name, dtype=dtype)
+        super(SparseF1Score, self).__init__(num_classes, average, 1.0, name=name, dtype=dtype)
+        self.threshold = threshold
 
     def get_config(self):
         base_config = super().get_config()

@@ -22,6 +22,14 @@ random_seed: 34
 
 # Configuration for training
 training:
+    # training policy: base or k-fold
+    # for example:
+    #policy:
+    #    name: "k-fold"
+    #    config:
+    #        k: 5
+    policy:
+        name: "base"
     # Maximum epochs in case you don't want to use iterations
     # Can be mixed with max iterations, so it will stop whichever is
     # completed first. Default: null means epochs won't be used
@@ -32,8 +40,22 @@ training:
 
     shuffle_size: 1024
 
+    do_eval: true
+
     optimizer:
       name: adam_weight_decay_with_warm_up
+
+    # optimizer wrapper such as: SWA
+    # [Averaging Weights Leads to Wider Optima and Better Generalization](https://arxiv.org/abs/1803.05407)
+    optimizer_wrappers:
+        swa:
+            switch: false
+            config:
+                start_epoch: 5
+        lr_multiplier:
+            switch: false
+            config:
+                multipliers: null
 
     # Callbacks
     callbacks:
@@ -41,6 +63,7 @@ training:
         early_stopping:
             # Whether to use early stopping, (Default: false)
             switch: false
+            priority: 1
             config:
                 patience: 2 # Patience for early stopping
                 monitor: 'val_loss'
@@ -48,9 +71,10 @@ training:
                 verbose: 0
                 mode: 'auto'
                 baseline: null
-                restore_best_weights: false
+                restore_best_weights: true
         checkpoint:
             switch: false
+            priority: 1
             config:
                 filepath: "{{workspace_dir}}/checkpoint/ckpt_{epoch}"
                 monitor: 'val_loss'
@@ -61,6 +85,7 @@ training:
                 save_freq: 'epoch'
         tensorboard:
             switch: false
+            priority: 1
             config:
                 log_dir: '{{workspace_dir}}/logs'
                 histogram_freq: 0
@@ -70,15 +95,14 @@ training:
                 profile_batch: 0   # if set nonzero, will very slow to start loading data and training.
                 embeddings_freq: 0
                 embeddings_metadata: null
-        swa:
+        lr_finder:
             switch: false
+            priority: 1
             config:
-                start_epoch: 1          # Starting epoch for SWA.
-                lr_schedule: manual   # Learning rate schedule. 'manual' , 'constant' or 'cyclic'.
-                swa_lr: 0.001          # Learning rate used when averaging weights.
-                swa_lr2: 0.003         # Upper bound of learning rate for the cyclic schedule.
-                swa_freq: 1          # Frequency of weight averagining. Used with cyclic schedules.
-                verbose: 0              # Verbosity mode, 0 or 1.
+                start_lr: 1e-7
+                end_lr: 0.1
+                max_steps: 100
+                smoothing: 0.9
 
     # Should a lr scheduler be used
     lr_scheduler: false

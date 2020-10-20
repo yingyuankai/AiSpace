@@ -31,3 +31,14 @@ def set_visible_devices(gpus_idxs=[]):
         except RuntimeError as e:
             # Visible devices must be set before GPUs have been initialized
             print(e)
+
+
+def set_xla(enable_xla=False):
+    """Config eager context according to flag values using TF 2.0 API."""
+    if enable_xla:
+        tf.config.optimizer.set_jit(True)
+        # Disable PinToHostOptimizer in grappler when enabling XLA because it
+        # causes OOM and performance regression.
+        tf.config.optimizer.set_experimental_options(
+            {'pin_to_host_optimization': False}
+        )

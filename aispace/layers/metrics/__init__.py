@@ -40,7 +40,9 @@ METRICS = {
     "sparse_recall":
         lambda config: SparseRecall(**config),
     "hamming_loss":
-        lambda config: tfa.metrics.HammingLoss(**config)
+        lambda config: tfa.metrics.HammingLoss(**config),
+    'binary_accuracy':
+        lambda config: tf.keras.metrics.BinaryAccuracy(**config)
 }
 
 

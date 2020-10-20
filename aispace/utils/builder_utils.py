@@ -18,105 +18,194 @@ from aispace.constants import *
 logger = logging.getLogger(__name__)
 
 
+def get_dataset_split(hparams: Hparams):
+    """
+    get dataset split according to training policy and dataset source
+    :param hparams:
+    :return:
+    """
+
+    if hparams.training.policy.name == "k-fold":
+        k = hparams.training.policy.config.k
+        train_split = [f'train[:{t}%]+train[{t + 100 // k}%:]' for t in range(0, 100, 100 // k)]
+        validation_split = [f'train[{t}%:{t + 100 // k}%]' for t in range(0, 100, 100 // k)]
+        test_split = [hparams.dataset.source.test] * k
+    else:
+        train_split = [hparams.dataset.source.train]
+        validation_split = [hparams.dataset.source.validation]
+        test_split = [hparams.dataset.source.test]
+    return train_split, validation_split, test_split
+
+
 def load_dataset(hparams: Hparams, ret_train=True, ret_dev=True, ret_test=True, ret_info=True):
     from aispace import datasets
+
+    train_split, validation_split, test_split = get_dataset_split(hparams)
     if ret_train:
-        train_dataset, dataset_info = build_dataset(hparams, hparams.dataset.source.train, with_info=True)
+        train_datasets, dataset_info = build_dataset(hparams, train_split, with_info=True)
     if ret_dev:
-        dev_dataset, dataset_info = build_dataset(hparams, hparams.dataset.source.validation, with_info=True)
+        dev_datasets, dev_dataset_info = build_dataset(hparams, validation_split, with_info=True)
+        if dev_dataset_info is not None:
+            dataset_info = dev_dataset_info
     if ret_test:
-        test_dataset, dataset_info = build_dataset(hparams, hparams.dataset.source.test, with_info=True)
+        test_datasets, test_dataset_info = build_dataset(hparams, test_split, with_info=True)
+        if test_dataset_info is not None:
+            dataset_info = test_dataset_info
 
     # check the consistence of tokenizer using in building dataset and now using.
-    if hparams.get("dataset", {}).get("tokenizer", {}).get("name", "") != "" and \
-            (dataset_info.metadata is None or
-             hparams.get("dataset", {}).get("tokenizer", {}).get("name", "") != dataset_info.metadata.get("tokenizer", "")):
-        raise ValueError(f'The dataset is built using tokenizer {dataset_info.metadata.get("tokenizer", "")}, '
-                         f'however, now is using tokenizer, please remove the data and restart.'
-                         f'{hparams.get("dataset", {}).get("tokenizer", {}).get("name", "")}!')
+    if hparams.get("dataset", {}).get("tokenizer", {}).get("name", "") != "":
+        if dataset_info.metadata is None:
+            logger.warning("dataset_info has no metadata attribute.")
+        elif hparams.get("dataset", {}).get("tokenizer", {}).get("name", "") \
+                != dataset_info.metadata.get("tokenizer", ""):
+            raise ValueError(f'The dataset is built using tokenizer {dataset_info.metadata.get("tokenizer", "")}, '
+                             f'however, now is using {hparams.get("dataset", {}).get("tokenizer", {}).get("name", "")}, '
+                             f'please remove/rebuild the data and restart!')
+        elif hparams.get("pretrained", {}).get("config", {}).get("vocab_size", 0) \
+                != dataset_info.metadata.get("vocab_size", 0):
+            raise ValueError(f'The dataset is built using tokenizer {dataset_info.metadata.get("tokenizer", "")}, '
+                             f'whose vocab size is {dataset_info.metadata.get("vocab_size", "xx")},'
+                             f'however, now is {hparams.get("pretrained", {}).get("config", {}).get("vocab_size", 0)}, '
+                             f'please remove/rebuild the data and restart!')
 
     # data mapping
     def build_generator(fields):
         input_names = [itm.get('name') for itm in hparams.dataset.inputs]
         output_names = [itm.get('name') for itm in hparams.dataset.outputs]
+        output_name2column = {itm.get('name'): itm.get('column') for itm in hparams.dataset.outputs}
         inputs, outputs = {}, {}
         for k, v in fields.items():
             if k in input_names:
                 inputs[k] = v
             elif k in output_names:
+                inputs[output_name2column.get(k, k)] = v
                 outputs[k] = v
             else:
                 raise ValueError(f"{k} not in inputs or outputs.")
         return inputs, outputs
-
-    # build batch
-    if ret_train:
-        train_dataset = train_dataset.\
-            map(build_generator, num_parallel_calls=tf.data.experimental.AUTOTUNE). \
-            shuffle(hparams.training.shuffle_size).\
-            repeat(). \
-            batch(hparams.training.batch_size). \
-            prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-        logger.info("Train dataset has loaded.")
-    if ret_dev:
-        dev_dataset = dev_dataset.\
-            map(build_generator, num_parallel_calls=tf.data.experimental.AUTOTUNE). \
-            repeat(). \
-            batch(hparams.training.batch_size). \
-            prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-        logger.info("Validation dataset has loaded.")
-    if ret_test:
-        test_dataset = test_dataset.\
-            map(build_generator, num_parallel_calls=tf.data.experimental.AUTOTUNE). \
-            batch(hparams.training.batch_size). \
-            prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-        logger.info("Test dataset has loaded.")
-
+    training_hparams = hparams.training
     # reset some hparams
     if ret_info:
         print(dataset_info)
-        training_hparams = hparams.training
-        train_data_size = dataset_info.splits.get("train").num_examples
-        validation_data_size = dataset_info.splits.get("validation").num_examples
-        steps_per_epoch = int(train_data_size / training_hparams.batch_size)
-        num_warmup_steps = \
-            int(training_hparams.max_epochs * train_data_size * training_hparams.warmup_factor / training_hparams.batch_size)
-        num_warmup_steps = min(steps_per_epoch, num_warmup_steps)
+        # train_data_size = dataset_info.splits.get("train").num_examples
+        # validation_data_size = dataset_info.splits.get("validation").num_examples
+        # test_data_size = dataset_info.splits.get("test").num_examples
+        # steps_per_epoch = int(train_data_size / training_hparams.batch_size)
+        # num_warmup_steps = \
+        #     int(
+        #         training_hparams.max_epochs * train_data_size * training_hparams.warmup_factor / training_hparams.batch_size)
+        # num_warmup_steps = min(steps_per_epoch, num_warmup_steps)
 
-        validation_steps = int(
-            math.ceil(validation_data_size / training_hparams.batch_size))
-        logger.info("Reset some hparams according to dataset_info:")
-        if "steps_per_epoch" not in training_hparams or training_hparams.steps_per_epoch <= 0:
-            hparams.cascade_set('training.steps_per_epoch', steps_per_epoch)
-            logger.info(f"Set training.steps_per_epoch to {steps_per_epoch}")
-        else:
-            logger.info(f"Get training.steps_per_epoch is {hparams.training.steps_per_epoch}")
-        if "validation_steps" not in training_hparams or training_hparams.validation_steps <= 0:
-            hparams.cascade_set('training.validation_steps', validation_steps)
-            logger.info(f"Set training.validation_steps to {validation_steps}")
-        else:
-            logger.info(f"Get training.validation_steps is {hparams.training.validation_steps}")
-        if "num_warmup_steps" not in training_hparams or training_hparams.num_warmup_steps <= 0:
-            hparams.cascade_set('training.num_warmup_steps', num_warmup_steps)
-            logger.info(f"Set training.num_warmup_steps to {num_warmup_steps}")
-        else:
-            logger.info(f"Get training.num_warmup_steps is {hparams.training.num_warmup_steps}")
+        # if validation_data_size is not None:
+        #     validation_steps = validation_data_size // training_hparams.batch_size
+        # else:
+        #     validation_steps = None
+        #
+        # if test_data_size is not None:
+        #     test_steps = test_data_size // training_hparams.batch_size
+        # else:
+        #     test_steps = None
 
-    result = ()
-    if ret_train:
-        result += (train_dataset, )
-    if ret_dev:
-        result += (dev_dataset, )
-    if ret_test:
-        result += (test_dataset, )
+    for i in range(len(train_split)):
+        # build batch
+        if ret_train:
+            if train_datasets is not None and train_datasets[i] is not None:
+                # get train_steps and reset training hparams
+                logger.info("Reset training hparams according to real training data info.")
+                steps_per_epoch = 0
+                for _ in train_datasets[i]:
+                    steps_per_epoch += 1
+                steps_per_epoch //= training_hparams.batch_size
+                num_warmup_steps = \
+                    int(training_hparams.max_epochs * steps_per_epoch * training_hparams.warmup_factor)
+                if "num_warmup_steps" not in training_hparams or training_hparams.num_warmup_steps <= 0:
+                    hparams.cascade_set('training.num_warmup_steps', num_warmup_steps)
+                    logger.info(f"Set training.num_warmup_steps to {num_warmup_steps}")
+                else:
+                    logger.info(f"Get training.num_warmup_steps is {hparams.training.num_warmup_steps}")
+                if "steps_per_epoch" not in training_hparams or training_hparams.steps_per_epoch <= 0:
+                    hparams.cascade_set('training.steps_per_epoch', steps_per_epoch)
+                    logger.info(f"Set training.steps_per_epoch to {steps_per_epoch}")
+                else:
+                    logger.info(f"Get training.steps_per_epoch is {hparams.training.steps_per_epoch}")
 
-    if ret_info:
-        result += (dataset_info, )
+                # prepare train dataset
+                train_dataset = train_datasets[i].\
+                    map(build_generator, num_parallel_calls=tf.data.experimental.AUTOTUNE). \
+                    prefetch(buffer_size=tf.data.experimental.AUTOTUNE). \
+                    shuffle(hparams.training.shuffle_size).\
+                    repeat(). \
+                    batch(hparams.training.batch_size)
 
-    return result
+                logger.info("Train dataset has loaded.")
+            else:
+                train_dataset = None
+                logger.info("Train dateset get None.")
+        if ret_dev:
+            if dev_datasets is not None and dev_datasets[i] is not None:
+                logger.info("Reset validation hparams according to real validation data info.")
+                validation_steps = 0
+                for _ in dev_datasets[i]:
+                    validation_steps += 1
+                validation_steps //= training_hparams.batch_size
+                if "validation_steps" not in training_hparams or training_hparams.validation_steps <= 0:
+                    hparams.cascade_set('training.validation_steps', validation_steps)
+                    logger.info(f"Set training.validation_steps to {validation_steps}")
+                else:
+                    logger.info(f"Get training.validation_steps is {hparams.training.validation_steps}")
+
+                dev_dataset = dev_datasets[i].\
+                    map(build_generator, num_parallel_calls=tf.data.experimental.AUTOTUNE). \
+                    prefetch(buffer_size=tf.data.experimental.AUTOTUNE). \
+                    repeat(). \
+                    batch(hparams.training.batch_size)
+
+                logger.info("Validation dataset has loaded.")
+            else:
+                dev_dataset = None
+                logger.info("Validation dataset get None.")
+        if ret_test:
+            if test_datasets is not None and test_datasets[i] is not None:
+                logger.info("Reset test hparams according to real test data info.")
+                test_steps = 0
+                for _ in test_datasets[i]:
+                    test_steps += 1
+                test_steps //= training_hparams.batch_size
+                if "test_steps" not in training_hparams or training_hparams.test_steps <= 0:
+                    hparams.cascade_set('training.test_steps', test_steps)
+                    logger.info(f"Set training.test_steps to {test_steps}")
+                else:
+                    logger.info(f"Get training.test_steps is {hparams.training.test_steps}")
+
+                test_dataset = test_datasets[i]. \
+                    map(build_generator, num_parallel_calls=tf.data.experimental.AUTOTUNE). \
+                    prefetch(buffer_size=tf.data.experimental.AUTOTUNE). \
+                    batch(hparams.training.batch_size)
+
+                logger.info("Test dataset has loaded.")
+            else:
+                test_dataset = None
+                logger.info("Test dataset get None.")
+
+        result = ()
+        if ret_train:
+            result += (train_dataset, )
+        if ret_dev:
+            result += (dev_dataset, )
+        if ret_test:
+            result += (test_dataset, )
+
+        if ret_info:
+            result += (dataset_info, )
+
+        yield result
 
 
 def build_dataset(hparams: Hparams, split=None, with_info=False):
+    if not split or (isinstance(split, (tuple, list)) and split[0] is None):
+        logger.info(f"Split is {split}, can not specify dataset.")
+        return None, None
+
     checksum_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../datasets/url_checksums")
     tfds.download.add_checksums_dir(checksum_dir)
     download_mode = tfds.core.download.GenerateMode.FORCE_REDOWNLOAD \
@@ -133,14 +222,25 @@ def build_dataset(hparams: Hparams, split=None, with_info=False):
 
 def build_callbacks(hparams: Hparams):
     from aispace.layers.callbacks import CALLBACKS
+    callback_hparam = hparams.training.callbacks
     callbacks = []
-    for name, config in hparams.items():
+    for name, config in sorted(callback_hparam.items(), key=lambda s: s[1]['priority'], reverse=True):
         if not config.switch: continue
         fn = CALLBACKS.get(name)
         logger.info(f"Using callback [{name}].")
         if fn is None:
             logger.warning(f"Callback name {name} may be wrong.")
             continue
+
+        if name.startswith('evaluator'):
+            logger.info("Build validation and test dataset for evaluator callback.")
+            dev_dataset, test_dataset = next(load_dataset(hparams, ret_train=False, ret_info=False))[: 2]
+            config.config['validation_dataset'] = dev_dataset
+            config.config['validation_steps'] = hparams.training.validation_steps
+            config.config['test_dataset'] = test_dataset
+            config.config['test_steps'] = hparams.training.test_steps
+            config.config['report_dir'] = hparams.get_report_dir()
+
         callbacks.append(fn(config.config))
     return callbacks
 
@@ -160,7 +260,7 @@ def build_model(hparam: Hparams, return_losses=True, return_metrics=True, return
     model = BaseModel.by_name(hparam.model_name)(hparam)
     # build inputs and model
     inputs = build_tf_model_inputs(hparam.dataset)
-    model(inputs)
+    model(inputs, training=True)
 
     rets = ()
     # build losses
@@ -217,11 +317,25 @@ def build_tf_model_inputs(dataset_hparams: Hparams):
 
     inputs = {}
     for item in dataset_hparams.inputs:
+        if "model_input" in item and item.model_input is False:
+            continue
         if item.type in [LIST_OF_INT, LIST_OF_CLASSLABEL]:
             input = tf.keras.layers.Input(
                 shape=(item.max_len,), dtype=tf.int32, name=item.name
             )
             inputs[item.name] = input
+        elif item.type in [CLASSLABEL]:
+            input = tf.keras.layers.Input(
+                shape=[], dtype=tf.int32, name=item.name
+            )
+            inputs[item.name] = input
+        elif item.type in [INT]:
+            input = tf.keras.layers.Input(
+                shape=[], dtype=tf.float32, name=item.name
+            )
+            inputs[item.name] = input
+        else:
+            raise NotImplementedError(f"Do not implement input type {item.type}")
     return inputs
 
 
@@ -238,6 +352,8 @@ def build_tf_model_losses(model, dataset_hparams: Hparams):
         name = output_hparam.name
         loss_weight = output_hparam.weight if "weight" in output_hparam else 1.
         loss_weights[name] = loss_weight
+        if "loss" not in output_hparam:
+            continue
         loss_hparam = output_hparam.loss
         loss_name = loss_hparam.name
         loss_fn = LOSSES.get(loss_name)
@@ -265,6 +381,8 @@ def build_tf_model_metrics(dataset_hparams: Hparams):
     res_metrics = {}
     for output_hparam in dataset_hparams.outputs:
         name = output_hparam.name
+        if 'metrics' not in output_hparam:
+            continue
         metrics = output_hparam.metrics
         if name not in metrics:
             res_metrics[name] = []
@@ -284,7 +402,7 @@ def build_tf_model_optimizer(train_hparams: Hparams):
     :param train_hparams:
     :return:
     """
-    from aispace.layers.optimizers import OPTIMIZERS
+    from aispace.layers.optimizers import OPTIMIZERS, OPTIMIZER_WRAPPER
     optimizer_fn = OPTIMIZERS.get(train_hparams.optimizer.name)
     logger.info(f"Using optimizer [{train_hparams.optimizer.name}].")
     if optimizer_fn is None:
@@ -292,6 +410,26 @@ def build_tf_model_optimizer(train_hparams: Hparams):
         logger.warning(f"Change to default optimizer adma.")
         optimizer_fn = OPTIMIZERS.get('adam')
     optimizer = optimizer_fn(train_hparams)
+
+    # wrapper of optimizer
+    optimizer_wrappers = [(k, v.config) for k, v in train_hparams.optimizer_wrappers.items() if v.switch]
+    for pw_name, config in optimizer_wrappers:
+        logger.info(f"Using optimizer wrapper [{pw_name}]")
+        optimizer_wrapper = OPTIMIZER_WRAPPER.get(pw_name)
+        if optimizer_wrapper is not None:
+            optimizer = optimizer_wrapper(optimizer, train_hparams)
+
+    # if train_hparams.optimizer_wrapper.switch:
+    #     if train_hparams.optimizer.name in ['adam_weight_decay_with_warm_up_xxx']:
+    #         logger.warning(f"Wrapper {train_hparams.optimizer_wrapper.name} may be err "
+    #                        f"for optimizer {train_hparams.optimizer.name}.")
+    #         optimizer = optimizer
+    #     else:
+    #         logger.info(f"Using optimizer wrapper [{train_hparams.optimizer_wrapper.name}]")
+    #         optimizer_wrapper = OPTIMIZER_WRAPPER.get(train_hparams.optimizer_wrapper.name)
+    #         if optimizer_wrapper is not None:
+    #             optimizer = optimizer_wrapper(optimizer, train_hparams)
+
     return optimizer
 
 

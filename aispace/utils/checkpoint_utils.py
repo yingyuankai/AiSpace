@@ -9,8 +9,11 @@ __all__ = [
 ]
 
 import os
-
+import logging
 import tensorflow as tf
+
+
+logger = logging.getLogger(__name__)
 
 
 def average_checkpoints(model, prefix_or_checkpints, num_last_checkpoints=None, ckpt_weights=None):
@@ -23,7 +26,9 @@ def average_checkpoints(model, prefix_or_checkpints, num_last_checkpoints=None, 
     """
     avg_weights = None
 
-    if prefix_or_checkpints.find(',') != -1 or not os.path.exists(prefix_or_checkpints):
+    if isinstance(prefix_or_checkpints, (list, tuple)):
+        ckpts = prefix_or_checkpints
+    elif prefix_or_checkpints.find(',') != -1 or not os.path.exists(prefix_or_checkpints):
         # checkpoints
         ckpts = prefix_or_checkpints.split(",")
     elif os.path.isdir(prefix_or_checkpints):
@@ -42,6 +47,7 @@ def average_checkpoints(model, prefix_or_checkpints, num_last_checkpoints=None, 
         ValueError(f"size of ckpt_weights ({len(ckpt_weights)}) must be equal to the size of ckpts ({len(ckpts)}).")
 
     for idx, ckpt in enumerate(ckpts):
+        logger.info(f"Merge weights from {ckpt} with ckpt weight {ckpt_weights[idx]}")
         model.load_weights(ckpt)
         model_weights = model.get_weights()
         model_weights = _weights_time(model_weights, ckpt_weights[idx])

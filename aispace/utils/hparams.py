@@ -145,11 +145,26 @@ class Hparams(collections.OrderedDict):
         """
         hparam_dict = collections.OrderedDict()
         for k, v in self.items():
+            if not self.is_jsonable(v):
+                v = None
+
             if isinstance(v, Hparams):
                 hparam_dict[k] = v.to_dict()
             else:
                 hparam_dict[k] = v
         return hparam_dict
+
+    def is_jsonable(self, input):
+        """
+        Check if an object is JSON serializable
+        :param input:
+        :return:
+        """
+        try:
+            json.dumps(input)
+            return True
+        except (TypeError, OverflowError):
+            return False
 
     def to_json(self) -> collections.OrderedDict:
         """Converts to dict format and save
@@ -163,7 +178,7 @@ class Hparams(collections.OrderedDict):
     def get_experiment_name(self, save_dir):
         if not os.path.isdir(save_dir):
             os.mkdir(save_dir)
-        base_exp_name = f'{self.experiment_name}_{self.model_name}_{self.random_seed}'
+        base_exp_name = f'{self.experiment_name}_{self.model_name}_{self.dataset.name.replace("/", "__")}_{self.random_seed}'
         suffix = 0
         found_previous_result = os.path.isdir(os.path.join(save_dir, f'{base_exp_name}_{suffix}'))
         while found_previous_result:
@@ -173,14 +188,14 @@ class Hparams(collections.OrderedDict):
         return exp_dir
 
     def get_workspace_dir(self):
-        if 'workspace_dir' in self and self.workspace_dir is not None:
-            return self.workspace_dir
         if hasattr(self, "model_resume_path") and self.model_resume_path is not None:
             if os.path.exists(self.model_resume_path):
                 workspace_dir = self.model_resume_path
             else:
                 raise ValueError(f'{self.model_resume_path} does not exists!')
         else:
+            if 'workspace_dir' in self and self.workspace_dir is not None:
+                return self.workspace_dir
             save_dir = self.save_dir
             exp_name = self.get_experiment_name(save_dir)
             workspace_dir = os.path.join(save_dir, exp_name)
@@ -205,7 +220,7 @@ class Hparams(collections.OrderedDict):
         return log_folder
 
     def get_model_filename(self):
-        model_path = os.path.join(self.get_workspace_dir(), 'model_saved', "model")
+        model_path = os.path.join(self.get_saved_model_dir(), "model")
         return model_path
 
     def get_deploy_dir(self):
@@ -213,8 +228,16 @@ class Hparams(collections.OrderedDict):
         return deploy_dir
 
     def get_saved_model_dir(self):
-        saved_model_dir = os.path.join(self.get_workspace_dir(), "saved_model")
+        saved_model_dir = os.path.join(self.get_workspace_dir(), "model_saved")
         return saved_model_dir
+
+    def get_report_dir(self):
+        report_folder = os.path.join(self.get_workspace_dir(), "reports")
+        return report_folder
+
+    def get_lr_finder_jpg_file(self):
+        lr_finder_jpg_file = os.path.join(self.get_workspace_dir(), "lr_find.jpg")
+        return lr_finder_jpg_file
 
     def notice(self, fields):
         for field in fields:
@@ -520,6 +543,13 @@ def client(sys_argv):
         default=False,
         type=ast.literal_eval,
         help='use mixed float16 while training.'
+    )
+    parser.add_argument(
+        '-ex',
+        '--enable_xla',
+        default=False,
+        type=ast.literal_eval,
+        help='enables XLA.'
     )
     parser.add_argument(
         '-mrp',

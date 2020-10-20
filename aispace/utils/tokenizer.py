@@ -221,7 +221,10 @@ class BasicTokenizer:
         output = []
         for char in text:
             cp = ord(char)
-            if self._is_chinese_char(cp):
+            if self._is_chinese_char(cp) or \
+                    self._is_japanese_char(cp) or \
+                    self._is_koren_char(cp) or \
+                    _is_punctuation(char):
                 output.append(" ")
                 output.append(char)
                 output.append(" ")
@@ -251,6 +254,18 @@ class BasicTokenizer:
                 (0x2F800 <= cp <= 0x2FA1F)):
             return True
 
+        return False
+
+    @classmethod
+    def _is_japanese_char(cls, cp: int) -> bool:
+        if 0x0800 <= cp <= 0x4E00:
+            return True
+        return False
+
+    @classmethod
+    def _is_koren_char(cls, cp: int) -> bool:
+        if 0xac00 <= cp <= 0x9fa5:
+            return True
         return False
 
     @classmethod
@@ -290,6 +305,8 @@ class WordpieceTokenizer:
         This uses a greedy longest-match-first algorithm to perform tokenization
         using the given vocabulary.
 
+        For chinese or punctuation, just return
+
         For example:
             input = "unaffable"
             output = ["un", "##aff", "##able"]
@@ -301,6 +318,8 @@ class WordpieceTokenizer:
         Returns:
             A list of wordpiece tokens.
         """
+        if len(text) == 1 and (BasicTokenizer._is_chinese_char(ord(text)) or _is_punctuation(text)):
+            return [text]
         output_tokens = []
         for token in whitespace_tokenize(text):
             assert token is not None
@@ -392,6 +411,6 @@ def _is_punctuation(char: str) -> bool:
             (91 <= cp <= 96) or (123 <= cp <= 126)):
         return True
     cat = unicodedata.category(char)
-    if cat.startswith("P"):
+    if cat.startswith("P") or cat.startswith('S'):
         return True
     return False

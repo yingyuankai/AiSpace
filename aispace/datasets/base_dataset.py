@@ -39,17 +39,21 @@ class BaseDataset(Registry, tfds.core.GeneratorBasedBuilder):
         for itm in feature_labels:
             # Read labels from specify file when have labels too much
             cur_labels = itm.get("labels")
-            if "labels" in itm and \
-                    not isinstance(itm.get("labels"), (list, tuple)) and \
-                    "url" in itm.get("labels"):
-                logger.info(f'Load labels from file: ${itm.get("labels", {}).get("url")}')
-                cur_label_map = getattr(self.transformer,
-                                        itm.get("labels", {}).get("name", "prepare_labels"),
-                                        self.transformer.prepare_labels)(itm.get("labels", {}).get("url"),
-                                                                         itm.get("labels", {}).get("name", ""))
-                # For convenience, keep this vocab on the first level
-                self.hparams.cascade_set(itm.get("labels", {}).get("name", "label_vocab"), cur_label_map)
-                cur_labels = list(cur_label_map.values())
+            if "labels" in itm and not isinstance(cur_labels, (list, tuple)):
+                if "use_num" == cur_labels:
+                    logger.info(f"Construct labels from num {cur_labels}.")
+                    cur_labels = [str(i) for i in range(itm['num'])]
+                elif "url" in itm.get('labels', {}):
+                    logger.info(f'Load labels from file: ${itm.get("labels", {}).get("url")}')
+                    cur_label_map = getattr(self.transformer,
+                                            itm.get("labels", {}).get("name", "prepare_labels"),
+                                            self.transformer.prepare_labels)(itm.get("labels", {}).get("url"),
+                                                                             itm.get("labels", {}).get("name", ""))
+                    # For convenience, keep this vocab on the first level
+                    self.hparams.cascade_set(itm.get("labels", {}).get("name", "label_vocab"), cur_label_map)
+                    cur_labels = list(cur_label_map.values())
+                else:
+                    raise NotImplementedError("Do not implement the label construct method!")
                 itm.cascade_set("labels", cur_labels)
                 itm.cascade_set("num", len(cur_labels))
                 # Replace feature values of same name with itm
@@ -89,33 +93,45 @@ class BaseDataset(Registry, tfds.core.GeneratorBasedBuilder):
                     tfds.features.Sequence(tfds.features.ClassLabel(
                         names=cur_labels
                     ))
+            elif itm.get("type") == STRING:
+                field_types[itm.get('name')] = tfds.features.Text()
         return field_types
 
     def _generate_examples_from_json(self, filepath, **kwargs):
-        import json
+        # import json
         logger.info(f'generating examples from {filepath}')
         fields = [(itm.get('name'), itm.get('column', itm.get('name')))
                   for itm in self.hparams.dataset.inputs + self.hparams.dataset.outputs]
-        with open(filepath, 'r') as inf:
-            for line in inf:
-                try:
-                    row = json.loads(line)
-                except:
-                    logger.error("Read json Err!", exc_info=True)
-                    logger.error(line)
+        for row in self.transformer.transform(filepath, kwargs.get("split", "train")):
+            instance_final = {}
+            for field_name, field_column in fields:
+                field_value = row.get(field_column)
+                if field_value is None:
                     continue
-                instance_final = {}
-                for field_name, field_column in fields:
-                    field_value = row.get(field_column)
-                    if field_value is None:
-                        continue
-                    if isinstance(field_value, str):
-                        try:
-                            field_value = eval(field_value)
-                        except NameError:
-                            pass
-                        finally:
-                            field_value = field_value
 
-                    instance_final[field_name] = field_value
-                yield instance_final
+                instance_final[field_name] = field_value
+            yield instance_final
+
+    # with open(filepath, 'r') as inf:
+        #     for line in inf:
+        #         try:
+        #             row = json.loads(line)
+        #         except:
+        #             logger.error("Read json Err!", exc_info=True)
+        #             logger.error(line)
+        #             continue
+        #         instance_final = {}
+        #         for field_name, field_column in fields:
+        #             field_value = row.get(field_column)
+        #             if field_value is None:
+        #                 continue
+        #             # if isinstance(field_value, str):
+        #             #     try:
+        #             #         field_value = eval(field_value)
+        #             #     except NameError:
+        #             #         pass
+        #             #     finally:
+        #             #         field_value = field_value
+        #
+        #             instance_final[field_name] = field_value
+        #         yield instance_final

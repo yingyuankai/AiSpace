@@ -5,6 +5,7 @@
 # @File    : __init__.py
 
 
-from .tnews_transformer import TnewsTransformer
+from .clue_transformer import *
 from .base_transformer import BaseTransformer
 from .duee_transformer import DuEETriggerTransformer
+from .dureader_transformer import *

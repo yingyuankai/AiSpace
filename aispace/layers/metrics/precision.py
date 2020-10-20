@@ -57,6 +57,7 @@ class SparsePrecision(tfa.metrics.FBetaScore):
         self.false_negatives.assign_add(_count_non_zero((y_pred - 1) * y_true))
         self.weights_intermediate.assign_add(_count_non_zero(y_true))
 
+    # @tf.function(experimental_relax_shapes=True)
     def result(self):
         precision = tf.math.divide_no_nan(
             self.true_positives, self.true_positives + self.false_positives

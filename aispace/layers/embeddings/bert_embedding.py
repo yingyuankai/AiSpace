@@ -22,13 +22,17 @@ class BertEmbedding(tf.keras.layers.Layer):
         self.vocab_size = hparams.vocab_size
         self.hidden_size = hparams.hidden_size
         self.initializer_range = hparams.initializer_range
+        self.use_position_embedding = True
+        if "use_position_embedding" in hparams:
+            self.use_position_embedding = hparams.use_position_embedding
 
-        self.position_embeddings = tf.keras.layers.Embedding(
-            hparams.max_position_embeddings,
-            hparams.hidden_size,
-            embeddings_initializer=get_initializer(self.initializer_range),
-            name="position_embeddings"
-        )
+        if self.use_position_embedding:
+            self.position_embeddings = tf.keras.layers.Embedding(
+                hparams.max_position_embeddings,
+                hparams.hidden_size,
+                embeddings_initializer=get_initializer(self.initializer_range),
+                name="position_embeddings"
+            )
 
         self.token_type_embeddings = tf.keras.layers.Embedding(
             hparams.type_vocab_size,
@@ -85,10 +89,12 @@ class BertEmbedding(tf.keras.layers.Layer):
             token_type_ids = tf.fill(tf.shape(input_ids), 0)
 
         words_embeddings = tf.gather(self.word_embeddings, input_ids)
-        position_embeddings = self.position_embeddings(position_ids)
         token_type_embeddings = self.token_type_embeddings(token_type_ids)
+        embeddings = words_embeddings + token_type_embeddings
+        if self.use_position_embedding:
+            position_embeddings = self.position_embeddings(position_ids)
+            embeddings += position_embeddings
 
-        embeddings = words_embeddings + position_embeddings + token_type_embeddings
         embeddings = self.layer_norm(embeddings)
         embeddings = self.dropout(embeddings, training=training)
         return embeddings

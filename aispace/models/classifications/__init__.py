@@ -6,3 +6,4 @@
 
 
 from .bert_for_sequence_classification import *
+from .textcnn_for_sequence_classification import *

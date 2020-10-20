@@ -1,0 +1,2 @@
+https://dataset-bj.cdn.bcebos.com/qianyan/dureader_robust-data.tar.gz 20518631 99bed9ced8995df1c89b9789f890c27a13b4650a56b4d973907cc28da8bd9f0f
+https://dataset-bj.cdn.bcebos.com/qianyan/dureader_yesno-data.tar.gz 135450581 c6fdbc76771e0eb3c36de78017da64a1097992536d204e98eb5d7e32abe1c44d

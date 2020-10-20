@@ -9,13 +9,14 @@ import tensorflow as tf
 
 from aispace.utils.hparams import Hparams
 from aispace.models.base_model import BaseModel
-from aispace.layers.pretrained.bert import Bert
-from aispace.utils.tf_utils import get_initializer
 from aispace.layers import BaseLayer
+from aispace.layers.activations import ACT2FN
+from aispace.utils.tf_utils import get_initializer
 
 __all__ = [
     "BertForQA"
 ]
+
 
 @BaseModel.register("bert_for_qa")
 class BertForQA(BaseModel):
@@ -23,51 +24,49 @@ class BertForQA(BaseModel):
         super(BertForQA, self).__init__(hparams, **kwargs)
         pretrained_hparams = hparams.pretrained
         model_hparams = hparams.model_attributes
+        self.start_n_top = model_hparams.start_n_top
+        self.seq_len = hparams.dataset.tokenizer.max_len
 
-        assert pretrained_hparams.norm_name in ['bert', 'albert', 'albert_brightmart', "ernie"], \
+        assert pretrained_hparams.norm_name not in ["xlnet_chinese"], \
             ValueError(f"{pretrained_hparams.norm_name} not be supported.")
-        self.bert = BaseLayer.by_name(pretrained_hparams.norm_name)(pretrained_hparams)
-        self.dropout = tf.keras.layers.Dropout(
-            model_hparams.hidden_dropout_prob
-        )
-        self.project1 = tf.keras.layers.Dense(
+        self.encode_pretrained = BaseLayer.by_name(pretrained_hparams.norm_name)(pretrained_hparams)
+
+        self.qa_layer = BaseLayer.by_name(model_hparams.qa_layer_name)(
             model_hparams.hidden_size,
-            kernel_initializer=get_initializer(model_hparams.initializer_range),
-            name="project1"
-        )
-        self.project2 = tf.keras.layers.Dense(
-            model_hparams.hidden_size,
-            kernel_initializer=get_initializer(model_hparams.initializer_range),
-            name="project2"
-        )
-        self.qa_outputs = tf.keras.layers.Dense(
-            2, kernel_initializer=get_initializer(model_hparams.initializer_range), name="qa_outputs"
-        )
-        self.classifier = tf.keras.layers.Dense(
-            2, kernel_initializer=get_initializer(model_hparams.initializer_range),
-            name="classifier"
-        )
+            self.seq_len,
+            self.start_n_top,
+            self.start_n_top,
+            get_initializer(model_hparams.initializer_range),
+            model_hparams.hidden_dropout_prob)
 
     def call(self, inputs, **kwargs):
-        outputs = self.bert(inputs, **kwargs)
-        seq_output = outputs[0]
-        cls_output = outputs[1]
+        is_training = kwargs.get("training", False)
+        new_inputs = {
+            "input_ids": tf.cast(inputs['input_ids'], tf.int32),
+            'token_type_ids': inputs['token_type_ids'],
+            "attention_mask": inputs['attention_mask']
+        }
+        encode_repr = self.encode_pretrained(new_inputs, **kwargs)
+        seq_output = encode_repr[0]  # [b, l, h]
+        cls_output = encode_repr[1]  # [b, h]
+        passage_mask = inputs['p_mask']
 
-        # pos predict
-        project1 = self.project1(seq_output)
-        project1 = self.dropout(project1, training=kwargs.get('training', False))
-        qa_logits = self.qa_outputs(project1)
-        start_logits, end_logits = tf.split(qa_logits, 2, axis=-1)
-        start_logits = tf.squeeze(start_logits, axis=-1)
-        end_logits = tf.squeeze(end_logits, axis=-1)
+        if is_training:
+            start_position = inputs['start_position']
+        else:
+            start_position = tf.constant(0)
 
-        # is_impossibale predict
-        project2 = self.project2(cls_output)
-        project2 = self.dropout(project2, training=kwargs.get('training', False))
-        is_impossible_logits = self.classifier(project2)
+        outputs = self.qa_layer([seq_output, cls_output, passage_mask, start_position], training=is_training)
 
-        outputs = (start_logits, end_logits, is_impossible_logits) + outputs[2:]  # add hidden states and attention if they are here
+        return outputs + (inputs['unique_id'], )
 
-        return outputs  # logits, (hidden_states), (attentions)
-
-
+    def deploy(self):
+        from aispace.datasets.tokenizer import BertTokenizer
+        from .bento_services import BertQAService
+        tokenizer = BertTokenizer(self._hparams.dataset.tokenizer)
+        bento_service = BertQAService()
+        bento_service.pack("model", self)
+        bento_service.pack("tokenizer", tokenizer)
+        bento_service.pack("hparams", self._hparams)
+        saved_path = bento_service.save(self._hparams.get_deploy_dir())
+        return saved_path

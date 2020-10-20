@@ -1,0 +1,113 @@
+includes:
+  - "../base.yml"
+
+model_name: textcnn_for_classification
+
+model_attributes:
+    hidden_dropout_prob: 0.5
+    initializer_range: 0.02
+    hidden_size: 1024
+    vocab_size: 21128
+    filters:
+      - 2
+      - 3
+      - 4
+    windows:
+      - 100
+      - 100
+      - 100
+
+training:
+#  policy:
+#    name: "k-fold"
+#    config:
+#      k: 5
+  learning_rate: 1e-3
+  max_epochs: 3
+  batch_size: 128
+
+  optimizer:
+    name: adam
+
+#  optimizer_wrapper:
+#    switch: true
+
+  callbacks:
+    # callback name
+    early_stopping:
+      switch: false
+      config:
+        patience: 3
+    checkpoint:
+      switch: false
+      config:
+        monitor: val_macro_f1
+        save_best_only: true
+    lr_finder:
+      switch: false
+#      config:
+#        max_steps: 100
+#        smoothing: 0.6
+
+
+dataset:
+  name: glue_zh/tnews
+  data_dir: "./data"
+  transformer: "glue_zh/tnews"
+
+  source:
+    train: "train[:80%]"
+    validation: "train[-20%:]"
+    test: "validation"
+
+  tokenizer:
+      name: bert_tokenizer
+      vocab:
+          filename: "/search/data1/yyk/data/pretrained/nezha/NEZHA-Base/vocab.txt"
+          special_tokens:
+              PAD: "[PAD]"
+              UNK: "[UNK]"
+              SEP: "[SEP]"
+              CLS: "[CLS]"
+              MASK: "[MASK]"
+      tokenize_chinese_chars: True
+      do_lower_case: True
+      do_basic_tokenize: True
+      non_split_tokens: null
+      max_len: 100
+
+  inputs:
+    - name: input_ids
+      column: input_ids
+      type: LIST_OF_INT
+      max_len: 100
+    - name: token_type_ids
+      column: token_type_ids
+      type: LIST_OF_INT
+      max_len: 100
+    - name: attention_mask
+      column: attention_mask
+      type: LIST_OF_INT
+      max_len: 100
+
+  outputs:
+    - name: output_1
+      column: label
+      type: CLASSLABEL
+      num: 15
+      labels: ["news_story", "news_culture", "news_entertainment", "news_sports", "news_finance",
+               "news_house", "news_car", "news_edu", "news_tech", "news_military", "news_travel",
+               "news_world", "news_stock", "news_agriculture", "news_game"]
+      loss:
+        name: sparse_categorical_crossentropy
+        config:
+          from_logits: true
+      metrics:
+        - name: sparse_categorical_accuracy
+        - name: sparse_f1_score
+          config:
+            name: "macro_f1"
+            num_classes: 15
+            average: "macro"
+
+

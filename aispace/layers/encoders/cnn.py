@@ -8,9 +8,13 @@ import tensorflow as tf
 
 from aispace.utils.tf_utils import get_bias_initializer, get_initializer
 
+from aispace.layers.activations import ACT2FN
+
 __all__ = [
     "Dgcnn",
-    "DgcnnBlock"
+    "DgcnnBlock",
+    "Textcnn",
+    "TextcnnBlock"
 ]
 
 
@@ -72,4 +76,37 @@ class Dgcnn(tf.keras.layers.Layer):
         output = self.conv1(input)
         gate = tf.keras.activations.sigmoid(self.noise(self.conv2(input), training=training))
         output = input + output * gate
+        return output
+
+
+class Textcnn(tf.keras.layers.Layer):
+    def __init__(self, filter, window, initializer_range=0.02, **kwargs):
+        super(Textcnn, self).__init__(**kwargs)
+        self.conv = tf.keras.layers.Conv1D(
+            filter,
+            window,
+            padding='SAME',
+            kernel_initializer=get_initializer(initializer_range),
+            bias_initializer=get_bias_initializer('conv')
+        )
+        self.batch_norm = tf.keras.layers.BatchNormalization()
+        self.act_fn = ACT2FN['relu']
+        self.max_pool = tf.keras.layers.GlobalMaxPool1D()
+
+    def call(self, input, **kwargs):
+        output = self.conv(input)
+        output = self.batch_norm(output)
+        output = self.act_fn(output)
+        output = self.max_pool(output)
+        return output
+
+
+class TextcnnBlock(tf.keras.layers.Layer):
+    def __init__(self, filters, windows, initializer_range=0.02, **kwargs):
+        super(TextcnnBlock, self).__init__(**kwargs)
+        self.convs = [Textcnn(filters[i], windows[i], initializer_range) for i in range(len(filters))]
+
+    def call(self, input, **kwargs):
+        outputs = [conv(input) for conv in self.convs]
+        output = tf.concat(outputs, axis=-1)
         return output

@@ -146,4 +146,4 @@ class BertNerService(BentoService):
     # --header "Content-Type: application/json" \
     # --request POST \
     # --data '{"text": "泰安今早发生2.9级地震！靠近这个国家森林公园"}' \
-    # http://127.0.0.1:5000/ner_predict
+    # http://127.0.0.1:5001/ner_predict

@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class GlueConfig(tfds.core.BuilderConfig):
     """BuilderConfig for GLUE."""
 
-    @tfds.core.disallow_positional_args
+    # @tfds.core.disallow_positional_args
     def __init__(self,
                  text_features=None,
                  label_column=None,
@@ -310,6 +310,12 @@ class GlueZh(BaseDataset):
 
     def __init__(self, data_dir, **kwargs):
         super(GlueZh, self).__init__(data_dir, **kwargs)
+        if "dataset" in self.hparams and "transformer" in self.hparams.dataset and self.hparams.dataset.transformer is not None:
+            self.transformer = Transformer.BaseTransformer.\
+                by_name(self.hparams.dataset.transformer)(self.hparams, data_dir=data_dir)
+            # data_train_json = transformer.transform(data_train_json, split="train")
+            # data_validation_json = transformer.transform(data_validation_json, split="validation")
+            # data_test_json = transformer.transform(data_test_json, split="test")
 
     def _info(self):
         features = self._get_feature_dict()
@@ -319,7 +325,8 @@ class GlueZh(BaseDataset):
 
         metadata = None
         if "dataset" in self.hparams and "tokenizer" in self.hparams.dataset and "name" in self.hparams.dataset.tokenizer:
-            metadata = tfds.core.MetadataDict({"tokenizer": self.hparams.dataset.tokenizer.name})
+            metadata = tfds.core.MetadataDict({"tokenizer": self.hparams.dataset.tokenizer.name,
+                                               "vocab_size": self.hparams.pretrained.config.vocab_size})
 
         return tfds.core.DatasetInfo(
             builder=self,
@@ -366,32 +373,38 @@ class GlueZh(BaseDataset):
         data_train_json, data_validation_json, data_test_json = \
             os.path.join(data_dir, "train.json"), os.path.join(data_dir, "dev.json"), os.path.join(data_dir,
                                                                                                    "test.json")
-        if "dataset" in self.hparams and "transformer" in self.hparams.dataset and self.hparams.dataset.transformer is not None:
-            transformer = Transformer.BaseTransformer.\
-                by_name(self.hparams.dataset.transformer)(self.hparams, data_dir=data_dir)
-            data_train_json = transformer.transform(data_train_json, split="train")
-            data_validation_json = transformer.transform(data_validation_json, split="validation")
-            data_test_json = transformer.transform(data_test_json, split="test")
+        # if "dataset" in self.hparams and "transformer" in self.hparams.dataset and self.hparams.dataset.transformer is not None:
+        #     transformer = Transformer.BaseTransformer.\
+        #         by_name(self.hparams.dataset.transformer)(self.hparams, data_dir=data_dir)
+        #     data_train_json = transformer.transform(data_train_json, split="train")
+        #     data_validation_json = transformer.transform(data_validation_json, split="validation")
+        #     data_test_json = transformer.transform(data_test_json, split="test")
 
         return [
             tfds.core.SplitGenerator(
                 name=tfds.Split.TRAIN,
                 num_shards=self.builder_config.train_shards,
-                gen_kwargs={"filepath": data_train_json}
+                gen_kwargs={"filepath": data_train_json, 'split': "train"}
             ),
             tfds.core.SplitGenerator(
                 name=tfds.Split.VALIDATION,
                 num_shards=1,
-                gen_kwargs={"filepath": data_validation_json}
+                gen_kwargs={"filepath": data_validation_json, 'split': "validation"}
             ),
             tfds.core.SplitGenerator(
                 name=tfds.Split.TEST,
                 num_shards=1,
-                gen_kwargs={"filepath": data_test_json}
+                gen_kwargs={"filepath": data_test_json, 'split': "test"}
             )
         ]
 
     def _generate_examples(self, filepath, **kwargs):
+        """
+        TODO 直接从原始数据到tfrecords, 不用生成中间的json文件
+        :param filepath:
+        :param kwargs:
+        :return:
+        """
         generator = self._generate_examples_from_json if "dataset" in self.hparams and \
                                                          "transformer" in self.hparams.dataset \
                                                          and self.hparams.dataset.transformer is not None \

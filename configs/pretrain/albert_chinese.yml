@@ -264,3 +264,107 @@ pretrained:
                         to_replaces:
                             - pretrained.norm_name
                         value: albert_brightmart
+        albert_base_zh_google:
+            # ref: https://github.com/google-research/albert
+            model:
+                # your/path/to/albert_tiny_zh_google
+                url: /search/data1/yyk/data/pretrained/albert/albert_base_zh_google
+                suffix: model.ckpt-best
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                # your/path/to/albert_tiny_zh_google/vocab.txt
+                url: /search/data1/yyk/data/pretrained/albert/albert_base_zh_google/vocab_chinese.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                # your/path/to/albert_tiny_zh_google/albert_config_tiny_g.json
+                url: /search/data1/yyk/data/pretrained/albert/albert_base_zh_google/albert_config.json
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+                others:
+                    adapter:
+                        to_replaces:
+                            - pretrained.adapter
+                        value: tf_huggingface_albert_chinese_google_adapter
+        albert_large_zh_google:
+            # ref: https://github.com/google-research/albert
+            model:
+                # your/path/to/albert_tiny_zh_google
+                url: /search/data1/yyk/data/pretrained/albert/albert_large_zh_google
+                suffix: model.ckpt-best
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                # your/path/to/albert_tiny_zh_google/vocab.txt
+                url: /search/data1/yyk/data/pretrained/albert/albert_large_zh_google/vocab_chinese.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                # your/path/to/albert_tiny_zh_google/albert_config_tiny_g.json
+                url: /search/data1/yyk/data/pretrained/albert/albert_large_zh_google/albert_config.json
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+                others:
+                    adapter:
+                        to_replaces:
+                            - pretrained.adapter
+                        value: tf_huggingface_albert_chinese_google_adapter
+        albert_xlarge_zh_google:
+            # ref: https://github.com/google-research/albert
+            model:
+                # your/path/to/albert_tiny_zh_google
+                url: /search/data1/yyk/data/pretrained/albert/albert_xlarge_zh_google
+                suffix: model.ckpt-best
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                # your/path/to/albert_tiny_zh_google/vocab.txt
+                url: /search/data1/yyk/data/pretrained/albert/albert_xlarge_zh_google/vocab_chinese.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                # your/path/to/albert_tiny_zh_google/albert_config_tiny_g.json
+                url: /search/data1/yyk/data/pretrained/albert/albert_xlarge_zh_google/albert_config.json
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+                others:
+                    adapter:
+                        to_replaces:
+                            - pretrained.adapter
+                        value: tf_huggingface_albert_chinese_google_adapter
+        albert_xxlarge_zh_google:
+            # ref: https://github.com/google-research/albert
+            model:
+                # your/path/to/albert_tiny_zh_google
+                url: /search/data1/yyk/data/pretrained/albert/albert_xxlarge_zh_google
+                suffix: model.ckpt-best
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                # your/path/to/albert_tiny_zh_google/vocab.txt
+                url: /search/data1/yyk/data/pretrained/albert/albert_xxlarge_zh_google/vocab_chinese.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                # your/path/to/albert_tiny_zh_google/albert_config_tiny_g.json
+                url: /search/data1/yyk/data/pretrained/albert/albert_xxlarge_zh_google/albert_config.json
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config
+                others:
+                    adapter:
+                        to_replaces:
+                            - pretrained.adapter
+                        value: tf_huggingface_albert_chinese_google_adapter

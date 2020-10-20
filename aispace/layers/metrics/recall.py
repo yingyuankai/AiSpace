@@ -24,7 +24,11 @@ class SparseRecall(tfa.metrics.FBetaScore):
             dtype=None,
             **kwargs
     ):
-        super().__init__(num_classes, average, 1.0, threshold, name=name, dtype=dtype)
+        if tf.version.VERSION > '2.0.0':
+            super().__init__(num_classes, average, 1.0, threshold, name=name, dtype=dtype)
+        else:
+            super().__init__(num_classes, average, 1.0, name=name, dtype=dtype)
+            self.threshold = threshold
 
     def get_config(self):
         base_config = super().get_config()
@@ -57,6 +61,7 @@ class SparseRecall(tfa.metrics.FBetaScore):
         self.false_negatives.assign_add(_count_non_zero((y_pred - 1) * y_true))
         self.weights_intermediate.assign_add(_count_non_zero(y_true))
 
+    # @tf.function(experimental_relax_shapes=True)
     def result(self):
         recall = tf.math.divide_no_nan(
             self.true_positives, self.true_positives + self.false_negatives

@@ -6,10 +6,13 @@
     <br>
 <p>
 
-<p align="center">
-    <a href="https://travis-ci.com/yingyuankai/AiSpace.svg?branch=master">
+<!-- close temporary -->
+<!-- <a href="https://travis-ci.com/yingyuankai/AiSpace.svg?branch=master">
         <img alt="Build" src="https://travis-ci.com/yingyuankai/AiSpace.svg?branch=master">
     </a>
+-->
+
+<p align="center">
     <a href="https://github.com/yingyuankai/AiSpace/blob/master/LICENSE">
         <img alt="GitHub" src="https://img.shields.io/github/license/yingyuankai/AiSpace.svg?color=blue">
     </a>
@@ -42,13 +45,15 @@ Table of Contents
 * All modules are registerable, including models, dataset, losses, optimizers, metrics, callbacks, etc.
 * Standardized process
 * Multi-GPU Training
+* K-fold cross validation training
+* Integrate lr finder
 * Integrate multiple pre-trained models, including chinese
 * Simple and fast deployment using [BentoML](https://github.com/bentoml/BentoML)
 * Integrated Chinese benchmarks [CLUE](https://github.com/CLUEbenchmark/CLUE)
 
 ## Requirements
 
-```
+```text
 git clone https://github.com/yingyuankai/AiSpace.git
 cd AiSpace && pip install -r requirements
 ```
@@ -81,6 +86,49 @@ python -u aispace/trainer.py \
 ```
 
 --model_resume_path is a path to initialization model.
+
+### lr finder
+
+Firstly, use optimizer adma and open lr_finder callback.
+
+```yaml
+policy:
+    name: "base"
+        
+optimizer:
+  name: adam
+    
+callbacks:
+    lr_finder:
+      switch: true
+```
+
+Then run training policy as base.
+
+Lastly, you can find **lr_finder.jpg** in you workspace.
+
+
+Ref to [keras-lr-multiplier](https://pypi.org/project/keras-lr-multiplier/).
+
+### K-fold cross validation training
+
+Firstly, Replace training default policy form base to:
+
+```yaml
+training:
+  policy:
+    name: "k-fold"
+    config:
+      k: 5
+``` 
+
+The **k** is the number of fold. Your can refer to the configuration file in:
+
+```
+./confis/glue_zh/tnews_k_fold.yml
+```
+
+Then run training script as usual.
 
 ### Average checkpoints
 
@@ -145,7 +193,7 @@ We have integrated multiple pre-trained language models and are constantly expan
 |xlnet|2|0|no|[transformers](https://github.com/huggingface/transformers)|Processing|
 |xlnet_chinese|2|2|yes|[Chinese-PreTrained-XLNets](https://github.com/ymcui/Chinese-PreTrained-XLNets)|Done|
 |ernie|4|2|yes|[ERNIE](https://github.com/PaddlePaddle/ERNIE)|Done|
-|NEZHA|-|-|-|[NEZHA](https://github.com/huawei-noah/Pretrained-Language-Model)|Processing|
+|NEZHA|4|4|yes|[NEZHA](https://github.com/huawei-noah/Pretrained-Language-Model)|Done|
 |TinyBERT|-|-|-|[TinyBERT](https://github.com/huawei-noah/Pretrained-Language-Model)|Processing|
 |electra_chinese|4|4|yes|[Chinese-ELECTR](https://github.com/ymcui/Chinese-ELECTRA)|Done|
 
@@ -207,7 +255,75 @@ Specify different pretrained model, please change ***includes*** and ***pretrain
 |chinese_electra_small_ex|59.900|58.078|55.525|56.194|
 |chinese_electra_base|60.500|60.090|58.267|58.909|
 |chinese_electra_large|60.500|60.362|57.653|58.336|
-    
+|nezha-base|58.940|57.909|55.650|55.630|
+|nezha-base-wwm|58.800|60.060|54.859|55.831|
+
+## glue_zh/cmrc2018
+
+```
+python -u aispace/trainer.py \
+    --experiment_name test \
+    --model_name bert_for_qa \
+    --schedule train_and_eval \
+    --enable_xla False \
+    --config_name cmrc2018 \
+    --config_dir ./configs/glue_zh \
+    --gpus 0 1 2 3 \
+    > err.log 2>&1 &
+```
+
+|Model|F1|EM|
+|---|---|---|
+|bert-base-chinese-huggingface|71.718|44.419|
+|albert_base_zh|69.463|41.643|
+|albert_base_zh_google|68.538|39.320|
+|chinese_wwm|72.081|44.419|
+|chinese_roberta_wwm_ext|71.523|44.362|
+|ERNIE_stable-1.0.1|**83.835**|64.898|
+|ERNIE_1.0_max-len-512|83.363|**65.293**|
+|chinese_electra_small|72.172|46.314|
+
+## dureader/robust
+
+```
+python -u aispace/trainer.py \
+    --experiment_name test \
+    --model_name bert_for_qa \
+    --schedule train_and_eval \
+    --enable_xla False \
+    --config_name dureader_robust \
+    --config_dir ./configs/qa \
+    --gpus 0 1 \
+    > err.log 2>&1 &
+```
+|Model|F1|EM|
+|---|---|---|
+|bert-base-chinese-huggingface|66.624|51.856|
+|chinese_wwm|67.007|53.434|
+|chinese_roberta_wwm_ext|65.521|50.274|
+|ERNIE_stable-1.0.1|75.268|61.675|
+|ERNIE_1.0_max-len-512|**83.609**|**72.328**|
+
+## dureader/yesno
+
+```
+python -u aispace/trainer.py \
+    --experiment_name test \
+    --model_name bert_for_classification \
+    --schedule train_and_eval \
+    --enable_xla False \
+    --config_name dureader_yesno \
+    --config_dir ./configs/qa \
+    --gpus 0 1 \
+    > err.log 2>&1 &
+```
+
+|Model|Accuracy|Macro_precision|Macro_recall|Macro_f1|
+|---|---|---|---|---|
+|bert-base-chinese-huggingface|76.565|73.315|69.958|71.230|
+|ERNIE_stable-1.0.1|85.756|82.919|81.627|82.213|
+|ERNIE_1.0_max-len-512|86.122|83.847|80.636|81.965|
+
 **NOTE**: The hyper-parameters used here have not been fine-tuned.
 
 ## Todos
@@ -218,6 +334,7 @@ Specify different pretrained model, please change ***includes*** and ***pretrain
 - More Chinese dataset;
 - Support Pytorch;
 - Improve the tokenizer to make it more versatile;
+- Build AiSpace server, make it can train and configure using UI.
 
 ## Refs
 

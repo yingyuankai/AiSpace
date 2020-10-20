@@ -25,7 +25,7 @@ pretrained:
     adapter: tf_huggingface_electra_adapter
     force_download: false
     init_from_pretrained: true
-    cache_dir: /search/data1/yyk/data/pretrained/electra # your path to save models
+    cache_dir: /search/odin/yyk/data/pretrained/electra # your path to save models
     model_path: null
     vocab_path: null
     config_path: null
@@ -38,19 +38,22 @@ pretrained:
         chinese_electra_small:
             model:
                 # your/path/to/chinese_electra_small
-                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_small
+#                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_small
+                url: /search/odin/yyk/data/pretrained/electra/chinese_electra_small
                 suffix: electra_small
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/chinese_electra_small/vocab.txt
-                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_small/vocab.txt
+#                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_small/vocab.txt
+                url: /search/odin/yyk/data/pretrained/electra/chinese_electra_small/vocab.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/chinese_roberta_wwm_large_ext/bert_config.json
-                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_small/small_generator_config.json
+#                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_small/small_generator_config.json
+                url: /search/odin/yyk/data/pretrained/electra/chinese_electra_small/small_generator_config.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.
@@ -58,19 +61,22 @@ pretrained:
         chinese_electra_small_ex:
             model:
                 # your/path/to/chinese_electra_small_ex
-                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_small_ex
+#                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_small_ex
+                url: /search/odin/yyk/data/pretrained/electra/chinese_electra_small_ex
                 suffix: electra_small_ex
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/chinese_electra_small_ex/vocab.txt
-                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_small_ex/vocab.txt
+#                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_small_ex/vocab.txt
+                url: /search/odin/yyk/data/pretrained/electra/chinese_electra_small_ex/vocab.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/chinese_electra_small_ex/bert_config.json
-                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_small_ex/small_ex_generator_config.json
+#                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_small_ex/small_ex_generator_config.json
+                url: /search/odin/yyk/data/pretrained/electra/chinese_electra_small_ex/small_ex_generator_config.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.
@@ -78,19 +84,22 @@ pretrained:
         chinese_electra_base:
             model:
                 # your/path/to/chinese_electra_base
-                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_base
+#                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_base
+                url: /search/odin/yyk/data/pretrained/electra/chinese_electra_base
                 suffix: electra_base
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/chinese_electra_base/vocab.txt
-                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_base/vocab.txt
+#                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_base/vocab.txt
+                url: /search/odin/yyk/data/pretrained/electra/chinese_electra_base/vocab.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/chinese_roberta_wwm_large_ext/bert_config.json
-                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_base/base_generator_config.json
+#                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_base/base_generator_config.json
+                url: /search/odin/yyk/data/pretrained/electra/chinese_electra_base/base_generator_config.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.
@@ -98,19 +107,22 @@ pretrained:
         chinese_electra_large:
             model:
                 # your/path/to/chinese_electra_large
-                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_large
+#                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_large
+                url: /search/odin/yyk/data/pretrained/electra/chinese_electra_large
                 suffix: electra_large
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/chinese_electra_large/vocab.txt
-                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_large/vocab.txt
+#                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_large/vocab.txt
+                url: /search/odin/yyk/data/pretrained/electra/chinese_electra_large/vocab.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/chinese_electra_large/bert_config.json
-                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_large/large_generator_config.json
+#                url: /search/data1/yyk/data/pretrained/electra/chinese_electra_large/large_generator_config.json
+                url: /search/odin/yyk/data/pretrained/electra/chinese_electra_large/large_generator_config.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.

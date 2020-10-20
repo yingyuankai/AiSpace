@@ -25,7 +25,7 @@ pretrained:
     name: bert-base-chinese-huggingface
     force_download: false
     init_from_pretrained: true
-    cache_dir: /search/data1/yyk/data/pretrained/bert
+    cache_dir: /search/odin/yyk/data/pretrained/bert
     model_path: null
     vocab_path: null
     config_path: null
@@ -55,7 +55,7 @@ pretrained:
                     do_lower_case:
                         to_replaces:
                             - dataset.tokenizer.do_lower_case
-                        value: false
+                        value: true
         bert-base-uncased-huggingface:
             model:
                 url: https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-uncased-tf_model.h5

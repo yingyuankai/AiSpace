@@ -11,7 +11,7 @@ from typing import List, Optional
 from aispace.datasets.vocabulary import Vocabulary
 from aispace.datasets.tokenizer.tokenizer_base import BaseTokenizer
 from aispace.utils.hparams import Hparams
-from aispace.utils.str_utils import truncate_seq_pair
+from aispace.utils.str_utils import truncate_seq_pair, preprocess_text
 
 __all__ = [
     "XlnetTokenizer"
@@ -66,17 +66,10 @@ class XlnetTokenizer(BaseTokenizer):
         self.sp_model.Load(self.vocab_file)
 
     def _preprocess_text(self, inputs):
-        if self.remove_space:
-            outputs = " ".join(inputs.strip().split())
-        else:
-            outputs = inputs
-        outputs = outputs.replace("``", '"').replace("''", '"')
-
-        if not self.keep_accents:
-            outputs = unicodedata.normalize("NFKD", outputs)
-            outputs = "".join([c for c in outputs if not unicodedata.combining(c)])
-        if self.do_lower_case:
-            outputs = outputs.lower()
+        outputs = preprocess_text(inputs,
+                                  lower=self.do_lower_case,
+                                  remove_space=self.remove_space,
+                                  keep_accents=self.keep_accents)
 
         return outputs
 
@@ -106,13 +99,25 @@ class XlnetTokenizer(BaseTokenizer):
 
     def detokenizer(self, tokens: List[str]):
         """Converts a sequence of tokens (strings for sub-words) in a single string."""
-        out_string = "".join(tokens).replace(SPIECE_UNDERLINE, " ").strip()
+        out_string = "".join(tokens).replace(SPIECE_UNDERLINE, " ")
         return out_string
 
     def encode(self,
                text_a: str,
                text_b: Optional[str] = None,
-               max_seq_length: Optional[int] = None):
+               max_seq_length: Optional[int] = None,
+               return_mask=False, return_offset=False,
+               return_cls_index=False):
+        """
+        encode text or tokens to ids
+        :param text_a:
+        :param text_b:
+        :param max_seq_length:
+        :param return_mask:
+        :param return_offset:
+        :param return_cls_index:
+        :return:
+        """
         max_seq_length = max_seq_length or self.max_len
 
         # sepical tokens
@@ -121,13 +126,21 @@ class XlnetTokenizer(BaseTokenizer):
         pad_id = self.vocab.pad_id
 
         # transforming for text_a
-        token_ids_a = self.vocab.transformer(self.tokenize(text_a))
+        if isinstance(text_a, str):
+            token_a = self.tokenize(text_a)
+        elif isinstance(text_a, (tuple, list)):
+            token_a = text_a
+        token_ids_a = self.vocab.transformer(token_a)
         assert isinstance(token_ids_a, list)
 
         # transforming for text_a or text_b
         token_ids_b = None
         if text_b:
-            token_ids_b = self.vocab.transformer(self.tokenize(text_b))
+            if isinstance(text_b, str):
+                token_b = self.tokenize(text_b)
+            elif isinstance(text_b, (tuple, list)):
+                token_b = text_b
+            token_ids_b = self.vocab.transformer(token_b)
             assert isinstance(token_ids_b, list)
             # Modifies `token_ids_a` and `token_ids_b` in place so that the
             # total length is less than the specified length.
@@ -139,20 +152,44 @@ class XlnetTokenizer(BaseTokenizer):
         input_ids = self.build_inputs_with_special_tokens(token_ids_a, token_ids_b)
         segment_ids = self.create_token_type_ids_from_sequences(token_ids_a, token_ids_b)
         special_token_mask = self.get_special_tokens_mask(token_ids_a, token_ids_b)
+        a_mask, b_mask = self.get_tokens_mask(token_ids_a, token_ids_b)
 
         input_mask = [1] * len(input_ids)
+        offset = max_seq_length - len(input_ids)
 
         input_ids = [pad_id] * (max_seq_length - len(input_ids)) + input_ids
         segment_ids = [0] * (max_seq_length - len(segment_ids)) + segment_ids
         input_mask = [0] * (max_seq_length - len(input_mask)) + input_mask
         special_token_mask = [0] * (max_seq_length - len(special_token_mask)) + special_token_mask
+        a_mask = [0] * (max_seq_length - len(a_mask)) + a_mask
+        if b_mask is not None:
+            b_mask = [0] * (max_seq_length - len(b_mask)) + b_mask
 
         assert len(input_ids) == max_seq_length
         assert len(segment_ids) == max_seq_length
         assert len(input_mask) == max_seq_length
         assert len(special_token_mask) == max_seq_length
+        assert len(a_mask) == max_seq_length
 
-        return input_ids, segment_ids, input_mask
+        output = {
+            "input_ids": input_ids,
+            "segment_ids": segment_ids,
+            "input_mask": input_mask,
+        }
+
+        if return_mask:
+            output['a_mask'] = a_mask
+            output['b_mask'] = b_mask
+
+        if return_offset:
+            output['a_offset'] = offset
+            if text_b:
+                output['b_offset'] = offset + len(token_ids_a) + 1
+
+        if return_cls_index:
+            output['cls_index'] = len(input_ids) - 1
+
+        return output
 
     def build_inputs_with_special_tokens(
         self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None
@@ -207,6 +244,12 @@ class XlnetTokenizer(BaseTokenizer):
         if token_ids_1 is None:
             return len(token_ids_0 + sep) * [0] + cls_segment_id
         return len(token_ids_0 + sep) * [0] + len(token_ids_1 + sep) * [1] + cls_segment_id
+
+    def get_tokens_mask(self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None):
+        if token_ids_1 is None:
+            return [1] * len(token_ids_0) + [0] * 2, None
+        return [1] * len(token_ids_0) + [0] * (len(token_ids_1) + 3), \
+               [0] * (len(token_ids_0) + 1) + [1] * len(token_ids_1) + [0] * 2
 
     def get_special_tokens_mask(
         self, token_ids_0: List[int], token_ids_1: Optional[List[int]] = None, already_has_special_tokens: bool = False

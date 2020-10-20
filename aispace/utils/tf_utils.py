@@ -38,8 +38,10 @@ def get_bias_initializer(type='conv'):
     :param type: if type equals to conv, return 0 constant initializer, if equals to dense, return 1 constant initializer
     :return: tensorflow constant initializer
     """
-    if type == 'dense': return tf.constant_initializer(1)
-    else: return tf.constant_initializer(0)
+    if type == 'dense':
+        return tf.constant_initializer(1)
+    else:
+        return tf.constant_initializer(0)
 
 
 def pack_inputs(inputs):
@@ -236,6 +238,76 @@ def tf_gather(from_tensor, indices):
     return gather_res
 
 
+# @tf.function(experimental_relax_shapes=True)
+def generate_relative_positions_matrix(length, max_relative_position,
+                                       cache=False):
+    """Generates matrix of relative positions between inputs."""
+    if not cache:
+        range_vec = tf.range(length)
+        range_mat = tf.reshape(tf.tile(range_vec, [length]), [length, length])
+        distance_mat = range_mat - tf.transpose(range_mat)
+    else:
+        distance_mat = tf.expand_dims(tf.range(-length + 1, 1, 1), 0)
+    distance_mat_clipped = tf.clip_by_value(distance_mat, -max_relative_position,
+                                            max_relative_position)
+    # Shift values to be >= 0. Each integer still uniquely identifies a relative
+    # position difference.
+    final_mat = distance_mat_clipped + max_relative_position
+    return final_mat
+
+
+# @tf.function(experimental_relax_shapes=True)
+def generate_relative_positions_embeddings(length, depth,
+                                           max_relative_position, name,
+                                           cache=False):
+    """
+    Generates tensor of size [1 if cache else length, length, depth].
+    example:
+        # `relation_keys` = [F|T, F|T, H]
+           relations_keys = _generate_relative_positions_embeddings(
+        to_seq_length, size_per_head, max_relative_position, "relative_positions_keys",
+        cache=False)
+      relations_keys = tf.saturate_cast(relations_keys, compute_type)
+    # Scalar dimensions referenced here:
+    #   B = batch size (number of sequences)
+    #   F = `from_tensor` sequence length
+    #   T = `to_tensor` sequence length
+    #   N = `num_attention_heads`
+    #   H = `size_per_head`
+      length = to_seq_length
+      depth = size_per_head
+      max_relative_position
+      name = "relative_positions_keys"
+    """
+    # '''
+    relative_positions_matrix = generate_relative_positions_matrix(
+        length, max_relative_position, cache=cache)
+    vocab_size = max_relative_position * 2 + 1
+    # Generates embedding for each relative position of dimension depth.
+    embeddings_table = np.zeros([vocab_size, depth])
+
+    position = tf.range(0.0, vocab_size, 1.0)
+    position = tf.reshape(position, [vocab_size, -1])
+
+    for pos in range(vocab_size):
+        for i in range(depth // 2):
+            embeddings_table[pos, 2 * i] = np.sin(pos / np.power(10000, 2 * i / depth))
+            embeddings_table[pos, 2 * i + 1] = np.cos(pos / np.power(10000, 2 * i / depth))
+
+    embeddings_table_tensor = tf.convert_to_tensor(embeddings_table, tf.float32)
+    flat_relative_positions_matrix = tf.reshape(relative_positions_matrix, [-1])
+    # [length * length?, vocab_size]
+    one_hot_relative_positions_matrix = tf.one_hot(flat_relative_positions_matrix, depth=vocab_size)
+
+    embeddings = tf.matmul(one_hot_relative_positions_matrix, embeddings_table_tensor)
+
+    my_shape = get_shape(relative_positions_matrix)
+    my_shape.append(depth)
+
+    embeddings = tf.reshape(embeddings, my_shape)
+    return embeddings
+
+
 ###################
 # < tf 2.0
 
@@ -363,15 +435,26 @@ def weighted_sum(seq, prob):
 def masked_softmax(logits, mask):
     if len(logits.shape.as_list()) != len(mask.shape.as_list()):
         mask = tf.sequence_mask(mask, tf.shape(logits)[1], dtype=tf.float32)
+    mask = tf.cast(mask, tf.float32)
 
-    return tf.nn.softmax(logits + (1.0 - mask) * tf.float32.min)
+    # return tf.nn.softmax(logits * mask + (1.0 - mask) * tf.float32.min, axis=-1)
+    return tf.nn.softmax(logits * mask + (1.0 - mask) * tf.float32.min, axis=-1)
+
+
+def masked_log_softmax(logits, mask):
+    if len(logits.shape.as_list()) != len(mask.shape.as_list()):
+        mask = tf.sequence_mask(mask, tf.shape(logits)[1], dtype=tf.float32)
+    mask = tf.cast(mask, tf.float32)
+
+    return tf.nn.log_softmax(logits * mask + (1.0 - mask) * tf.float32.min, axis=-1)
 
 
 def mask_logits(logits, mask):
     if len(logits.shape.as_list()) != len(mask.shape.as_list()):
         mask = tf.sequence_mask(mask, tf.shape(logits)[1], dtype=tf.float32)
+    mask = tf.cast(mask, tf.float32)
 
-    return logits + (1.0 - mask) * tf.float32.min
+    return logits * mask + (1.0 - mask) * tf.float32.min
 
 
 def add_seq_mask(inputs, seq_len, mode='mul', max_len=None):
@@ -381,3 +464,55 @@ def add_seq_mask(inputs, seq_len, mode='mul', max_len=None):
     if mode == 'add':
         mask = (1 - mask) * tf.float32.min
         return inputs + mask
+
+
+def generate_onehot_label(input_data, input_depth):
+    """Generate one-hot label"""
+    return tf.one_hot(input_data, depth=input_depth, on_value=1.0, off_value=0.0, dtype=tf.float32)
+
+
+def pack_inputs(inputs):
+    """Pack a list of `inputs` tensors to a tuple.
+  Args:
+    inputs: a list of tensors.
+  Returns:
+    a tuple of tensors. if any input is None, replace it with a special constant
+    tensor.
+  """
+    inputs = tf.nest.flatten(inputs)
+    outputs = []
+    for x in inputs:
+        if x is None:
+            outputs.append(tf.constant(0, shape=[], dtype=tf.int32))
+        else:
+            outputs.append(x)
+    return tuple(outputs)
+
+
+def unpack_inputs(inputs):
+    """unpack a tuple of `inputs` tensors to a tuple.
+  Args:
+    inputs: a list of tensors.
+  Returns:
+    a tuple of tensors. if any input is a special constant tensor, replace it
+    with None.
+  """
+    inputs = tf.nest.flatten(inputs)
+    outputs = []
+    for x in inputs:
+        if is_special_none_tensor(x):
+            outputs.append(None)
+        else:
+            outputs.append(x)
+    x = tuple(outputs)
+
+    # To trick the very pointless 'unbalanced-tuple-unpacking' pylint check
+    # from triggering.
+    if len(x) == 1:
+        return x[0]
+    return tuple(outputs)
+
+
+def is_special_none_tensor(tensor):
+    """Checks if a tensor is a special None Tensor."""
+    return tensor.shape.ndims == 0 and tensor.dtype == tf.int32

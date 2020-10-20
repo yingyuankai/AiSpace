@@ -6,7 +6,10 @@
 
 import tensorflow as tf
 
-from swa.tfkeras import SWA
+from prettytable import PrettyTable
+
+from aispace.layers.callbacks.lr_finder import LRFinder
+from aispace.layers.callbacks.qa_evaluators import EvaluatorForQaWithImpossible, EvaluatorForQaSimple
 
 __all__ = [
     "CALLBACKS"
@@ -19,5 +22,17 @@ CALLBACKS = {
         lambda config: tf.keras.callbacks.ModelCheckpoint(**config),
     'tensorboard':
         lambda config: tf.keras.callbacks.TensorBoard(**config),
-    # 'swa': SWA
+    'lr_finder': lambda config: LRFinder(**config),
+    'evaluator_for_qa_with_impossible':
+        lambda config: EvaluatorForQaWithImpossible(**config),
+    'evaluator_for_qa_simple':
+        lambda config: EvaluatorForQaSimple(**config)
 }
+
+
+def print_available():
+    table = PrettyTable(["NAME"])
+    for key in CALLBACKS:
+        table.add_row([key])
+    print()
+    print(table)

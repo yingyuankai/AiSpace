@@ -1,6 +1,6 @@
 pandas
-tensorflow-gpu==2.0.1
-tensorflow-addons
+tensorflow-gpu==2.1.0
+tensorflow-addons==0.9.1
 sklearn
 numpy
 loguru
@@ -22,3 +22,4 @@ six>=1.12.0
 tensorboard>=2.1.0
 tensorflow-estimator>=2.1.0
 python-dateutil==2.8.0
+keras-lr-multiplier==0.8.0
