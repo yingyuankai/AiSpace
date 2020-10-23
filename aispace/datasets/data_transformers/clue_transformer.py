@@ -17,10 +17,140 @@ from aispace.utils.str_utils import preprocess_text
 
 __all__ = [
     "TnewsTransformer",
-    "CMRC2018Transformer"
+    "CMRC2018Transformer",
+    "AfqmcTransformer"
 ]
 
 logger = logging.getLogger(__name__)
+
+
+@BaseTransformer.register("glue_zh/afqmc")
+class AfqmcTransformer(BaseTransformer):
+    def __init__(self, hparams, **kwargs):
+        super(AfqmcTransformer, self).__init__(hparams, **kwargs)
+
+        # tokenizer
+        self.tokenizer = \
+            BaseTokenizer. \
+                by_name(self._hparams.dataset.tokenizer.name) \
+                (self._hparams.dataset.tokenizer)
+
+        # json dir
+        self.json_dir = os.path.join(kwargs.get("data_dir", self._hparams.dataset.data_dir), "json")
+
+    def transform(self, data_path, split="train"):
+        # output_path_base = os.path.join(os.path.dirname(data_path), "json")
+        # if not os.path.exists(output_path_base):
+        #     os.makedirs(output_path_base)
+        # output_path = os.path.join(output_path_base, f"{split}.json")
+        with open(data_path, "r", encoding="utf8") as inf:
+            # with open(output_path, "w", encoding="utf8") as ouf:
+            for line in inf:
+                if not line: continue
+                line = line.strip()
+                if len(line) == 0: continue
+                line_json = json.loads(line)
+                sentence1 = line_json.get("sentence1", "").strip()
+                sentence2 = line_json.get("sentence2", "").strip()
+                if len(sentence1) == 0 and len(sentence2) == 0: continue
+                encode_info = self.tokenizer.encode(sentence1, sentence2)
+                input_ids, token_type_ids, attention_mask = \
+                    encode_info['input_ids'], encode_info['segment_ids'], encode_info['input_mask']
+                label = line_json.get("label", "0")
+                item = {
+                    "input_ids": input_ids,
+                    "token_type_ids": token_type_ids,
+                    "attention_mask": attention_mask,
+                    "label": label
+                }
+                yield item
+                # new_line = f"{json_dumps(item)}\n"
+                # ouf.write(new_line)
+
+
+@BaseTransformer.register("glue_zh/iflytek")
+class IflytekTransformer(BaseTransformer):
+    def __init__(self, hparams, **kwargs):
+        super(IflytekTransformer, self).__init__(hparams, **kwargs)
+
+        # tokenizer
+        self.tokenizer = \
+            BaseTokenizer. \
+                by_name(self._hparams.dataset.tokenizer.name) \
+                (self._hparams.dataset.tokenizer)
+
+        # json dir
+        self.json_dir = os.path.join(kwargs.get("data_dir", self._hparams.dataset.data_dir), "json")
+
+    def transform(self, data_path, split="train"):
+        # output_path_base = os.path.join(os.path.dirname(data_path), "json")
+        # if not os.path.exists(output_path_base):
+        #     os.makedirs(output_path_base)
+        # output_path = os.path.join(output_path_base, f"{split}.json")
+        with open(data_path, "r", encoding="utf8") as inf:
+            # with open(output_path, "w", encoding="utf8") as ouf:
+            for line in inf:
+                if not line: continue
+                line = line.strip()
+                if len(line) == 0: continue
+                line_json = json.loads(line)
+                sentence = line_json.get("sentence", "").strip()
+                if len(sentence) == 0: continue
+                encode_info = self.tokenizer.encode(sentence)
+                input_ids, token_type_ids, attention_mask = \
+                    encode_info['input_ids'], encode_info['segment_ids'], encode_info['input_mask']
+                label = line_json.get("label", "0")
+                item = {
+                    "input_ids": input_ids,
+                    "token_type_ids": token_type_ids,
+                    "attention_mask": attention_mask,
+                    "label": label
+                }
+                yield item
+
+
+@BaseTransformer.register("glue_zh/cmnli")
+class CmnliTransformer(BaseTransformer):
+    def __init__(self, hparams, **kwargs):
+        super(CmnliTransformer, self).__init__(hparams, **kwargs)
+
+        # tokenizer
+        self.tokenizer = \
+            BaseTokenizer. \
+                by_name(self._hparams.dataset.tokenizer.name) \
+                (self._hparams.dataset.tokenizer)
+
+        # json dir
+        self.json_dir = os.path.join(kwargs.get("data_dir", self._hparams.dataset.data_dir), "json")
+
+    def transform(self, data_path, split="train"):
+        # output_path_base = os.path.join(os.path.dirname(data_path), "json")
+        # if not os.path.exists(output_path_base):
+        #     os.makedirs(output_path_base)
+        # output_path = os.path.join(output_path_base, f"{split}.json")
+        with open(data_path, "r", encoding="utf8") as inf:
+            # with open(output_path, "w", encoding="utf8") as ouf:
+            for line in inf:
+                if not line: continue
+                line = line.strip()
+                if len(line) == 0: continue
+                line_json = json.loads(line)
+                sentence1 = line_json.get("sentence1", "").strip()
+                sentence2 = line_json.get("sentence2", "").strip()
+                if len(sentence1) == 0 and len(sentence2) == 0: continue
+                encode_info = self.tokenizer.encode(sentence1, sentence2)
+                input_ids, token_type_ids, attention_mask = \
+                    encode_info['input_ids'], encode_info['segment_ids'], encode_info['input_mask']
+                label = line_json.get("gold_label", "neutral")
+                if split != "train":
+                    label = line_json.get('label', 'neutral')
+                item = {
+                    "input_ids": input_ids,
+                    "token_type_ids": token_type_ids,
+                    "attention_mask": attention_mask,
+                    "label": label
+                }
+                yield item
 
 
 @BaseTransformer.register("glue_zh/tnews")

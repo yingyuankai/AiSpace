@@ -283,6 +283,22 @@ python -u aispace/trainer.py \
 |ERNIE_1.0_max-len-512|83.363|**65.293**|
 |chinese_electra_small|72.172|46.314|
 
+## glue_zh/afqmc
+
+|Model|Accuracy|Macro_precision|Macro_recall|Macro_f1|
+|---|---|---|---|---|
+|ERNIE_1.0_max-len-512|72.405|67.489|66.750|67.071|
+
+## glue_zh/iflytek
+
+|Model|Accuracy|Macro_precision|Macro_recall|Macro_f1|
+|---|---|---|---|---|
+|ERNIE_1.0_max-len-512|58.753|30.406|32.275|28.965|
+
+## glue_zh/cmnli
+
+TODO
+
 ## dureader/robust
 
 ```
