@@ -107,9 +107,6 @@ Then run training policy as base.
 
 Lastly, you can find **lr_finder.jpg** in you workspace.
 
-
-Ref to [keras-lr-multiplier](https://pypi.org/project/keras-lr-multiplier/).
-
 ### K-fold cross validation training
 
 Firstly, Replace training default policy form base to:
@@ -179,6 +176,26 @@ merge configuration of bert_huggingface into current.
 includes:
   - "../pretrain/bert_huggingface.yml"     # relative path
 ```
+
+## Datasets
+
+|Dataset|Info|Ref|
+|---|---|---|
+|glue_zh/afqmc|Ant Financial Question Matching Corpus(蚂蚁金融语义相似度)|https://github.com/CLUEbenchmark/CLUE|
+|glue_zh/tnews|TNEWS 今日头条中文新闻（短文）分类|https://github.com/CLUEbenchmark/CLUE|
+|glue_zh/iflytek|IFLYTEK' 长文本分类|https://github.com/CLUEbenchmark/CLUE|
+|glue_zh/cmnli|CMNLI 语言推理任务|https://github.com/CLUEbenchmark/CLUE|
+|glue_zh/copa|COPA 因果推断-中文版|https://github.com/CLUEbenchmark/CLUE|
+|glue_zh/wsc|WSC Winograd模式挑战中文版|https://github.com/CLUEbenchmark/CLUE|
+|glue_zh/csl|CSL 论文关键词识别|https://github.com/CLUEbenchmark/CLUE|
+|glue_zh/cmrc2018|Reading Comprehension for Simplified Chinese 简体中文阅读理解任务|https://github.com/CLUEbenchmark/CLUE|
+|glue_zh/drcd|繁体阅读理解任务|https://github.com/CLUEbenchmark/CLUE|
+|glue_zh/chid|成语阅读理解填空 Chinese IDiom Dataset for Cloze Test|https://github.com/CLUEbenchmark/CLUE|
+|glue_zh/c3|中文多选阅读理解|https://github.com/CLUEbenchmark/CLUE|
+|Dureader/robust|首个关注阅读理解模型鲁棒性的中文数据集|https://aistudio.baidu.com/aistudio/competition/detail/49|
+|Dureader/yesno|一个以观点极性判断为目标任务的数据集|https://aistudio.baidu.com/aistudio/competition/detail/49|
+|LSTC_2020/DuEE_trigger|从自然语言文本中抽取事件并识别事件类型|https://aistudio.baidu.com/aistudio/competition/detail/32|
+|LSTC_2020/DuEE_role|从自然语言文本中抽取事件元素|https://aistudio.baidu.com/aistudio/competition/detail/32|
 
 ## Pretrained
 
@@ -258,87 +275,6 @@ Specify different pretrained model, please change ***includes*** and ***pretrain
 |nezha-base|58.940|57.909|55.650|55.630|
 |nezha-base-wwm|58.800|60.060|54.859|55.831|
 
-## glue_zh/cmrc2018
-
-```
-python -u aispace/trainer.py \
-    --experiment_name test \
-    --model_name bert_for_qa \
-    --schedule train_and_eval \
-    --enable_xla False \
-    --config_name cmrc2018 \
-    --config_dir ./configs/glue_zh \
-    --gpus 0 1 2 3 \
-    > err.log 2>&1 &
-```
-
-|Model|F1|EM|
-|---|---|---|
-|bert-base-chinese-huggingface|71.718|44.419|
-|albert_base_zh|69.463|41.643|
-|albert_base_zh_google|68.538|39.320|
-|chinese_wwm|72.081|44.419|
-|chinese_roberta_wwm_ext|71.523|44.362|
-|ERNIE_stable-1.0.1|**83.835**|64.898|
-|ERNIE_1.0_max-len-512|83.363|**65.293**|
-|chinese_electra_small|72.172|46.314|
-
-## glue_zh/afqmc
-
-|Model|Accuracy|Macro_precision|Macro_recall|Macro_f1|
-|---|---|---|---|---|
-|ERNIE_1.0_max-len-512|72.405|67.489|66.750|67.071|
-
-## glue_zh/iflytek
-
-|Model|Accuracy|Macro_precision|Macro_recall|Macro_f1|
-|---|---|---|---|---|
-|ERNIE_1.0_max-len-512|58.753|30.406|32.275|28.965|
-
-## glue_zh/cmnli
-
-TODO
-
-## dureader/robust
-
-```
-python -u aispace/trainer.py \
-    --experiment_name test \
-    --model_name bert_for_qa \
-    --schedule train_and_eval \
-    --enable_xla False \
-    --config_name dureader_robust \
-    --config_dir ./configs/qa \
-    --gpus 0 1 \
-    > err.log 2>&1 &
-```
-|Model|F1|EM|
-|---|---|---|
-|bert-base-chinese-huggingface|66.624|51.856|
-|chinese_wwm|67.007|53.434|
-|chinese_roberta_wwm_ext|65.521|50.274|
-|ERNIE_stable-1.0.1|75.268|61.675|
-|ERNIE_1.0_max-len-512|**83.609**|**72.328**|
-
-## dureader/yesno
-
-```
-python -u aispace/trainer.py \
-    --experiment_name test \
-    --model_name bert_for_classification \
-    --schedule train_and_eval \
-    --enable_xla False \
-    --config_name dureader_yesno \
-    --config_dir ./configs/qa \
-    --gpus 0 1 \
-    > err.log 2>&1 &
-```
-
-|Model|Accuracy|Macro_precision|Macro_recall|Macro_f1|
-|---|---|---|---|---|
-|bert-base-chinese-huggingface|76.565|73.315|69.958|71.230|
-|ERNIE_stable-1.0.1|85.756|82.919|81.627|82.213|
-|ERNIE_1.0_max-len-512|86.122|83.847|80.636|81.965|
 
 **NOTE**: The hyper-parameters used here have not been fine-tuned.
 
