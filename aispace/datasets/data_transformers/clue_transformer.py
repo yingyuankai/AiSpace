@@ -1232,3 +1232,88 @@ class DrcdTransformer(BaseTransformer):
                 flag = False
                 break
         return flag
+
+
+@BaseTransformer.register("glue_zh/wsc")
+class WscTransformer(BaseTransformer):
+    def __init__(self, hparams, **kwargs):
+        super(WscTransformer, self).__init__(hparams, **kwargs)
+
+        # tokenizer
+        self.tokenizer = \
+            BaseTokenizer. \
+                by_name(self._hparams.dataset.tokenizer.name) \
+                (self._hparams.dataset.tokenizer)
+
+        # json dir
+        self.json_dir = os.path.join(kwargs.get("data_dir", self._hparams.dataset.data_dir), "json")
+
+    def transform(self, data_path, split="train"):
+        # output_path_base = os.path.join(os.path.dirname(data_path), "json")
+        # if not os.path.exists(output_path_base):
+        #     os.makedirs(output_path_base)
+        # output_path = os.path.join(output_path_base, f"{split}.json")
+        with open(data_path, "r", encoding="utf8") as inf:
+            # with open(output_path, "w", encoding="utf8") as ouf:
+            for line in inf:
+                if not line: continue
+                line = line.strip()
+                if len(line) == 0: continue
+                line_json = json.loads(line)
+                text = line_json.get("text", "").strip()
+                label = line_json.get("label", "true").strip()
+                target = line_json.get("target", [])
+                if len(target) == 0:
+                    continue
+                if len(text) == 0:
+                    continue
+                if label not in ['true', 'false']:
+                    continue
+
+                span1_s_idx = target['span1_index']
+                span2_s_idx = target['span2_index']
+
+                span1_text = target['span1_text']
+                span2_text = target['span2_text']
+
+                span1_e_idx = span1_s_idx + len(span1_text)
+                span2_e_idx = span2_s_idx + len(span2_text)
+
+                if abs(span2_e_idx - span1_s_idx) >= self._hparams.dataset.tokenizer.max_len:
+                    continue
+
+                if text[span1_s_idx: span1_e_idx] != span1_text or text[span2_s_idx: span2_e_idx] != span2_text:
+                    continue
+
+                ranges = [(0, min(span1_s_idx, span2_s_idx)),
+                          (min(span1_s_idx, span2_s_idx), min(span1_e_idx, span2_e_idx)),
+                          (min(span1_e_idx, span2_e_idx), max(span1_s_idx, span2_s_idx)),
+                          (max(span1_s_idx, span2_s_idx), max(span1_e_idx, span2_e_idx)),
+                          (max(span1_e_idx, span2_e_idx), len(text))]
+
+                tokens = []
+                entity_span_start = []
+                entity_span_end = []
+                for i, _range_ in enumerate(ranges):
+                    if _range_[0] == _range_[1]:
+                        continue
+                    cur_text = text[_range_[0]: _range_[1]]
+                    cur_tokens = self.tokenizer.tokenize(cur_text)
+                    if i == 1 or i == 3:
+                        entity_span_start.append(len(tokens))
+                        entity_span_end.append(len(tokens) + len(cur_tokens) - 1)
+
+                    tokens.extend(cur_tokens)
+
+                encode_info = self.tokenizer.encode(tokens)
+                input_ids, token_type_ids, attention_mask = \
+                    encode_info['input_ids'], encode_info['segment_ids'], encode_info['input_mask']
+                item = {
+                    "input_ids": input_ids,
+                    "token_type_ids": token_type_ids,
+                    "attention_mask": attention_mask,
+                    "entity_span_start": entity_span_start,
+                    "entity_span_end": entity_span_end,
+                    "label": label
+                }
+                yield item

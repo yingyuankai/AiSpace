@@ -159,6 +159,23 @@ python -u aispace/trainer.py \
 |---|---|---|---|---|
 |ERNIE_1.0_max-len-512|78.759|78.750|78.679|78.593|
 
+## glue_zh/wsc
+
+```
+python -u aispace/trainer.py \
+    --experiment_name test \
+    --model_name bert_for_relation_extract \
+    --schedule train_and_eval \
+    --config_name wsc \
+    --config_dir ./configs/glue_zh \
+    --gpus 0 1 \
+    > wsc_err.log 2>&1 &
+```
+
+|Model|Accuracy|Macro_precision|Macro_recall|Macro_f1|
+|---|---|---|---|---|
+|ERNIE_1.0_max-len-512|59.615|58.507|55.969|54.117|
+
 ## dureader/robust
 
 ```
