@@ -1,5 +1,6 @@
 includes:
-  - "../pretrain/ernie.yml"
+#  - "../pretrain/ernie.yml"
+  - "../pretrain/albert_chinese.yml"
 
 model_name: bert_for_classification
 
@@ -15,7 +16,7 @@ training:
 #      k: 5
   learning_rate: 1e-5
   max_epochs: 30
-  batch_size: 128
+  batch_size: 32
 
 #  optimizer:
 #    name: adam
@@ -46,6 +47,9 @@ dataset:
     train: "train"
     validation: "validation"
     test: "test"
+
+  tokenizer:
+    max_len: 20
 
   inputs:
     - name: input_ids
@@ -80,7 +84,13 @@ dataset:
             average: "macro"
 
 pretrained:
-    name: ERNIE_1.0_max-len-512
+#    name: ERNIE_1.0_max-len-512
+    name: albert_base_zh
     init_from_pretrained: true
+    config:
+      layers:
+        start: 0
+        end: 4
+        step: 1
 
 

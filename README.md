@@ -72,7 +72,24 @@ python -u aispace/trainer.py \
     [--gpus GPUS] 
 ```
 
+### Training with initialized model
+
+Initialize model with other pretrained model and the parameter `model_load_path` must be set.
+
+```
+python -u aispace/trainer.py \
+    --schedule train_and_eval \
+    --config_name CONFIG_NAME \
+    --config_dir CONFIG_DIR \
+    --model_load_path MODEL_LOAD_PATH \
+    [--experiment_name EXPERIMENT_NAME] \
+    [--model_name MODEL_NAME] \
+    [--gpus GPUS] 
+```
+
 ### Training with resumed model
+
+Continue training on the trained model and the parameter `model_resume_path` must be set.
 
 ```
 python -u aispace/trainer.py \
