@@ -1,6 +1,6 @@
 includes:
-#  - "../pretrain/ernie.yml"
-  - "../pretrain/albert_chinese.yml"
+  - "../pretrain/ernie.yml"
+#  - "../pretrain/albert_chinese.yml"
 
 model_name: bert_for_classification
 
@@ -84,8 +84,8 @@ dataset:
             average: "macro"
 
 pretrained:
-#    name: ERNIE_1.0_max-len-512
-    name: albert_base_zh
+    name: ERNIE_1.0_max-len-512
+#    name: albert_base_zh
     init_from_pretrained: true
     config:
       layers:

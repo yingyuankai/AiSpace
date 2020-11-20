@@ -10,6 +10,7 @@ import logging
 from tqdm import tqdm
 import json
 import numpy as np
+import traceback
 from .base_transformer import BaseTransformer
 from aispace.datasets import BaseTokenizer
 from aispace.utils.io_utils import json_dumps
@@ -46,7 +47,13 @@ class EntityWithNationalityTransformer(BaseTransformer):
                 if not line: continue
                 line = line.strip()
                 if len(line) == 0: continue
-                line_json = json.loads(line)
+                # line = str(line).strip("'<>() ").replace('\'', '\"')
+                try:
+                    line_json = json.loads(line)
+                except Exception as e:
+                    print(line)
+                    traceback.print_exc()
+                    continue
                 sentence = line_json.get("entity", "").strip()
                 if len(sentence) == 0: continue
                 encode_info = self.tokenizer.encode(sentence)
