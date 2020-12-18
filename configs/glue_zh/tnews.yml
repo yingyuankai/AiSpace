@@ -32,8 +32,8 @@ training:
   max_epochs: 30
   batch_size: 32
 
-#  optimizer:
-#    name: adam
+  optimizer:
+    name: adam
 
   callbacks:
     # callback name
@@ -42,9 +42,9 @@ training:
       config:
         patience: 2
     lr_finder:
-      switch: false
+      switch: true
       config:
-        end_lr: 1e-4
+        end_lr: 1e-3
 
   optimizer_wrappers:
     swa:
