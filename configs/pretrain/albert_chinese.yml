@@ -26,7 +26,7 @@ pretrained:
     adapter: tf_huggingface_albert_chinese_adapter
     force_download: false
     init_from_pretrained: true
-    cache_dir: /search/data1/yyk/data/pretrained/albert  # your path to save models
+    cache_dir: /search/odin/yyk/data/pretrained/albert  # your path to save models
     model_path: null
     vocab_path: null
     config_path: null
@@ -42,19 +42,19 @@ pretrained:
         albert_base_zh:
             model:
                 # your/path/to/albert_base_zh
-                url: /search/data1/yyk/data/pretrained/albert/albert_base_zh
+                url: /search/odin/yyk/data/pretrained/albert/albert_base_zh
                 suffix: albert_model.ckpt
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/albert_base_zh/vocab.txt
-                url: /search/data1/yyk/data/pretrained/albert/albert_base_zh/vocab.txt
+                url: /search/odin/yyk/data/pretrained/albert/albert_base_zh/vocab.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/albert_base_zh/albert_config_base.json
-                url: /search/data1/yyk/data/pretrained/albert/albert_base_zh/albert_config_base.json
+                url: /search/odin/yyk/data/pretrained/albert/albert_base_zh/albert_config_base.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.
@@ -67,19 +67,19 @@ pretrained:
         albert_base_zh_additional_36k_steps:
             model:
                 # your/path/to/albert_base_zh_additional_36k_steps
-                url: /search/data1/yyk/data/pretrained/albert/albert_base_zh_additional_36k_steps
+                url: /search/odin/yyk/data/pretrained/albert/albert_base_zh_additional_36k_steps
                 suffix: albert_model.ckpt
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/albert_base_zh_additional_36k_steps/vocab.txt
-                url: /search/data1/yyk/data/pretrained/albert/albert_base_zh_additional_36k_steps/vocab.txt
+                url: /search/odin/yyk/data/pretrained/albert/albert_base_zh_additional_36k_steps/vocab.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/albert_base_zh_additional_36k_steps/albert_config_base.json
-                url: /search/data1/yyk/data/pretrained/albert/albert_base_zh_additional_36k_steps/albert_config_base.json
+                url: /search/odin/yyk/data/pretrained/albert/albert_base_zh_additional_36k_steps/albert_config_base.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.
@@ -92,19 +92,19 @@ pretrained:
         albert_small_zh_google:
             model:
                 # your/path/to/albert_small_zh_google
-                url: /search/data1/yyk/data/pretrained/albert/albert_small_zh_google
+                url: /search/odin/yyk/data/pretrained/albert/albert_small_zh_google
                 suffix: albert_model.ckpt
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/albert_small_zh_google/vocab.txt
-                url: /search/data1/yyk/data/pretrained/albert/albert_small_zh_google/vocab.txt
+                url: /search/odin/yyk/data/pretrained/albert/albert_small_zh_google/vocab.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/albert_small_zh_google/albert_config_small_google.json
-                url: /search/data1/yyk/data/pretrained/albert/albert_small_zh_google/albert_config_small_google.json
+                url: /search/odin/yyk/data/pretrained/albert/albert_small_zh_google/albert_config_small_google.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.
@@ -117,19 +117,19 @@ pretrained:
         albert_large_zh:
             model:
                 # your/path/to/albert_large_zh
-                url: /search/data1/yyk/data/pretrained/albert/albert_large_zh
+                url: /search/odin/yyk/data/pretrained/albert/albert_large_zh
                 suffix: albert_model.ckpt
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/albert_large_zh/vocab.txt
-                url: /search/data1/yyk/data/pretrained/albert/albert_large_zh/vocab.txt
+                url: /search/odin/yyk/data/pretrained/albert/albert_large_zh/vocab.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/albert_large_zh/albert_config_large.json
-                url: /search/data1/yyk/data/pretrained/albert/albert_large_zh/albert_config_large.json
+                url: /search/odin/yyk/data/pretrained/albert/albert_large_zh/albert_config_large.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.
@@ -142,19 +142,19 @@ pretrained:
         albert_tiny:
             model:
                 # your/path/to/albert_tiny
-                url: /search/data1/yyk/data/pretrained/albert/albert_tiny
+                url: /search/odin/yyk/data/pretrained/albert/albert_tiny
                 suffix: albert_model.ckpt
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/albert_tiny/vocab.txt
-                url: /search/data1/yyk/data/pretrained/albert/albert_tiny/vocab.txt
+                url: /search/odin/yyk/data/pretrained/albert/albert_tiny/vocab.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/albert_tiny/albert_config_tiny.json
-                url: /search/data1/yyk/data/pretrained/albert/albert_tiny/albert_config_tiny.json
+                url: /search/odin/yyk/data/pretrained/albert/albert_tiny/albert_config_tiny.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.
@@ -167,19 +167,19 @@ pretrained:
         albert_tiny_489k:
             model:
                 # your/path/to/albert_tiny_489k
-                url: /search/data1/yyk/data/pretrained/albert/albert_tiny_489k
+                url: /search/odin/yyk/data/pretrained/albert/albert_tiny_489k
                 suffix: albert_model.ckpt
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/albert_tiny_489k/vocab.txt
-                url: /search/data1/yyk/data/pretrained/albert/albert_tiny_489k/vocab.txt
+                url: /search/odin/yyk/data/pretrained/albert/albert_tiny_489k/vocab.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/albert_tiny_489k/albert_config_tiny.json
-                url: /search/data1/yyk/data/pretrained/albert/albert_tiny_489k/albert_config_tiny.json
+                url: /search/odin/yyk/data/pretrained/albert/albert_tiny_489k/albert_config_tiny.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.
@@ -192,19 +192,19 @@ pretrained:
         albert_tiny_zh_google:
             model:
                 # your/path/to/albert_tiny_zh_google
-                url: /search/data1/yyk/data/pretrained/albert/albert_tiny_zh_google
+                url: /search/odin/yyk/data/pretrained/albert/albert_tiny_zh_google
                 suffix: albert_model.ckpt
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/albert_tiny_zh_google/vocab.txt
-                url: /search/data1/yyk/data/pretrained/albert/albert_tiny_zh_google/vocab.txt
+                url: /search/odin/yyk/data/pretrained/albert/albert_tiny_zh_google/vocab.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/albert_tiny_zh_google/albert_config_tiny_g.json
-                url: /search/data1/yyk/data/pretrained/albert/albert_tiny_zh_google/albert_config_tiny_g.json
+                url: /search/odin/yyk/data/pretrained/albert/albert_tiny_zh_google/albert_config_tiny_g.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.
@@ -217,19 +217,19 @@ pretrained:
         albert_xlarge_zh_177k:
             model:
                 # your/path/to/albert_xlarge_zh_177k
-                url: /search/data1/yyk/data/pretrained/albert/albert_xlarge_zh_177k
+                url: /search/odin/yyk/data/pretrained/albert/albert_xlarge_zh_177k
                 suffix: albert_model.ckpt
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/albert_xlarge_zh_177k/vocab.txt
-                url: /search/data1/yyk/data/pretrained/albert/albert_xlarge_zh_177k/vocab.txt
+                url: /search/odin/yyk/data/pretrained/albert/albert_xlarge_zh_177k/vocab.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/albert_xlarge_zh_177k/albert_config_xlarge.json
-                url: /search/data1/yyk/data/pretrained/albert/albert_xlarge_zh_177k/albert_config_xlarge.json
+                url: /search/odin/yyk/data/pretrained/albert/albert_xlarge_zh_177k/albert_config_xlarge.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.
@@ -242,19 +242,19 @@ pretrained:
         albert_xlarge_zh_183k:
             model:
                 # your/path/to/albert_xlarge_zh_183k
-                url: /search/data1/yyk/data/pretrained/albert/albert_xlarge_zh_183k
+                url: /search/odin/yyk/data/pretrained/albert/albert_xlarge_zh_183k
                 suffix: albert_model.ckpt
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/albert_xlarge_zh_183k/vocab.txt
-                url: /search/data1/yyk/data/pretrained/albert/albert_xlarge_zh_183k/vocab.txt
+                url: /search/odin/yyk/data/pretrained/albert/albert_xlarge_zh_183k/vocab.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/albert_xlarge_zh_183k/albert_config_xlarge.json
-                url: /search/data1/yyk/data/pretrained/albert/albert_xlarge_zh_183k/albert_config_xlarge.json
+                url: /search/odin/yyk/data/pretrained/albert/albert_xlarge_zh_183k/albert_config_xlarge.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.
@@ -268,19 +268,19 @@ pretrained:
             # ref: https://github.com/google-research/albert
             model:
                 # your/path/to/albert_tiny_zh_google
-                url: /search/data1/yyk/data/pretrained/albert/albert_base_zh_google
+                url: /search/odin/yyk/data/pretrained/albert/albert_base_zh_google
                 suffix: model.ckpt-best
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/albert_tiny_zh_google/vocab.txt
-                url: /search/data1/yyk/data/pretrained/albert/albert_base_zh_google/vocab_chinese.txt
+                url: /search/odin/yyk/data/pretrained/albert/albert_base_zh_google/vocab_chinese.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/albert_tiny_zh_google/albert_config_tiny_g.json
-                url: /search/data1/yyk/data/pretrained/albert/albert_base_zh_google/albert_config.json
+                url: /search/odin/yyk/data/pretrained/albert/albert_base_zh_google/albert_config.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.
@@ -294,19 +294,19 @@ pretrained:
             # ref: https://github.com/google-research/albert
             model:
                 # your/path/to/albert_tiny_zh_google
-                url: /search/data1/yyk/data/pretrained/albert/albert_large_zh_google
+                url: /search/odin/yyk/data/pretrained/albert/albert_large_zh_google
                 suffix: model.ckpt-best
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/albert_tiny_zh_google/vocab.txt
-                url: /search/data1/yyk/data/pretrained/albert/albert_large_zh_google/vocab_chinese.txt
+                url: /search/odin/yyk/data/pretrained/albert/albert_large_zh_google/vocab_chinese.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/albert_tiny_zh_google/albert_config_tiny_g.json
-                url: /search/data1/yyk/data/pretrained/albert/albert_large_zh_google/albert_config.json
+                url: /search/odin/yyk/data/pretrained/albert/albert_large_zh_google/albert_config.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.
@@ -320,19 +320,19 @@ pretrained:
             # ref: https://github.com/google-research/albert
             model:
                 # your/path/to/albert_tiny_zh_google
-                url: /search/data1/yyk/data/pretrained/albert/albert_xlarge_zh_google
+                url: /search/odin/yyk/data/pretrained/albert/albert_xlarge_zh_google
                 suffix: model.ckpt-best
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/albert_tiny_zh_google/vocab.txt
-                url: /search/data1/yyk/data/pretrained/albert/albert_xlarge_zh_google/vocab_chinese.txt
+                url: /search/odin/yyk/data/pretrained/albert/albert_xlarge_zh_google/vocab_chinese.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/albert_tiny_zh_google/albert_config_tiny_g.json
-                url: /search/data1/yyk/data/pretrained/albert/albert_xlarge_zh_google/albert_config.json
+                url: /search/odin/yyk/data/pretrained/albert/albert_xlarge_zh_google/albert_config.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.
@@ -346,19 +346,19 @@ pretrained:
             # ref: https://github.com/google-research/albert
             model:
                 # your/path/to/albert_tiny_zh_google
-                url: /search/data1/yyk/data/pretrained/albert/albert_xxlarge_zh_google
+                url: /search/odin/yyk/data/pretrained/albert/albert_xxlarge_zh_google
                 suffix: model.ckpt-best
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/albert_tiny_zh_google/vocab.txt
-                url: /search/data1/yyk/data/pretrained/albert/albert_xxlarge_zh_google/vocab_chinese.txt
+                url: /search/odin/yyk/data/pretrained/albert/albert_xxlarge_zh_google/vocab_chinese.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/albert_tiny_zh_google/albert_config_tiny_g.json
-                url: /search/data1/yyk/data/pretrained/albert/albert_xxlarge_zh_google/albert_config.json
+                url: /search/odin/yyk/data/pretrained/albert/albert_xxlarge_zh_google/albert_config.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.

@@ -1,0 +1,96 @@
+includes:
+  - "../pretrain/ernie.yml"
+#  - "../pretrain/albert_chinese.yml"
+
+model_name: bert_for_classification
+
+model_attributes:
+    hidden_dropout_prob: 0.5
+    initializer_range: 0.02
+    hidden_size: 1024
+
+training:
+#  policy:
+#    name: "k-fold"
+#    config:
+#      k: 5
+  learning_rate: 1e-5
+  max_epochs: 30
+  batch_size: 32
+
+#  optimizer:
+#    name: adam
+
+  callbacks:
+    # callback name
+    early_stopping:
+      switch: true
+      config:
+        patience: 2
+    lr_finder:
+      switch: false
+      config:
+        end_lr: 1e-4
+
+  optimizer_wrappers:
+    swa:
+      switch: false
+      config:
+        start_epoch: 5
+
+dataset:
+  name: entity_with_nationality
+  data_dir: "./data"
+  transformer: "entity_with_nationality"
+
+  source:
+    train: "train"
+    validation: "validation"
+    test: "test"
+
+  tokenizer:
+    max_len: 20
+
+  inputs:
+    - name: input_ids
+      column: input_ids
+      type: LIST_OF_INT
+      max_len: 20
+    - name: token_type_ids
+      column: token_type_ids
+      type: LIST_OF_INT
+      max_len: 20
+    - name: attention_mask
+      column: attention_mask
+      type: LIST_OF_INT
+      max_len: 20
+
+  outputs:
+    - name: output_1
+      column: label
+      type: CLASSLABEL
+      num: 2
+      labels: use_num
+      loss:
+        name: sparse_categorical_crossentropy
+        config:
+          from_logits: true
+      metrics:
+        - name: sparse_categorical_accuracy
+        - name: sparse_f1_score
+          config:
+            name: "macro_f1"
+            num_classes: 2
+            average: "macro"
+
+pretrained:
+    name: ERNIE_1.0_max-len-512
+#    name: albert_base_zh
+    init_from_pretrained: true
+    config:
+      layers:
+        start: 0
+        end: 4
+        step: 1
+
+
