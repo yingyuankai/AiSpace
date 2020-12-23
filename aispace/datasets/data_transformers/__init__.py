@@ -9,3 +9,4 @@ from .clue_transformer import *
 from .base_transformer import BaseTransformer
 from .duee_transformer import DuEETriggerTransformer
 from .dureader_transformer import *
+from .gov_title_transformer import *
