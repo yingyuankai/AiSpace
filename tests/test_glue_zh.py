@@ -20,7 +20,7 @@ from aispace.utils.builder_utils import load_dataset
 class TestGlue(unittest.TestCase):
     def test_glue_load(self):
         hparams = Hparams()
-        hparams.load_from_config_file("../configs/glue_zh/wsc.yml")
+        hparams.load_from_config_file("../configs/custom/ewn.yml")
         hparams.stand_by()
         # checksum_dir = "../aispace/datasets/url_checksums"
         # tfds.download.add_checksums_dir(checksum_dir)

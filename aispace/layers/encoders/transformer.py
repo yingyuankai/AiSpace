@@ -78,7 +78,10 @@ class Transformer(tf.keras.layers.Layer):
 
         self.output_attentions = hparams.output_attentions
         self.output_hidden_states = hparams.output_hidden_states
-        self.layers = [TransformerBlock(hparams, name=f"layer_._{i}") for i in range(hparams.num_hidden_layers)]
+        if hparams.has_key("layers"):
+            self.layers = [TransformerBlock(hparams, name=f"layer_._{i}") for i in range(hparams.layers.start, hparams.layers.end, hparams.layers.step)]
+        else:
+            self.layers = [TransformerBlock(hparams, name=f"layer_._{i}") for i in range(hparams.num_hidden_layers)]
 
     def call(self, inputs, training=False):
         hidden_states, attention_mask, head_mask = inputs
