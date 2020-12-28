@@ -53,8 +53,8 @@ class BaseTokenizer(Registry):
 
     @abstractmethod
     def encode(self,
-               text_a: str,
-               text_b: Optional[str] = None,
+               text_a,
+               text_b = None,
                max_seq_length: Optional[int] = None):
         """text to idx
 

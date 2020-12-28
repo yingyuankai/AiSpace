@@ -11,3 +11,4 @@ from aispace.datasets import glue_zh
 from aispace.datasets import lstc_2020
 from aispace.datasets import dureader
 from aispace.datasets import entity_with_nationality
+from aispace.datasets import gov_title

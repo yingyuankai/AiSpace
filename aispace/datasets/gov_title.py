@@ -90,7 +90,7 @@ class GovTitle(BaseDataset):
     BUILDER_CONFIGS = [
         GlueConfig(
             name="trigger",
-            description="""""",
+            description="""gov_title""",
             text_features={"text": "text", "id": "id"},
             label_column=None,
             data_url="",
@@ -100,7 +100,7 @@ class GovTitle(BaseDataset):
         ),
         GlueConfig(
             name="role",
-            description="""""",
+            description="""gov_title""",
             text_features={"text": "text", "id": "id"},
             label_column=None,
             data_url="",
@@ -127,10 +127,9 @@ class GovTitle(BaseDataset):
             features = self._base_feature_dict()
 
         metadata = None
-        if "dataset" in self.hparams and \
-                "tokenizer" in self.hparams.dataset and \
-                "name" in self.hparams.dataset.tokenizer:
-            metadata = tfds.core.MetadataDict({"tokenizer": self.hparams.dataset.tokenizer.name})
+        if "dataset" in self.hparams and "tokenizer" in self.hparams.dataset and "name" in self.hparams.dataset.tokenizer:
+            metadata = tfds.core.MetadataDict({"tokenizer": self.hparams.dataset.tokenizer.name,
+                                               "vocab_size": self.hparams.pretrained.config.vocab_size})
 
         return tfds.core.DatasetInfo(
             builder=self,
@@ -168,7 +167,10 @@ class GovTitle(BaseDataset):
         return features
 
     def _split_generators(self, dl_manager):
-        data_path = "/search/odin/yyk/workspace/gov_title_preprocess/gov_title_train.txt"
+        if self.builder_config.name == "trigger":
+            data_path = "/search/odin/yyk/workspace/AiSpace/data/downloads/extracted/gov_title/gov_title_trigger.txt"
+        else:
+            data_path = "/search/odin/yyk/workspace/AiSpace/data/downloads/extracted/gov_title/gov_title_event.txt"
 
         return [
             tfds.core.SplitGenerator(
