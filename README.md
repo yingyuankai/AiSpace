@@ -25,7 +25,9 @@
 </p>
 
 AiSpace provides highly configurable framework for deep learning model development, deployment and 
-conveniently use of pre-trained models (bert, albert, opt, etc.). 
+conveniently use of pre-trained models (bert, albert, opt, etc.).
+
+![](https://raw.githubusercontent.com/yingyuankai/AiSpace/master/docs/resource/imgs/aispace_framework.png)
 
 Table of Contents
 =================
