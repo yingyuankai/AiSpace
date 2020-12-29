@@ -5,7 +5,7 @@
 # @File    : bert_for_sequence_classification.py
 
 __all__ = [
-    "BertNerService"
+    "BertNerWithTitleStatusService"
 ]
 
 import os, sys
@@ -22,7 +22,7 @@ from scipy.special import softmax
 
 from aispace.datasets.tokenizer import BertTokenizer
 from aispace.utils.hparams import Hparams
-
+"""roles extraction with title and its status"""
 
 @artifacts([
         TensorflowSavedModelArtifact('model'),
@@ -30,16 +30,42 @@ from aispace.utils.hparams import Hparams
         PickleArtifact("hparams"),
     ])
 @env(auto_pip_dependencies=True)
-class BertNerService(BentoService):
+class BertNerWithTitleStatusService(BentoService):
 
-    def preprocessing(self, text_str):
-        input_ids, token_type_ids, attention_mask = self.artifacts.tokenizer.encode(text_str)
-        return input_ids, token_type_ids, attention_mask, text_str
+    def preprocessing(self, itm):
+        context = itm.get("text")
+        span_start, span_end = itm.get("trigger_start"), itm.get("trigger_end")
+        status = itm.get('status')
+        trigger = itm.get("trigger")
+
+        tokens = []
+        cur_tokens = self.artifacts.tokenizer.tokenize(context[0: span_start])
+        tokens.extend(cur_tokens)
+        trigger_token_start_idx = len(tokens)
+        cur_tokens = self.artifacts.tokenizer.tokenize(trigger)
+        tokens.extend(cur_tokens)
+        trigger_token_end_idx = len(tokens)
+
+        cur_tokens = self.artifacts.tokenizer.tokenize(context[span_end:])
+        tokens.extend(cur_tokens)
+
+        query = f"{status}{trigger}"
+        query_tokens = self.artifacts.tokenizer.tokenize(query)
+
+        tokens = tokens[: self.artifacts.tokenizer.max_len - 3 - len(query_tokens)]
+
+        position_ids = list(range(0, 1 + len(tokens) + 1 + 2)) + \
+                       list(range(trigger_token_start_idx, trigger_token_end_idx)) + list(
+            range(len(tokens) + len(query_tokens) + 2, self.artifacts.tokenizer.max_len))
+        output = self.artifacts.tokenizer.encode(tokens, query_tokens)
+
+        input_ids, token_type_ids, attention_mask = output['input_ids'], output['segment_ids'], output['input_mask']
+        return input_ids, token_type_ids, attention_mask, position_ids, context
 
     def _align_raw_text(self, tags, raw_tokens, align_mapping):
         new_tokens, new_tags = [], []
         i, j = 0, 0
-        while i <= j < len(tags):
+        while i <= j < min(len(tags), len(raw_tokens)):
             if align_mapping[i] == align_mapping[j]:
                 j += 1
             else:
@@ -107,7 +133,7 @@ class BertNerService(BentoService):
     @api(JsonHandler)
     def ner_predict(self, parsed_json):
         input_data = {
-            "input_ids": [], "token_type_ids": [], "attention_mask": []
+            "input_ids": [], "token_type_ids": [], "attention_mask": [], "position_ids": []
         }
         seq_length = []
         passages = []
@@ -116,34 +142,31 @@ class BertNerService(BentoService):
             input_data['input_ids'].extend(pre_input_data[0])
             input_data['token_type_ids'].extend(pre_input_data[1])
             input_data['attention_mask'].extend(pre_input_data[2])
+            input_data['position_ids'].extend(pre_input_data[3])
             seq_length.extend(list(map(sum, pre_input_data[2])))
             passages.extend(pre_input_data[-1])
         else:  # expecting type(parsed_json) == dict:
-            pre_input_data = self.preprocessing(parsed_json['text'])
+            pre_input_data = self.preprocessing(parsed_json)
+            label_mask = parsed_json.get("label_mask")
             input_data['input_ids'].append(pre_input_data[0])
             input_data['token_type_ids'].append(pre_input_data[1])
             input_data['attention_mask'].append(pre_input_data[2])
+            input_data['position_ids'].append(pre_input_data[3])
+            input_data['label_mask'].append(label_mask)
             seq_length.append(sum(pre_input_data[2]))
             passages.append(pre_input_data[-1])
         input_data['input_ids'] = tf.constant(input_data['input_ids'], name="input_ids")
         input_data['token_type_ids'] = tf.constant(input_data['token_type_ids'], name="token_type_ids")
         input_data['attention_mask'] = tf.constant(input_data['attention_mask'], name="attention_mask")
+        input_data['position_ids'] = tf.constant(input_data['position_ids'], name="position_ids")
         prediction = self.artifacts.model(input_data, training=False)
         prediction_idx = np.argmax(prediction, -1).tolist()
-        ret = {
-            "predictions": []
-        }
+        ret = []
         for idx, token_ids, seq_len, passage in zip(prediction_idx, input_data["input_ids"].numpy().tolist(), seq_length, passages):
             cur_labels = list(map(self.decode_label_idx, idx[1: seq_len - 1]))
             # cur_tokens = self.decode_token_idx(token_ids[1:seq_len - 1])
-            _, raw_tokens, align_mapping = self.artifacts.tokenizer.tokenize(passage, True)
+            raw_tokens, _, align_mapping = self.artifacts.tokenizer.tokenize(passage, True)
             cur_tokens, cur_labels = self._align_raw_text(cur_labels, raw_tokens, align_mapping)
             new_ret = self.postprocessing(cur_tokens, cur_labels)
-            ret["predictions"].append(new_ret)
+            ret.append(new_ret)
         return ret
-
-    # curl -i \
-    # --header "Content-Type: application/json" \
-    # --request POST \
-    # --data '{"text": "泰安今早发生2.9级地震！靠近这个国家森林公园"}' \
-    # http://127.0.0.1:5001/ner_predict

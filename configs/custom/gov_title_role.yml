@@ -1,6 +1,7 @@
 includes:
   - "../pretrain/ernie.yml"
 
+#model_name: bert_for_ner_with_title_status
 model_name: bert_for_ner
 
 model_attributes:

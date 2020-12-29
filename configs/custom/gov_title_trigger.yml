@@ -13,7 +13,7 @@ training:
 #    name: "k-fold"
 #    config:
 #      k: 5
-  learning_rate: 1e-4
+  learning_rate: 1e-5
   max_epochs: 30
   batch_size: 8
 
@@ -72,9 +72,10 @@ dataset:
       num: 3
       labels: ["B", "I", "O"]
       loss:
-        name: sparse_categorical_crossentropy
-        config:
-          from_logits: false
+        name: myself_crf_loss
+#        name: sparse_categorical_crossentropy
+#        config:
+#          from_logits: false
       metrics:
         - name: sparse_categorical_accuracy
         - name: sparse_f1_score

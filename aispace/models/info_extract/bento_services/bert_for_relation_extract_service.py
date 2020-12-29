@@ -29,7 +29,7 @@ from aispace.utils.hparams import Hparams
         PickleArtifact('tokenizer'),
         PickleArtifact("hparams"),
     ])
-@env(pip_dependencies=['tensorflow==2.0.0', 'numpy', 'scipy'])
+@env(auto_pip_dependencies=True)
 class BertRelationClassificationService(BentoService):
 
     def preprocessing(self, one_inst):

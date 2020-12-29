@@ -22,14 +22,14 @@ from scipy.special import softmax
 
 from aispace.datasets.tokenizer import BertTokenizer
 from aispace.utils.hparams import Hparams
-
+"""roles extraction with event type"""
 
 @artifacts([
         TensorflowSavedModelArtifact('model'),
         PickleArtifact('tokenizer'),
         PickleArtifact("hparams"),
     ])
-@env(pip_dependencies=['tensorflow==2.0.0', 'numpy', 'scipy'])
+@env(auto_pip_dependencies=True)
 class RoleBertNerService(BentoService):
 
     def preprocessing(self, itm):
@@ -147,9 +147,3 @@ class RoleBertNerService(BentoService):
             new_ret = self.postprocessing(cur_tokens, cur_labels)
             ret["predictions"].append(new_ret)
         return ret
-
-    # curl -i \
-    # --header "Content-Type: application/json" \
-    # --request POST \
-    # --data '{"text": "泰安今早发生2.9级地震！靠近这个国家森林公园"}' \
-    # http://127.0.0.1:5000/ner_predict
