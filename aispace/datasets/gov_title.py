@@ -63,7 +63,7 @@ class GlueConfig(tfds.core.BuilderConfig):
         # 0.0.1: Initial version.
         super(GlueConfig, self).__init__(
             version=tfds.core.Version(
-                "1.0.0",
+                "2.0.0",
                 # experiments={tfds.core.Experiment.S3: False}
             ),
             # supported_versions=[
@@ -168,7 +168,8 @@ class GovTitle(BaseDataset):
 
     def _split_generators(self, dl_manager):
         if self.builder_config.name == "trigger":
-            data_path = "/search/odin/yyk/workspace/AiSpace/data/downloads/extracted/gov_title/gov_title_trigger.txt"
+            # data_path = "/search/odin/yyk/workspace/AiSpace/data/downloads/extracted/gov_title/gov_title_trigger.txt"
+            data_path = "/search/odin/yyk/workspace/AiSpace/data/downloads/extracted/gov_title/gov_title_trigger_huge.txt"
         else:
             data_path = "/search/odin/yyk/workspace/AiSpace/data/downloads/extracted/gov_title/gov_title_event.txt"
 

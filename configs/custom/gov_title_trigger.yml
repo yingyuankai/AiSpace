@@ -14,7 +14,7 @@ training:
 #    config:
 #      k: 5
   learning_rate: 1e-5
-  max_epochs: 30
+  max_epochs: 1
   batch_size: 8
 
 #  optimizer:
