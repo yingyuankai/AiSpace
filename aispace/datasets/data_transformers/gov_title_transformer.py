@@ -40,8 +40,11 @@ class GovTitleTriggerTransformer(BaseTransformer):
                 (self._hparams.dataset.tokenizer)
 
     def transform(self, data_path, split="train"):
+        limit = 1000000
         with open(data_path, "r") as inf:
             for idx, line in enumerate(inf):
+                if idx >= limit:
+                    break
                 json_obj = json.loads(line)
                 context = json_obj['context']
                 titles: list = json_obj['titles']
@@ -72,8 +75,8 @@ class GovTitleTriggerTransformer(BaseTransformer):
 
                 output = self.tokenizer.encode(tokens)
 
-                labels = labels[: self.tokenizer.max_len - 2]
-                labels = ["O"] + labels + ['O'] * (self.tokenizer.max_len - len(labels))
+                labels = ["O"] + labels[: self.tokenizer.max_len - 2]
+                labels = labels + ['O'] * (self.tokenizer.max_len - len(labels))
 
                 feature = {
                     "input_ids": output['input_ids'],
@@ -84,6 +87,7 @@ class GovTitleTriggerTransformer(BaseTransformer):
 
                 if idx == 0:
                     print(feature)
+                    print(len(feature['label']))
                 yield feature
 
 

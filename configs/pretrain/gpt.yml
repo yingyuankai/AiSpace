@@ -1,0 +1,62 @@
+# config for ernie
+
+includes:
+  - "../base.yml"
+
+dataset:
+    tokenizer:
+        name: bert_tokenizer
+        vocab:
+            filename: null
+            special_tokens:
+                PAD: "<pad>"
+                UNK: "<unk>"
+                SEP: "<sep>"
+                MASK: "<mask>"
+                EOD: "<eod>"
+                BOS: "<s>"
+                EOS: "</s>"
+            errors: 'replace'
+        tokenize_chinese_chars: True
+        do_lower_case: True
+        do_basic_tokenize: True
+        non_split_tokens: null
+        max_len: 512
+
+pretrained:
+    norm_name: gpt
+    name: CPM-LM-TF2
+    adapter: tf_huggingface_ernie_adapter
+    force_download: false
+    init_from_pretrained: true
+    cache_dir: /search/odin/yyk/data/pretrained/gpt   # your path to save models
+    model_path: null
+    vocab_path: null
+    config_path: null
+#    config:
+#        output_attentions: false
+#        output_hidden_states: false
+#        layer_norm_eps: 1e-12
+#        intermediate_size: 3072
+    ref: https://github.com/qhduan/CPM-LM-TF2
+    family:
+        CPM-LM-TF2:
+            model:
+                # your/path/to/gpt
+                url: /search/odin/yyk/data/pretrained/gpt/cpm-lm-tf2_v2
+#                suffix: bert_model.ckpt
+                to_insert_paths:
+                    - pretrained.model_path
+            vocab:
+                # your/path/to/ERNIE_stable-1.0.1/vocab.txt
+                url: /search/odin/yyk/data/pretrained/ernie/ERNIE_stable-1.0.1/vocab.txt
+                to_insert_paths:
+                    - pretrained.vocab_path
+                    - dataset.tokenizer.vocab.filename
+            config:
+                # your/path/to/config or url
+                url: https://huggingface.co/gpt2/resolve/main/config.json
+                to_insert_paths: # set the pretrained.config_path with saved path of this file.
+                    - pretrained.config_path
+                to_replaces: # replace pretrained.config with the json content.
+                    - pretrained.config

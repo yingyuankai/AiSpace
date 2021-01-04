@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class Vocabulary(object):
-    SPECIAL_TOKENS = ["PAD", "UNK", "BOS", "EOS", "SEP", "CLS", "MASK"]
+    SPECIAL_TOKENS = ["PAD", "UNK", "BOS", "EOS", "SEP", "CLS", "MASK", "EOD"]
 
     def __init__(self, hparams: Hparams):
         self._hparams = hparams
@@ -192,6 +192,15 @@ class Vocabulary(object):
     def mask_id(self):
         return self.transformer(self._special_tokens.MASK)
 
+    @property
+    def eod_token(self):
+        if "EOD" not in self._special_tokens:
+            logger.error("Using eod_token, but it is not set yet.")
+        return self._special_tokens.EOD
+
+    def eod_id(self):
+        return self.transformer(self._special_tokens.EOD)
+
     def special_tokens(self) -> list:
         return list(self._special_tokens.values())
 
@@ -225,6 +234,10 @@ class Vocabulary(object):
     @mask_token.setter
     def mask_token(self, value):
         self._special_tokens.MASK = value
+
+    @eod_token.setter
+    def eod_token(self, value):
+        self._special_tokens.EOD = value
 
     def vocab_size(self):
         return len(self._token_to_id_dict)

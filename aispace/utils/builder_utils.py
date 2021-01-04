@@ -245,7 +245,7 @@ def build_callbacks(hparams: Hparams):
     return callbacks
 
 
-def build_model(hparam: Hparams, return_losses=True, return_metrics=True, return_optimizer=True):
+def build_model(hparam: Hparams, return_losses=True, return_metrics=True, return_optimizer=True, stage=TRAIN_STAGE):
     """Build custom keras model, losses, metrics, and optimizer
 
     :param hparam:
@@ -293,7 +293,7 @@ def build_model(hparam: Hparams, return_losses=True, return_metrics=True, return
             raise e
 
     # initializer model
-    if not hparam.model_resume_path and hparam.model_load_path is not None:
+    if stage == TRAIN_STAGE and not hparam.model_resume_path and hparam.model_load_path is not None:
         model_saved = os.path.join(hparam.model_load_path, "model_saved", "model")
         logger.info(f"Initialize model from {model_saved}")
         model.load_weights(model_saved)
