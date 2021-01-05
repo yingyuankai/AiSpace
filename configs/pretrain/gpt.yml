@@ -24,19 +24,22 @@ dataset:
         max_len: 512
 
 pretrained:
-    norm_name: gpt
+    norm_name: gpt2
     name: CPM-LM-TF2
-    adapter: tf_huggingface_ernie_adapter
+    adapter: tf_huggingface_gpt2_adapter
     force_download: false
     init_from_pretrained: true
     cache_dir: /search/odin/yyk/data/pretrained/gpt   # your path to save models
     model_path: null
     vocab_path: null
     config_path: null
-#    config:
-#        output_attentions: false
-#        output_hidden_states: false
-#        layer_norm_eps: 1e-12
+    config:
+        output_attentions: false
+        output_hidden_states: false
+        use_cache: true
+        use_return_dict: false
+        hidden_size: 768
+        layer_norm_eps: 1e-12
 #        intermediate_size: 3072
     ref: https://github.com/qhduan/CPM-LM-TF2
     family:
@@ -49,7 +52,7 @@ pretrained:
                     - pretrained.model_path
             vocab:
                 # your/path/to/ERNIE_stable-1.0.1/vocab.txt
-                url: /search/odin/yyk/data/pretrained/ernie/ERNIE_stable-1.0.1/vocab.txt
+                url: /search/odin/yyk/data/pretrained/gpt/cpm-lm-tf2_v2/chinese_vocab.model
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename

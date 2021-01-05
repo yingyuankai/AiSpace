@@ -17,6 +17,9 @@ from aispace.layers.activations import ACT2FN
 from aispace.utils.tf_utils import get_initializer
 from aispace.layers.embeddings import SharedEmbeddings
 
+__all__ = [
+    "Gpt2"
+]
 
 logger = logging.getLogger(__name__)
 
@@ -251,7 +254,7 @@ def input_processing(func, config, input_ids, **kwargs):
             if isinstance(v, allowed_types) or v is None:
                 output[k] = v
             elif k not in parameter_names and "args" not in parameter_names:
-                logger.warn(
+                logger.warning(
                     f"The parameter {k} does not belongs to the parameter list {parameter_names} and will be ignored."
                 )
                 continue
@@ -361,11 +364,11 @@ def booleans_processing(config, **kwargs):
 
 
 @BaseLayer.register("gpt2")
-class Gpt(BaseLayer):
+class Gpt2(BaseLayer):
 
     def __init__(self, config: Hparams, **kwargs):
         super().__init__(config, **kwargs)
-
+        config = config.config
         self.config = config
         self.output_attentions = config.output_attentions
         self.output_hidden_states = config.output_hidden_states
@@ -453,9 +456,7 @@ class Gpt(BaseLayer):
             past_length = get_shape(inputs["past"][0][0])[-2]
 
         if inputs["position_ids"] is None:
-            inputs["position_ids"] = tf.range(past_length, input_shape[-1] + past_length, dtype=tf.int32)[
-                tf.newaxis, :
-            ]
+            inputs["position_ids"] = tf.range(past_length, input_shape[-1] + past_length, dtype=tf.int32)[tf.newaxis, :]
 
         if inputs["attention_mask"] is not None:
             # We create a 3D attention mask from a 2D tensor mask.
@@ -548,4 +549,4 @@ class Gpt(BaseLayer):
         if not inputs["return_dict"]:
             return tuple(v for v in [hidden_states, presents, all_hidden_states, all_attentions] if v is not None)
 
-        return hidden_states, presents, all_hidden_states, all_attentions
+        return (hidden_states, ) #, presents, all_hidden_states, all_attentions

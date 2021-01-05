@@ -13,12 +13,21 @@ from aispace.datasets.tokenizer.tokenizer_base import BaseTokenizer
 from aispace.utils.hparams import Hparams
 from aispace.utils.str_utils import truncate_seq_pair, preprocess_text
 
+
 __all__ = [
     "CPMTokenizer"
 ]
 
 logger = logging.getLogger(__name__)
 
+try:
+    import jieba
+except ImportError:
+    logger.warning(
+        "You need to install jieba to use CPMTokenizer."
+        "pip install jieba"
+    )
+    raise
 
 SPIECE_UNDERLINE = "▁"
 
@@ -40,14 +49,7 @@ class CPMTokenizer(BaseTokenizer):
             )
             raise
 
-        try:
-            import jieba
-        except ImportError:
-            logger.warning(
-                "You need to install jieba to use CPMTokenizer."
-                "pip install jieba"
-            )
-            raise
+
 
         self.do_lower_case = self._hparams.do_lower_case
         self.remove_space = self._hparams.remove_space
