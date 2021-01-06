@@ -16,7 +16,8 @@ __all__ = [
     "tf_huggingface_xlnet_adapter",
     "tf_huggingface_albert_chinese_adapter",
     "tf_huggingface_albert_chinese_google_adapter",
-    "tf_huggingface_electra_adapter"
+    "tf_huggingface_electra_adapter",
+    "tf_huggingface_gpt2_adapter"
 ]
 
 
@@ -334,3 +335,79 @@ def tf_huggingface_electra_adapter(hf_model_variables: list, init_checkpoint: st
         name_to_values.append((item, value))
 
     tf.keras.backend.batch_set_value(name_to_values)
+
+
+def tf_huggingface_gpt2_adapter(hf_model_variables: list, init_checkpoint: str):
+    """Build name to variable map from huggingface gpt2 names to gpt2 variables,
+    and then set values for current model.
+
+    :param hf_model_variables:
+    :return:
+    """
+    model_gold = tf.keras.models.load_model(init_checkpoint)
+    vars_gold = model_gold.trainable_variables
+    vars_gold_refinded = {}
+
+    name_to_values = list()
+
+    for var in vars_gold:
+        name, value = var.name, var.numpy()
+        name = name.replace("kernel", "weight")
+        name_pieces = name.split("/")
+        prefix = "/".join(name_pieces[:3] + [name_pieces[-1]])
+        if name.endswith("bias:0"):
+            value = np.reshape(value, [1, value.shape[0]])
+        # need merge
+        if name.find("query_layer") != -1 or name.find("key_layer") != -1 or name.find("value_layer") != -1:
+            if prefix not in vars_gold_refinded:
+                vars_gold_refinded[prefix] = value
+            else:
+                vars_gold_refinded[prefix] = np.concatenate((vars_gold_refinded[prefix], value), axis=1)
+        else:
+            vars_gold_refinded[name] = value
+
+    for item in hf_model_variables:
+        var_name = item.name
+        matched_name = re.match("^.*/(gpt2/.*)$", var_name)
+        if matched_name is None:
+            continue
+        matched_name = matched_name.group(1)
+        matched_name = matched_name.replace("gpt2", "gpt")
+        name_pieces = matched_name.split("/")
+        if name_pieces[1] == "wte":
+            matched_name = "gpt/embedding/embeddings:0"
+        elif name_pieces[1] == "wpe":
+            matched_name = "position_embeddings:0"
+        elif name_pieces[1] == "ln_f":
+            matched_name = matched_name.replace(name_pieces[1], "LayerNorm_final_norm")
+        elif name_pieces[1].startswith("h_._"):
+            layer_name = name_pieces[1]
+            layer_idx = int(layer_name.split("_._")[-1])
+            new_layer_name = f"layer{layer_idx:02}"
+            matched_name = matched_name.replace(layer_name, new_layer_name)
+            if len(name_pieces) >= 4:
+                if name_pieces[2] == "attn":
+                    if name_pieces[3] == "c_attn":
+                        matched_name = matched_name.replace("/".join(name_pieces[2: 4]), "attention")
+                    elif name_pieces[3] == "c_proj":
+                        matched_name = matched_name.replace("/".join(name_pieces[2: 4]), "attention/context_projection_layer")
+                elif name_pieces[2] == "ln_1":
+                    matched_name = matched_name.replace(name_pieces[2], "LayerNorm_mlp_ln0")
+                elif name_pieces[2] == "ln_2":
+                    matched_name = matched_name.replace(name_pieces[2], "LayerNorm_mlp_ln1")
+                elif name_pieces[2] == "mlp":
+                    if name_pieces[3] == "c_fc":
+                        matched_name = matched_name.replace("/".join(name_pieces[2: 4]), "intermediate")
+                    elif name_pieces[3] == "c_proj":
+                        matched_name = matched_name.replace("/".join(name_pieces[2: 4]), "output")
+        else:
+            continue
+
+        value = vars_gold_refinded.get(matched_name)
+        if value is None:
+            continue
+        assert value.shape == item.shape
+        tf.keras.backend.set_value(item, value)
+        # name_to_values.append((item, value))
+
+    # tf.keras.backend.batch_set_value(name_to_values)

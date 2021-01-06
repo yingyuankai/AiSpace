@@ -16,6 +16,8 @@ from aispace.utils.tf_utils import get_shape
 from aispace.layers.activations import ACT2FN
 from aispace.utils.tf_utils import get_initializer
 from aispace.layers.embeddings import SharedEmbeddings
+from aispace.layers.decoders import SequenceSummary
+
 
 __all__ = [
     "Gpt2"
@@ -389,8 +391,13 @@ class Gpt2(BaseLayer):
             name="wpe",
         )
         self.drop = tf.keras.layers.Dropout(config.embd_pdrop)
-        self.h = [TFBlock(config.n_ctx, config, scale=True, name="h_._{}".format(i)) for i in range(config.n_layer)]
+        if config.has_key("layers"):
+            self.h = [TFBlock(config.n_ctx, config, scale=True, name="h_._{}".format(i)) for i in range(config.layers.start, config.layers.end, config.layers.step)]
+        else:
+            self.h = [TFBlock(config.n_ctx, config, scale=True, name="h_._{}".format(i)) for i in range(config.n_layer)]
+
         self.ln_f = tf.keras.layers.LayerNormalization(epsilon=config.layer_norm_epsilon, name="ln_f")
+        self.pooler = SequenceSummary(config, name="pooler")
 
     def get_input_embeddings(self):
         return self.wte
@@ -537,6 +544,8 @@ class Gpt2(BaseLayer):
         hidden_states = self.ln_f(hidden_states)
 
         hidden_states = tf.reshape(hidden_states, output_shape)
+        pooled_output = self.pooler(hidden_states)
+
         # Add last hidden state
         if inputs["output_hidden_states"]:
             all_hidden_states = all_hidden_states + (hidden_states,)
@@ -546,7 +555,8 @@ class Gpt2(BaseLayer):
             attention_output_shape = input_shape[:-1] + [-1] + get_shape(all_attentions[0])[-2:]
             all_attentions = tuple(tf.reshape(t, attention_output_shape) for t in all_attentions)
 
-        if not inputs["return_dict"]:
-            return tuple(v for v in [hidden_states, presents, all_hidden_states, all_attentions] if v is not None)
+        # if not inputs["return_dict"]:
+        #     return tuple(v for v in [hidden_states, pooled_output, presents, all_hidden_states, all_attentions] if v is not None)
+        return tuple(v for v in [hidden_states, pooled_output, presents, all_hidden_states, all_attentions] if v is not None)
 
-        return (hidden_states, ) #, presents, all_hidden_states, all_attentions
+        # return outputs  # hidden_states, pooled_output, presents, all_hidden_states, all_attentions

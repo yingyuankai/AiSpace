@@ -33,4 +33,7 @@ class TestGpt2(unittest.TestCase):
 
         for itm in model_vars:
             print(f"{itm.name}, {itm.shape}")
+            # print(itm.numpy())
+            # print(type(itm.numpy()))
+            # break
         print()

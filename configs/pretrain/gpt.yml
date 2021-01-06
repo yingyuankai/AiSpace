@@ -38,9 +38,9 @@ pretrained:
         output_hidden_states: false
         use_cache: true
         use_return_dict: false
-        hidden_size: 768
+        hidden_size: 2560
         layer_norm_eps: 1e-12
-#        intermediate_size: 3072
+
     ref: https://github.com/qhduan/CPM-LM-TF2
     family:
         CPM-LM-TF2:
@@ -58,7 +58,8 @@ pretrained:
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/config or url
-                url: https://huggingface.co/gpt2/resolve/main/config.json
+#                url: https://huggingface.co/gpt2/resolve/main/config.json
+                url: /search/odin/yyk/data/pretrained/gpt/cpm-lm-tf2_v2/config.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.
