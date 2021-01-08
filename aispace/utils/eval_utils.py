@@ -147,7 +147,9 @@ def evaluation(hparams: Hparams, checkpoints=None, model=None, test_dataset=None
                 # confusion matrix
                 cm = ConfusionMatrix(_2d_to_1d_list(ground_truth), _2d_to_1d_list(predictions), labels)
                 # ner evaluation
-                labels = list(set([itm[2:] for itm in labels if itm.startswith("B-") or itm.startswith("I-")]))
+                tmp_labels = list(set([itm[2:] for itm in labels if itm.startswith("B-") or itm.startswith("I-")]))
+                if len(tmp_labels) != 0:
+                    labels = deepcopy(tmp_labels)
                 ner_eval = NEREvaluator(
                     _id_to_label(ground_truth, one_output_hparam.labels),
                     _id_to_label(predictions, one_output_hparam.labels),

@@ -61,9 +61,10 @@ class BertForQA(BaseModel):
         return outputs + (inputs['unique_id'], )
 
     def deploy(self):
-        from aispace.datasets.tokenizer import BertTokenizer
+        from aispace.datasets.tokenizer import BaseTokenizer
         from .bento_services import BertQAService
-        tokenizer = BertTokenizer(self._hparams.dataset.tokenizer)
+        # tokenizer = BertTokenizer(self._hparams.dataset.tokenizer)
+        tokenizer = BaseTokenizer.by_name(self._hparams.dataset.tokenizer.name)(self._hparams.dataset.tokenizer)
         bento_service = BertQAService()
         bento_service.pack("model", self)
         bento_service.pack("tokenizer", tokenizer)

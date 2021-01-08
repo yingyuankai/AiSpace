@@ -64,7 +64,7 @@ class GovTitleTriggerTransformer(BaseTransformer):
                     cur_str = title['text']
                     cur_tokens = self.tokenizer.tokenize(cur_str)
                     tokens.extend(cur_tokens)
-                    labels.extend(["B"] + ["I"] * (len(cur_tokens) - 1))
+                    labels.extend(["B-TITLE"] + ["I-TITLE"] * (len(cur_tokens) - 1))
 
                     pre_idx = se
 
@@ -75,8 +75,12 @@ class GovTitleTriggerTransformer(BaseTransformer):
 
                 output = self.tokenizer.encode(tokens)
 
-                labels = ["O"] + labels[: self.tokenizer.max_len - 2]
-                labels = labels + ['O'] * (self.tokenizer.max_len - len(labels))
+                if self._hparams.dataset.tokenizer.name != "gpt_tokenizer":
+                    labels = ["O"] + labels[: self.tokenizer.max_len - 2]
+                    labels = labels + ['O'] * (self.tokenizer.max_len - len(labels))
+                else:
+                    labels = labels[: self.tokenizer.max_len]
+                    labels = labels + ['O'] * (self.tokenizer.max_len - len(labels))
 
                 feature = {
                     "input_ids": output['input_ids'],

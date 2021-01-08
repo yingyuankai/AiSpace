@@ -37,10 +37,10 @@ class TFGenerationMixin:
 
     def _use_cache(self, outputs, use_cache):
         """During generation, decide whether to pass the `past` variable to the next forward pass."""
-        use_cache = getattr(self.config, "use_cache", False)
+        use_cache = getattr(self._hparams, "use_cache", False)
         if len(outputs) <= 1 or use_cache is False:
             return False
-        if hasattr(self.config, "mem_len") and self.config.mem_len == 0:
+        if hasattr(self._hparams, "mem_len") and self._hparams.mem_len == 0:
             return False
         return True
 
@@ -190,28 +190,28 @@ class TFGenerationMixin:
                 "Please use another model class (e.g. `TFOpenAIGPTLMHeadModel`, `TFXLNetLMHeadModel`, `TFGPT2LMHeadModel`, `TFCTRLLMHeadModel`, `TFT5ForConditionalGeneration`, `TFTransfoXLLMHeadModel`)"
             )
 
-        max_length = max_length if max_length is not None else self.config.max_length
-        min_length = min_length if min_length is not None else self.config.min_length
-        do_sample = do_sample if do_sample is not None else self.config.do_sample
-        early_stopping = early_stopping if early_stopping is not None else self.config.early_stopping
-        num_beams = num_beams if num_beams is not None else self.config.num_beams
-        temperature = temperature if temperature is not None else self.config.temperature
-        top_k = top_k if top_k is not None else self.config.top_k
-        top_p = top_p if top_p is not None else self.config.top_p
-        repetition_penalty = repetition_penalty if repetition_penalty is not None else self.config.repetition_penalty
-        bos_token_id = bos_token_id if bos_token_id is not None else self.config.bos_token_id
-        pad_token_id = pad_token_id if pad_token_id is not None else self.config.pad_token_id
-        eos_token_id = eos_token_id if eos_token_id is not None else self.config.eos_token_id
-        length_penalty = length_penalty if length_penalty is not None else self.config.length_penalty
+        max_length = max_length if max_length is not None else self._hparams.max_length
+        min_length = min_length if min_length is not None else self._hparams.min_length
+        do_sample = do_sample if do_sample is not None else self._hparams.do_sample
+        early_stopping = early_stopping if early_stopping is not None else self._hparams.early_stopping
+        num_beams = num_beams if num_beams is not None else self._hparams.num_beams
+        temperature = temperature if temperature is not None else self._hparams.temperature
+        top_k = top_k if top_k is not None else self._hparams.top_k
+        top_p = top_p if top_p is not None else self._hparams.top_p
+        repetition_penalty = repetition_penalty if repetition_penalty is not None else self._hparams.repetition_penalty
+        bos_token_id = bos_token_id if bos_token_id is not None else self._hparams.bos_token_id
+        pad_token_id = pad_token_id if pad_token_id is not None else self._hparams.pad_token_id
+        eos_token_id = eos_token_id if eos_token_id is not None else self._hparams.eos_token_id
+        length_penalty = length_penalty if length_penalty is not None else self._hparams.length_penalty
         no_repeat_ngram_size = (
-            no_repeat_ngram_size if no_repeat_ngram_size is not None else self.config.no_repeat_ngram_size
+            no_repeat_ngram_size if no_repeat_ngram_size is not None else self._hparams.no_repeat_ngram_size
         )
-        bad_words_ids = bad_words_ids if bad_words_ids is not None else self.config.bad_words_ids
+        bad_words_ids = bad_words_ids if bad_words_ids is not None else self._hparams.bad_words_ids
         num_return_sequences = (
-            num_return_sequences if num_return_sequences is not None else self.config.num_return_sequences
+            num_return_sequences if num_return_sequences is not None else self._hparams.num_return_sequences
         )
         decoder_start_token_id = (
-            decoder_start_token_id if decoder_start_token_id is not None else self.config.decoder_start_token_id
+            decoder_start_token_id if decoder_start_token_id is not None else self._hparams.decoder_start_token_id
         )
 
         if input_ids is not None:
@@ -283,7 +283,7 @@ class TFGenerationMixin:
 
         # current position and vocab size
         cur_len = shape_list(input_ids)[1]  # unused
-        vocab_size = self.config.vocab_size
+        vocab_size = self._hparams.vocab_size
 
         # set effective batch size and effective batch multiplier according to do_sample
         if do_sample:
@@ -293,7 +293,7 @@ class TFGenerationMixin:
             effective_batch_size = batch_size
             effective_batch_mult = 1
 
-        if self.config.is_encoder_decoder:
+        if self._hparams.is_encoder_decoder:
             if decoder_start_token_id is None:
                 decoder_start_token_id = bos_token_id
 
@@ -324,7 +324,7 @@ class TFGenerationMixin:
                 attention_mask, (effective_batch_size * num_beams, input_ids_len)
             )  # shape: (batch_size * num_return_sequences * num_beams, cur_len)
 
-        if self.config.is_encoder_decoder:
+        if self._hparams.is_encoder_decoder:
 
             # create empty decoder_input_ids
             input_ids = (
@@ -539,7 +539,7 @@ class TFGenerationMixin:
                 break
 
             # extend attention_mask for new generated input if only decoder
-            if self.config.is_encoder_decoder is False:
+            if self._hparams.is_encoder_decoder is False:
                 attention_mask = tf.concat(
                     [attention_mask, tf.ones((shape_list(attention_mask)[0], 1), dtype=tf.int32)], axis=-1
                 )
@@ -638,7 +638,7 @@ class TFGenerationMixin:
             if temperature != 1.0:
                 next_token_logits = next_token_logits / temperature
 
-            if self.config.is_encoder_decoder and do_sample is False:
+            if self._hparams.is_encoder_decoder and do_sample is False:
                 next_token_logits = self.adjust_logits_during_generation(
                     next_token_logits, cur_len=cur_len, max_length=max_length
                 )
@@ -804,7 +804,7 @@ class TFGenerationMixin:
                 past = self._reorder_cache(past, beam_idx)
 
             # extend attention_mask for new generated input if only decoder
-            if self.config.is_encoder_decoder is False:
+            if self._hparams.is_encoder_decoder is False:
                 attention_mask = tf.concat(
                     [attention_mask, tf.ones((shape_list(attention_mask)[0], 1), dtype=tf.int32)], axis=-1
                 )

@@ -1,7 +1,8 @@
 includes:
-  - "../pretrain/ernie.yml"
+  - "../pretrain/gpt.yml"
+  - "../generation/text_generation.yml"
 
-model_name: bert_for_ner
+model_name: bert_for_text_generation
 
 model_attributes:
     hidden_dropout_prob: 0.5
@@ -38,9 +39,9 @@ training:
         start_epoch: 5
 
 dataset:
-  name: gov_title/trigger
+  name: idiom/idiom_generator
   data_dir: "./data"
-  transformer: "gov_title/trigger"
+  transformer: idiom/idiom_generator
 
   source:
     train: "train[:80%]"
@@ -68,30 +69,27 @@ dataset:
     - name: output_1
       column: label
       type: LIST_OF_CLASSLABEL
-      task: NER
-      num: 3
-      labels: ["B-TITLE", "I-TITLE", "O"]
+      num: 30000
+      labels: vocab
       loss:
-#        name: myself_crf_loss
-#        name: sparse_softmax_focal_crossentropy
         name: sparse_categorical_crossentropy
         config:
-          from_logits: True
+          from_logits: false
       metrics:
         - name: sparse_categorical_accuracy
         - name: sparse_f1_score
           config:
             name: "macro_f1"
-            num_classes: 3
+            num_classes: 30000
             average: "macro"
 
 pretrained:
-    name: ERNIE_1.0_max-len-512
+    name: CPM-LM-TF2
     init_from_pretrained: true
-#    config:
-#      layers:
-#        start: 0
-#        end: 4
-#        step: 1
+    config:
+      layers:
+        start: 0
+        end: 4
+        step: 1
 
 

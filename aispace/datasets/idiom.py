@@ -84,30 +84,20 @@ class GlueConfig(tfds.core.BuilderConfig):
         self.process_label = process_label
 
 
-@BaseDataset.register("gov_title")
-class GovTitle(BaseDataset):
+@BaseDataset.register("idiom")
+class Idiom(BaseDataset):
 
     BUILDER_CONFIGS = [
         GlueConfig(
-            name="trigger",
-            description="""gov_title""",
-            text_features={"text": "text", "id": "id"},
+            name="idiom_generator",
+            description="""generate idiom according to story.""",
+            text_features={"gushi": "gushi", "chenyu": "chenyu"},
             label_column=None,
             data_url="",
             data_dir=".",
             citation="TODO",
             url=""
         ),
-        GlueConfig(
-            name="role",
-            description="""gov_title""",
-            text_features={"text": "text", "id": "id"},
-            label_column=None,
-            data_url="",
-            data_dir=".",
-            citation="TODO",
-            url=""
-        )
     ]
 
     def __init__(self, data_dir, **kwargs):
@@ -118,7 +108,7 @@ class GovTitle(BaseDataset):
             self.transformer = Transformer.BaseTransformer. \
                 by_name(kwargs["hparams"].dataset.transformer)(kwargs["hparams"])
 
-        super(GovTitle, self).__init__(data_dir, **kwargs)
+        super(Idiom, self).__init__(data_dir, **kwargs)
 
     def _info(self):
         features = self._get_feature_dict()
@@ -145,33 +135,10 @@ class GovTitle(BaseDataset):
             text_feature: tfds.features.Text()
             for text_feature in six.iterkeys(self.builder_config.text_features)
         }
-        if self.builder_config.name in ["DuEE_trigger"]:
-            features["triggers"] = tfds.features.Sequence(
-                {
-                    "event_type": tfds.features.Text(),
-                    "trigger": tfds.features.Text(),
-                    "trigger_start_index": tf.int32
-                }
-            )
-        elif self.builder_config.name in ["DuEE_role"]:
-            features["event_type"] = tfds.features.Text()
-            features["trigger"] = tfds.features.Text()
-            features["trigger_start_index"] = tf.int32
-            features["arguments"] = tfds.features.Sequence(
-                {
-                    "role": tfds.features.Text(),
-                    "argument": tfds.features.Text(),
-                    "argument_start_index": tf.int32
-                }
-            )
         return features
 
     def _split_generators(self, dl_manager):
-        if self.builder_config.name == "trigger":
-            data_path = "/search/odin/yyk/workspace/AiSpace/data/downloads/extracted/gov_title/gov_title_trigger.txt"
-            # data_path = "/search/odin/yyk/workspace/AiSpace/data/downloads/extracted/gov_title/gov_title_trigger_huge.txt"
-        else:
-            data_path = "/search/odin/yyk/workspace/AiSpace/data/downloads/extracted/gov_title/gov_title_event.txt"
+        data_path = "/search/odin/yyk/workspace/AiSpace/data/downloads/extracted/chenyu_gushi.txt"
 
         return [
             tfds.core.SplitGenerator(

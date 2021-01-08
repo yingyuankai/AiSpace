@@ -26,7 +26,7 @@ class SparseSoftmaxFocalCrossEntropy(tf.keras.losses.Loss):
         alpha=0.25,
         gamma=2.0,
         reduction: str = tf.keras.losses.Reduction.NONE,
-        name: str = "sparse_sigmoid_focal_crossentropy",
+        name: str = "sparse_softmax_focal_crossentropy",
     ):
         super().__init__(name=name, reduction=reduction)
 
@@ -47,7 +47,10 @@ class SparseSoftmaxFocalCrossEntropy(tf.keras.losses.Loss):
             gamma=self.gamma,
             from_logits=self.from_logits,
         )
-        return loss
+
+        # to be checked todo
+        # return tf.reduce_mean(loss)
+        return tf.reduce_mean(loss)
 
     def get_config(self):
         config = {

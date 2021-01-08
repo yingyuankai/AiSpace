@@ -170,3 +170,12 @@ class BertNerWithTitleStatusService(BentoService):
             new_ret = self.postprocessing(cur_tokens, cur_labels)
             ret.append(new_ret)
         return ret
+
+
+# {
+#     "text": "2006.06-2007.02雨山区委副书记，区人民政府代区长；",
+#     "status": "曾任",
+#     "trigger": "副书记",
+#     "trigger_start": 19,
+#     "trigger_end": 21
+# }

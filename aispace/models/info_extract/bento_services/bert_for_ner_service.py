@@ -32,9 +32,11 @@ from aispace.utils.hparams import Hparams
 @env(auto_pip_dependencies=True)
 class BertNerService(BentoService):
 
-    def preprocessing(self, text_str):
-        input_ids, token_type_ids, attention_mask = self.artifacts.tokenizer.encode(text_str)
-        return input_ids, token_type_ids, attention_mask, text_str
+    def preprocessing(self, itm):
+        context = itm.get("text")
+        output = self.artifacts.tokenizer.encode(context)
+        input_ids, token_type_ids, attention_mask = output['input_ids'], output['segment_ids'], output['input_mask']
+        return input_ids, token_type_ids, attention_mask, context
 
     def _align_raw_text(self, tags, raw_tokens, align_mapping):
         new_tokens, new_tags = [], []
@@ -130,16 +132,15 @@ class BertNerService(BentoService):
         input_data['attention_mask'] = tf.constant(input_data['attention_mask'], name="attention_mask")
         prediction = self.artifacts.model(input_data, training=False)
         prediction_idx = np.argmax(prediction, -1).tolist()
-        ret = {
-            "predictions": []
-        }
-        for idx, token_ids, seq_len, passage in zip(prediction_idx, input_data["input_ids"].numpy().tolist(), seq_length, passages):
+        ret = []
+        for idx, token_ids, seq_len, passage in zip(prediction_idx, input_data["input_ids"].numpy().tolist(),
+                                                    seq_length, passages):
             cur_labels = list(map(self.decode_label_idx, idx[1: seq_len - 1]))
             # cur_tokens = self.decode_token_idx(token_ids[1:seq_len - 1])
-            _, raw_tokens, align_mapping = self.artifacts.tokenizer.tokenize(passage, True)
+            raw_tokens, _, align_mapping = self.artifacts.tokenizer.tokenize(passage, True)
             cur_tokens, cur_labels = self._align_raw_text(cur_labels, raw_tokens, align_mapping)
             new_ret = self.postprocessing(cur_tokens, cur_labels)
-            ret["predictions"].append(new_ret)
+            ret.append(new_ret)
         return ret
 
     # curl -i \

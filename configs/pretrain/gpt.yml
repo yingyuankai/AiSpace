@@ -5,7 +5,7 @@ includes:
 
 dataset:
     tokenizer:
-        name: bert_tokenizer
+        name: gpt_tokenizer
         vocab:
             filename: null
             special_tokens:

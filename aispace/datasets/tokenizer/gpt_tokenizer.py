@@ -49,8 +49,6 @@ class CPMTokenizer(BaseTokenizer):
             )
             raise
 
-
-
         self.do_lower_case = self._hparams.do_lower_case
         self.remove_space = self._hparams.remove_space
         self.keep_accents = self._hparams.keep_accents
