@@ -28,12 +28,22 @@ class BertForTextGeneration(BaseModel, TFGenerationMixin):
             ValueError(f"{pretrained_hparams.norm_name} not be supported.")
         self.transformer = BaseLayer.by_name(pretrained_hparams.norm_name)(pretrained_hparams)
 
-    def call(self, inputs, **kwargs):
+    def call(self, inputs=None, **kwargs):
         transformer_outputs = self.transformer(inputs, **kwargs)
         hidden_states = transformer_outputs[0]
         logits = self.transformer.wte(hidden_states, mode="linear")
 
-        return logits
+        return (logits,) + transformer_outputs[2:]
+
+    def get_output_embeddings(self):
+        return self.transformer.wte
+
+    def prepare_inputs_for_generation(self, inputs, past, **kwargs):
+        # only last token for inputs_ids if past is defined in kwargs
+        if past:
+            inputs = tf.expand_dims(inputs[:, -1], -1)
+
+        return inputs, {"past": past, "use_cache": kwargs["use_cache"]}
 
     def deploy(self):
         pass

@@ -53,6 +53,8 @@ class CPMTokenizer(BaseTokenizer):
         self.remove_space = self._hparams.remove_space
         self.keep_accents = self._hparams.keep_accents
 
+        self.translator = str.maketrans(" \n", "\u2582\u2583")
+
         self.sp_model = spm.SentencePieceProcessor()
         self.sp_model.Load(self._hparams.vocab.filename)
 
@@ -79,7 +81,7 @@ class CPMTokenizer(BaseTokenizer):
         bpe_tokens = []
         seg_list = [x.translate(self.translator) for x in jieba.cut(input, cut_all=False)]
         new_seg = " ".join(seg_list)
-        tmp_bpe_tokens = self.sp.encode(new_seg, out_type=str)
+        tmp_bpe_tokens = self.sp_model.encode(new_seg, out_type=str)
         bpe_tokens.extend(tmp_bpe_tokens)
         return bpe_tokens
 
@@ -124,6 +126,7 @@ class CPMTokenizer(BaseTokenizer):
         return output
 
     def decode(self, idx, skip_special_tokens=False):
-        text = self.sp.decode([self.decoder[x] for x in idx])
+        # return [self.vocab.transformer(x) for x in idx]
+        text = self.sp_model.decode([self.vocab.transformer(x) for x in idx])
         text = text.replace('\u2582', ' ').replace('\u2583', '\n').replace('\u2584', '<eod>')
         return text

@@ -17,5 +17,6 @@ ADAPTERS = {
     "tf_huggingface_xlnet_adapter": tf_huggingface_xlnet_adapter,
     "tf_huggingface_albert_chinese_adapter": tf_huggingface_albert_chinese_adapter,
     "tf_huggingface_albert_chinese_google_adapter": tf_huggingface_albert_chinese_google_adapter,
-    "tf_huggingface_electra_adapter": tf_huggingface_electra_adapter
+    "tf_huggingface_electra_adapter": tf_huggingface_electra_adapter,
+    "tf_huggingface_gpt2_adapter": tf_huggingface_gpt2_adapter
 }

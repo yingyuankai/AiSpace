@@ -5,7 +5,7 @@
 # @File    : glue_zh.py
 
 
-__all__ = ["LSTC_2020"]
+__all__ = ["Idiom"]
 
 import os
 import six

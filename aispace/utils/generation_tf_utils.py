@@ -19,7 +19,7 @@ import tensorflow as tf
 import logging
 
 
-logger = logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class TFGenerationMixin:
@@ -283,7 +283,7 @@ class TFGenerationMixin:
 
         # current position and vocab size
         cur_len = shape_list(input_ids)[1]  # unused
-        vocab_size = self._hparams.vocab_size
+        vocab_size = self._hparams.pretrained.config.vocab_size
 
         # set effective batch size and effective batch multiplier according to do_sample
         if do_sample:
@@ -437,10 +437,10 @@ class TFGenerationMixin:
         past = encoder_outputs  # defined for encoder-decoder models, None for decoder-only models
 
         while cur_len < max_length:
-            model_inputs = self.prepare_inputs_for_generation(
+            input_ids_tmp, model_inputs = self.prepare_inputs_for_generation(
                 input_ids, past=past, attention_mask=attention_mask, use_cache=use_cache
             )
-            outputs = self(**model_inputs)
+            outputs = self(input_ids_tmp, **model_inputs)
             next_token_logits = outputs[0][:, -1, :]
 
             # if model has past, then set the past variable to speed up decoding
@@ -617,10 +617,10 @@ class TFGenerationMixin:
         done = [False for _ in range(batch_size)]
 
         while cur_len < max_length:
-            model_inputs = self.prepare_inputs_for_generation(
+            input_ids_tmp, model_inputs = self.prepare_inputs_for_generation(
                 input_ids, past=past, attention_mask=attention_mask, use_cache=use_cache
             )
-            outputs = self(**model_inputs)  # (batch_size * num_beams, cur_len, vocab_size)
+            outputs = self(input_ids_tmp, **model_inputs)  # (batch_size * num_beams, cur_len, vocab_size)
             next_token_logits = outputs[0][:, -1, :]  # (batch_size * num_beams, vocab_size)
 
             # if model has past, then set the past variable to speed up decoding
@@ -689,7 +689,7 @@ class TFGenerationMixin:
                     scores, tf.convert_to_tensor(banned_tokens_indices_mask, dtype=tf.bool), -float("inf")
                 )
 
-            assert shape_list(scores) == [batch_size * num_beams, vocab_size]
+            assert shape_list(scores) == [batch_size * num_beams, vocab_size], ValueError(f"{shape_list(scores)}, {[batch_size * num_beams, vocab_size]}")
 
             if do_sample:
                 _scores = scores + tf.broadcast_to(
