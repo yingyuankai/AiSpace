@@ -393,6 +393,7 @@ class Gpt2(BaseLayer):
         self.drop = tf.keras.layers.Dropout(config.embd_pdrop)
         if config.has_key("layers"):
             self.h = [TFBlock(config.n_ctx, config, scale=True, name="h_._{}".format(i)) for i in range(config.layers.start, config.layers.end, config.layers.step)]
+            self.num_hidden_layers = len(self.h)
         else:
             self.h = [TFBlock(config.n_ctx, config, scale=True, name="h_._{}".format(i)) for i in range(config.n_layer)]
 

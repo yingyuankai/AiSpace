@@ -42,7 +42,7 @@ def evaluation(hparams: Hparams, checkpoints=None, model=None, test_dataset=None
 
     if model is None:
         # build model
-        (model,) = build_model(hparams, return_losses=False, return_metrics=False, return_optimizer=False)
+        (model,) = build_model(hparams, return_losses=False, return_metrics=False, return_optimizer=False, stage=TEST_STAGE)
 
     # predict using default model saved
     if checkpoints is None:
@@ -54,9 +54,8 @@ def evaluation(hparams: Hparams, checkpoints=None, model=None, test_dataset=None
             model.load_weights(hparams.get_model_filename())
 
         # prediction
-        # print(model.evaluate(test_dataset))
         for inputs, outputs in tqdm(test_dataset):
-            model_outputs = model.predict(inputs)
+            model_outputs = model(inputs)
             if not isinstance(model_outputs, (tuple, list)):
                 model_outputs = (model_outputs,)
             for idx, one_output_hparam in enumerate(output_hparams):

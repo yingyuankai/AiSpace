@@ -28,6 +28,7 @@ class TestLSTC(unittest.TestCase):
         # download_config = DownloadConfig(register_checksums=True)
         tnews = tfds.load("idiom/idiom_generator",
                           # data_dir="/search/data1/yyk/data/datasets/glue_zh",
+                          split="train[90%:]",
                           data_dir="../data",
                           builder_kwargs={'hparams': hparams},
                           # download_and_prepare_kwargs={'download_config': download_config}
@@ -36,15 +37,17 @@ class TestLSTC(unittest.TestCase):
         tokenizer = BertTokenizer(hparams.dataset.tokenizer)
         # id_to_label = {v: k for k, v in hparams.duee_event_type_labels.items()}
         label_counter = {}
-        for itm in tnews["train"]:
+        i = 0
+        for itm in tnews:
             # for k, v in itm.items():
             #     if v.shape[0] == 151:
             #         print(itm)
             #         break
-            print(itm)
-            print()
-            print(tokenizer.decode([int(t) for t in itm["input_ids"].numpy().tolist()]))
-            break
+            # print(itm)
+            # print()
+            # print(tokenizer.decode([int(t) for t in itm["input_ids"].numpy().tolist()]))
+            # break
+            i += 1
             # l = hparams.dataset.outputs[0].labels[tf.argmax(itm["output_1"], -1).numpy().tolist()]
             # print(id_to_label[l])
             # if id_to_label[l] not in label_counter:
@@ -52,7 +55,7 @@ class TestLSTC(unittest.TestCase):
             # label_counter[id_to_label[l]] += 1
         # print(label_counter)
         # print(len(label_counter))
-
+        print(i)
 # python -u aispace/trainer.py \
 #    --experiment_name test \
 #    --model_name bert_for_classification \

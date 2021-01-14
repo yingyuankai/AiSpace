@@ -14,7 +14,9 @@ generation_attributes:
   num_beams: 3
   temperature: 0.7
   repetition_penalty: 2.0
-  num_return_sequences: 2
+  num_return_sequences: 1
+  max_length: 300
+  early_stopping: true
 
 training:
 #  policy:
@@ -23,8 +25,8 @@ training:
 #      k: 5
   learning_rate: 1e-5
   max_epochs: 1
-  batch_size: 8
-
+  batch_size: 4
+  do_eval: false
 #  optimizer:
 #    name: adam
 
@@ -56,13 +58,13 @@ dataset:
     test: "train[-10%:]"
 
   tokenizer:
-    max_len: 300
+    max_len: 200
 
   inputs:
     - name: input_ids
       column: input_ids
       type: LIST_OF_INT
-      max_len: 300
+      max_len: 200
 #    - name: token_type_ids
 #      column: token_type_ids
 #      type: LIST_OF_INT
@@ -70,7 +72,7 @@ dataset:
     - name: attention_mask
       column: attention_mask
       type: LIST_OF_INT
-      max_len: 300
+      max_len: 200
 
   outputs:
     - name: output_1
@@ -96,5 +98,5 @@ pretrained:
     config:
       layers:
         start: 0
-        end: 32
-        step: 7
+        end: 4
+        step: 1

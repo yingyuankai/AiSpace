@@ -8,7 +8,7 @@ nohup python -u aispace/trainer.py \
     --config_name idiom_generator \
     --config_dir ./configs/custom \
     --gpus 0 \
-    > idiom_generator_trigger.log 2>&1 &
+    > idiom_generator.log 2>&1 &
 
 
 # Build deployment package

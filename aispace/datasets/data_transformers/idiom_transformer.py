@@ -64,8 +64,13 @@ class IdiomGeneratorTransformer(BaseTransformer):
 
                 attention_mask = [1] * len(input_tokens) + [0] * (self.tokenizer.max_len - len(input_tokens))
 
+                assert len(attention_mask) == self.tokenizer.max_len, ValueError(f"attention_mask's length is {len(attention_mask)}")
+
                 input_tokens += [self.tokenizer.vocab.pad_token] * (self.tokenizer.max_len - len(input_tokens))
-                label_tokens += [self.tokenizer.vocab.pad_token] * (self.tokenizer.max_len - len(input_tokens))
+                label_tokens += [self.tokenizer.vocab.pad_token] * (self.tokenizer.max_len - len(label_tokens))
+
+                assert len(input_tokens) == self.tokenizer.max_len, ValueError(f"input_tokens's length is {len(input_tokens)}")
+                assert len(label_tokens) == self.tokenizer.max_len, ValueError(f"label_tokens's length is {len(label_tokens)}")
 
                 encode_output = self.tokenizer.encode(input_tokens)
 
