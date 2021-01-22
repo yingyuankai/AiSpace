@@ -48,6 +48,9 @@ class BertNerService(BentoService):
                 new_tokens.append(raw_tokens[align_mapping[i]])
                 new_tags.append(tags[i])
                 i = j
+        if i < j:
+            new_tokens.append(raw_tokens[align_mapping[i]])
+            new_tags.append(tags[i])
         return new_tokens, new_tags
 
     def postprocessing(self, tokens, tags):

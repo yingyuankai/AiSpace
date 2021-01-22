@@ -117,58 +117,74 @@ class GovTitleRoleTransformer(BaseTransformer):
                 roles.append(trigger)
                 roles.sort(key=lambda s: s['span_start'])
 
-                tokens = []
-                labels = []
-                pre_idx = 0
-                trigger_span_start, trigger_span_end = 1, 1
-                for role in roles:
-                    ss, se = role['span_start'], role['span_end']
-                    entity_type = role['entity_type']
+                windows = [(5, 0), (10, 0), (20, 0), (40, 0), (80, 0), (160, 0), (320, 0), (10000, 10000)] + \
+                          [(5, 5), (10, 10), (20, 20), (40, 40), (80, 50), (160, 60), (320, 80)]
 
-                    pre_str = context[pre_idx: ss]
+                context_span_visited = set()
+
+                # 以职位触发词为中心进行不同窗口切割，从而实现数据增强的目的
+                for pre_offset, post_offset in windows:
+                    context_s, \
+                    context_e = \
+                        max(0, trigger['span_start'] - pre_offset), \
+                        min(len(context), trigger['span_end'] + post_offset)
+                    if (context_s, context_e) in context_span_visited:
+                        continue
+                    context_span_visited.add((context_s, context_e))
+                    tokens = []
+                    labels = []
+                    pre_idx = context_s
+                    trigger_span_start, trigger_span_end = 1, 1
+                    for role in roles:
+                        ss, se = role['span_start'], role['span_end']
+                        if ss < context_s or se > context_e:
+                            continue
+                        entity_type = role['entity_type']
+
+                        pre_str = context[pre_idx: ss]
+                        pre_tokens = self.tokenizer.tokenize(pre_str)
+                        tokens.extend(pre_tokens)
+                        labels.extend(["O"] * len(pre_tokens))
+
+                        cur_str = role['text']
+                        cur_tokens = self.tokenizer.tokenize(cur_str)
+                        tokens.extend(cur_tokens)
+                        if role['entity_type'] != "TITLE":
+                            labels.extend([f"B-{entity_type}"] + [f"I-{entity_type}"] * (len(cur_tokens) - 1))
+                        else:
+                            trigger_span_start = len(labels)
+                            labels.extend(["O"] * len(cur_tokens))
+                            trigger_span_end = len(labels)
+
+                        pre_idx = se
+
+                    pre_str = context[pre_idx: context_e]
                     pre_tokens = self.tokenizer.tokenize(pre_str)
                     tokens.extend(pre_tokens)
                     labels.extend(["O"] * len(pre_tokens))
 
-                    cur_str = role['text']
-                    cur_tokens = self.tokenizer.tokenize(cur_str)
-                    tokens.extend(cur_tokens)
-                    if role['entity_type'] != "TITLE":
-                        labels.extend([f"B-{entity_type}"] + [f"I-{entity_type}"] * (len(cur_tokens) - 1))
-                    else:
-                        trigger_span_start = len(labels)
-                        labels.extend(["O"] * len(cur_tokens))
-                        trigger_span_end = len(labels)
+                    query = f"{status}{trigger['text']}"
+                    query_tokens = self.tokenizer.tokenize(query)
 
-                    pre_idx = se
+                    if trigger_span_end > self.tokenizer.max_len - 3 - len(query_tokens):
+                        continue
 
-                pre_str = context[pre_idx:]
-                pre_tokens = self.tokenizer.tokenize(pre_str)
-                tokens.extend(pre_tokens)
-                labels.extend(["O"] * len(pre_tokens))
+                    tokens = tokens[: self.tokenizer.max_len - 3 - len(query_tokens)]
+                    labels = labels[: self.tokenizer.max_len - 3 - len(query_tokens)]
+                    labels = ["O"] + labels + ['O'] * (self.tokenizer.max_len - len(labels) - 1)
 
-                query = f"{status}{trigger['text']}"
-                query_tokens = self.tokenizer.tokenize(query)
+                    position_ids = list(range(0, 1 + len(tokens) + 1 + 2)) + \
+                                   list(range(trigger_span_start, trigger_span_end)) + list(range(len(tokens) + len(query_tokens) + 2, self.tokenizer.max_len))
+                    output = self.tokenizer.encode(tokens, query_tokens)
 
-                if trigger_span_end > self.tokenizer.max_len - 3 - len(query_tokens):
-                    continue
+                    feature = {
+                        "input_ids": output['input_ids'],
+                        "token_type_ids": output['segment_ids'],
+                        "attention_mask": output['input_mask'],
+                        "position_ids": position_ids,
+                        "label": labels,
+                    }
 
-                tokens = tokens[: self.tokenizer.max_len - 3 - len(query_tokens)]
-                labels = labels[: self.tokenizer.max_len - 3 - len(query_tokens)]
-                labels = ["O"] + labels + ['O'] * (self.tokenizer.max_len - len(labels) - 1)
-
-                position_ids = list(range(0, 1 + len(tokens) + 1 + 2)) + \
-                               list(range(trigger_span_start, trigger_span_end)) + list(range(len(tokens) + len(query_tokens) + 2, self.tokenizer.max_len))
-                output = self.tokenizer.encode(tokens, query_tokens)
-
-                feature = {
-                    "input_ids": output['input_ids'],
-                    "token_type_ids": output['segment_ids'],
-                    "attention_mask": output['input_mask'],
-                    "position_ids": position_ids,
-                    "label": labels,
-                }
-
-                if idx == 0:
-                    print(feature)
-                yield feature
+                    if idx == 0:
+                        print(feature)
+                    yield feature

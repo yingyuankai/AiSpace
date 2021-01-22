@@ -78,9 +78,10 @@ dataset:
       labels: ["O", "B-PERSON", "I-PERSON", "B-ORGANIZATION", "I-ORGANIZATION",
                "B-LOCATION", "I-LOCATION", "B-START_DATE", "I-START_DATE", "B-END_DATE", "I-END_DATE"]
       loss:
-        name: sparse_categorical_crossentropy
-        config:
-          from_logits: true
+        name: myself_crf_loss
+#        name: sparse_categorical_crossentropy
+#        config:
+#          from_logits: true
       metrics:
         - name: sparse_categorical_accuracy
         - name: sparse_f1_score
