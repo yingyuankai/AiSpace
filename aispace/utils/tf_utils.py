@@ -8,6 +8,7 @@ import tensorflow as tf
 import numbers
 import numpy as np
 import six
+from collections import OrderedDict
 
 from aispace.layers import activations
 

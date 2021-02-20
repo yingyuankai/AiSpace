@@ -9,3 +9,4 @@ from .pretrained import *
 from .classifications import *
 from .info_extract import *
 from .question_answer import *
+from .generation import *

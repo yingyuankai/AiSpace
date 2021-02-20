@@ -42,7 +42,7 @@ def evaluation(hparams: Hparams, checkpoints=None, model=None, test_dataset=None
 
     if model is None:
         # build model
-        (model,) = build_model(hparams, return_losses=False, return_metrics=False, return_optimizer=False)
+        (model,) = build_model(hparams, return_losses=False, return_metrics=False, return_optimizer=False, stage=TEST_STAGE)
 
     # predict using default model saved
     if checkpoints is None:
@@ -54,9 +54,8 @@ def evaluation(hparams: Hparams, checkpoints=None, model=None, test_dataset=None
             model.load_weights(hparams.get_model_filename())
 
         # prediction
-        # print(model.evaluate(test_dataset))
         for inputs, outputs in tqdm(test_dataset):
-            model_outputs = model.predict(inputs)
+            model_outputs = model(inputs)
             if not isinstance(model_outputs, (tuple, list)):
                 model_outputs = (model_outputs,)
             for idx, one_output_hparam in enumerate(output_hparams):
@@ -147,7 +146,9 @@ def evaluation(hparams: Hparams, checkpoints=None, model=None, test_dataset=None
                 # confusion matrix
                 cm = ConfusionMatrix(_2d_to_1d_list(ground_truth), _2d_to_1d_list(predictions), labels)
                 # ner evaluation
-                labels = list(set([itm[2:] for itm in labels if itm.startswith("B-") or itm.startswith("I-")]))
+                tmp_labels = list(set([itm[2:] for itm in labels if itm.startswith("B-") or itm.startswith("I-")]))
+                if len(tmp_labels) != 0:
+                    labels = deepcopy(tmp_labels)
                 ner_eval = NEREvaluator(
                     _id_to_label(ground_truth, one_output_hparam.labels),
                     _id_to_label(predictions, one_output_hparam.labels),

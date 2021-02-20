@@ -318,12 +318,16 @@ class NumpyEncoder(json.JSONEncoder):
             return json.JSONEncoder.default(self, obj)
 
 
-def load_vocab(file_path):
+def load_vocab(file_path) -> list:
     import tensorflow as tf
     if not file_path.endswith(".model"):
         with tf.io.gfile.GFile(file_path) as vocab_file:
             # Converts to 'unicode' (Python 2) or 'str' (Python 3)
             vocab = list(tf.compat.as_text(line.strip().split()[0]) for line in vocab_file if line is not None and len(line.strip()) != 0)
+    elif file_path.endswith(".json"):
+        tmp_vocab = json.load(open(file_path))
+        tmp_vocab_reversed = {v: k for k, v in tmp_vocab.items()}
+        vocab = [tmp_vocab_reversed[idx] for idx in range(len(tmp_vocab_reversed))]
     else:
         try:
             import sentencepiece as spm

@@ -245,7 +245,7 @@ def build_callbacks(hparams: Hparams):
     return callbacks
 
 
-def build_model(hparam: Hparams, return_losses=True, return_metrics=True, return_optimizer=True):
+def build_model(hparam: Hparams, return_losses=True, return_metrics=True, return_optimizer=True, stage=TRAIN_STAGE):
     """Build custom keras model, losses, metrics, and optimizer
 
     :param hparam:
@@ -275,9 +275,10 @@ def build_model(hparam: Hparams, return_losses=True, return_metrics=True, return
     if return_optimizer:
         optimizer = build_tf_model_optimizer(hparam.training)
         rets += (optimizer, )
+    # if stage == TRAIN_STAGE:
     model.summary()
     # init from pretrained model (language or etc.,)
-    if not hparam.model_resume_path and not hparam.model_load_path \
+    if stage == TRAIN_STAGE and not hparam.model_resume_path and not hparam.model_load_path \
             and "pretrained" in hparam and hparam.pretrained.init_from_pretrained:
         try:
             logger.info(f"Load weights from {hparam.pretrained.model_path}")
@@ -293,13 +294,13 @@ def build_model(hparam: Hparams, return_losses=True, return_metrics=True, return
             raise e
 
     # initializer model
-    if not hparam.model_resume_path and hparam.model_load_path is not None:
+    if stage == TRAIN_STAGE and not hparam.model_resume_path and hparam.model_load_path is not None:
         model_saved = os.path.join(hparam.model_load_path, "model_saved", "model")
         logger.info(f"Initialize model from {model_saved}")
         model.load_weights(model_saved)
 
     # resume model
-    if hparam.model_resume_path is not None:
+    if stage == TRAIN_STAGE and hparam.model_resume_path is not None:
         model_saved = os.path.join(hparam.get_workspace_dir(), "model_saved", "model")
         logger.info(f"Resume model from {model_saved}")
         model.load_weights(model_saved)

@@ -348,6 +348,26 @@ Specify different pretrained model, please change ***includes*** and ***pretrain
 - Improve the tokenizer to make it more versatile;
 - Build AiSpace server, make it can train and configure using UI.
 
+## Contact Author
+
+Mail: yingyuankai@aliyun.com
+
+Wechat: woshimoming1991
+
+
+## Citing
+
+```
+@misc{AiSpace,
+  author = {yuankai ying},
+  title = {AiSpace: Highly configurable framework for deep learning model development and deployment},
+  year = {2020},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/yingyuankai/AiSpace}},
+}
+```
+
 ## Refs
 
 - [transformers](https://github.com/huggingface/transformers)

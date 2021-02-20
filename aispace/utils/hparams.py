@@ -442,6 +442,8 @@ class Hparams(collections.OrderedDict):
                     if maybe_filename.is_dir():
                         if suffix:
                             file_path = maybe_filename / suffix
+                        else:
+                            file_path = maybe_filename
                     else:
                         file_path = maybe_filename
                     # assigning filename to the corresponding config variable.
