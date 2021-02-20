@@ -7,7 +7,7 @@ loguru
 pytest
 PyYAML
 spacy
-tensorflow-datasets
+tensorflow-datasets==2.0.0
 tqdm
 pydot
 graphviz
