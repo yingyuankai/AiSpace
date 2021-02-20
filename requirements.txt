@@ -23,3 +23,6 @@ tensorboard>=2.1.0
 tensorflow-estimator>=2.1.0
 python-dateutil==2.8.0
 keras-lr-multiplier==0.8.0
+nltk
+matplotlib
+h5py==2.10.0
