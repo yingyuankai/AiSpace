@@ -13,3 +13,4 @@ from aispace.datasets import dureader
 from aispace.datasets import entity_with_nationality
 from aispace.datasets import gov_title
 from aispace.datasets import idiom
+from aispace.datasets import drug
