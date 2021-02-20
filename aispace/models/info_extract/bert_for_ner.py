@@ -82,7 +82,7 @@ class BertForNer(BaseModel):
 
     def deploy(self):
         from aispace.datasets.tokenizer import BaseTokenizer
-        from .bento_services import BertNerService
+        from .bento_services import BertNerWithTitleStatusService as BertNerService
         tokenizer = BaseTokenizer.by_name(self._hparams.dataset.tokenizer.name)(self._hparams.dataset.tokenizer)
         bento_service = BertNerService()
         bento_service.pack("model", self)
