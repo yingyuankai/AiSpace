@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export CUDA_VISIBLE_DEVICES=1,2
+export CUDA_VISIBLE_DEVICES=1,0
 nohup python -u aispace/trainer.py \
     --experiment_name role \
     --model_name bert_for_role_ner \
@@ -8,7 +8,7 @@ nohup python -u aispace/trainer.py \
     --config_name DuEE_role \
     --config_dir ./configs/2020_LSTC \
     --gpus 0 1 \
-    > err.log 2>&1 &
+    > duee_role.log 2>&1 &
 
 
 #export CUDA_VISIBLE_DEVICES=7

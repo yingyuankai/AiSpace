@@ -67,18 +67,22 @@ class DuEETriggerTransformer(BaseTransformer):
 
         self.bio_mask = np.zeros(shape=(len(self.ner_label_to_id), len(self.ner_label_to_id)), dtype=np.int)
 
+        pickle.dump(self.bio_mask, open(self.bio_mask_pik_file, "wb"))
+        self._hparams.cascade_set("bio_mask", self.bio_mask)
+
         with open(data_path, "r", encoding="utf8") as inf:
-            with open(output_path, "w", encoding="utf8") as ouf:
-                for line in tqdm(inf):
-                    if not line: continue
-                    line = line.strip()
-                    if len(line) == 0: continue
-                    line_json = json.loads(line)
-                    if len(line_json) == 0: continue
-                    feature = self._build_feature_v3(line_json, split, False)
-                    if not feature: continue
-                    new_line = f"{json_dumps(feature)}\n"
-                    ouf.write(new_line)
+            # with open(output_path, "w", encoding="utf8") as ouf:
+            for line in tqdm(inf):
+                if not line: continue
+                line = line.strip()
+                if len(line) == 0: continue
+                line_json = json.loads(line)
+                if len(line_json) == 0: continue
+                feature = self._build_feature(line_json, split, False)
+                if not feature: continue
+                yield feature
+                    # new_line = f"{json_dumps(feature)}\n"
+                    # ouf.write(new_line)
 
                     # 数据增强
                     # if split != "train":
@@ -94,9 +98,7 @@ class DuEETriggerTransformer(BaseTransformer):
                     #         new_line = f"{json_dumps(feature)}\n"
                     #         ouf.write(new_line)
 
-        pickle.dump(self.bio_mask, open(self.bio_mask_pik_file, "wb"))
-        self._hparams.cascade_set("bio_mask", self.bio_mask)
-        return output_path
+        # return output_path
 
     def _build_feature(self, one_json, split="train", data_aug=False):
         text = one_json.get("text")
@@ -357,6 +359,8 @@ class DuEETriggerTransformer(BaseTransformer):
             filename = "event_schema/event_schema.json"
             cache_path = default_download_dir(name)
             file_path = cache_path / filename
+
+            print(file_path)
             if not file_path.exists():
                 try:
                     maybe_download(url, str(cache_path), extract=True)
@@ -400,6 +404,9 @@ class DuEETriggerTransformer(BaseTransformer):
                 id = one_json.get("id")
                 labels[event_type] = id
         return labels
+
+    def prepare_labels(self, url, name=""):
+        return self.duee_trigger_ner_labels(url, name)
 
     # def hanlp_pos_labels(self, url, name=""):
     #     from collections import OrderedDict
@@ -525,24 +532,27 @@ class DuEERoleTransformer(BaseTransformer):
                 schema[s_event_type] = [f"B-{r['role']}" for r in s_roles] + [f"I-{r['role']}" for r in s_roles]
                 schema_raw[s_event_type] = "-".join([r['role'] for r in s_roles])
 
-        label2ids = {l: idx for idx, l in enumerate(list(self._hparams.duee_role_ner_labels.keys()))}
+        # label2ids = {l: idx for idx, l in enumerate(list(self._hparams.duee_role_ner_labels.keys()))}
 
         self.trigger_mapping, self.role_mapping = {}, {}
         with open(data_path, "r", encoding="utf8") as inf:
-            with open(output_path, "w", encoding="utf8") as ouf:
-                for line in tqdm(inf):
-                    if not line: continue
-                    line = line.strip()
-                    if len(line) == 0: continue
-                    line_json = json.loads(line)
-                    if len(line_json) == 0: continue
-                    # features = self._build_featureV3(line_json, schema, label2ids)
-                    # features = self._build_featureV4(line_json, schema, label2ids, split)
-                    features = self._build_featureV5(line_json, schema, schema_raw, label2ids, split)
-                    for feature in features:
-                        new_line = f"{json_dumps(feature)}\n"
-                        ouf.write(new_line)
-        return output_path
+            # with open(output_path, "w", encoding="utf8") as ouf:
+            for line in tqdm(inf):
+                if not line: continue
+                line = line.strip()
+                if len(line) == 0: continue
+                line_json = json.loads(line)
+                if len(line_json) == 0: continue
+                features = self._build_feature(line_json)
+                if not features: continue
+                yield features
+                # features = self._build_featureV3(line_json, schema, label2ids)
+                # features = self._build_featureV4(line_json, schema, label2ids, split)
+                # features = self._build_featureV5(line_json, schema, schema_raw, label2ids, split)
+                # for feature in features:
+                    # new_line = f"{json_dumps(feature)}\n"
+                    # ouf.write(new_line)
+        # return output_path
 
     def _build_feature(self, one_json):
         text = one_json.get("text")
@@ -614,7 +624,7 @@ class DuEERoleTransformer(BaseTransformer):
                 "labels": labels
             }
 
-            yield feature
+            return feature
 
     def _build_featureV2(self, one_json, schema, label2ids):
         text = one_json.get("text")
@@ -1125,6 +1135,9 @@ class DuEERoleTransformer(BaseTransformer):
                     labels[f"B-{tmp}"] = f"B-{cur_num}"
                     labels[f"I-{tmp}"] = f"I-{cur_num}"
         return labels
+
+    def prepare_labels(self, url, name=""):
+        return self.duee_role_ner_labels(url, name)
 
 
 @BaseTransformer.register("lstc_2020/DuEE_role_reduce_label")
