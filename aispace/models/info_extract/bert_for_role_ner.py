@@ -30,7 +30,6 @@ class BertForRoleNer(BaseModel):
         self.num_labels = hparams.dataset.outputs[0].num
         self.initializer_range = model_hparams.initializer_range
 
-        # self.bert = Bert(pretrained_hparams, name='bert')
         self.bert = BaseLayer.by_name(pretrained_hparams.norm_name)(pretrained_hparams)
         self.dropout = tf.keras.layers.Dropout(
             model_hparams.hidden_dropout_prob
@@ -58,6 +57,10 @@ class BertForRoleNer(BaseModel):
         project = self.project(seq_output)
         project = self.dropout(project, training=training)
         logits = self.ner_output(project)
+
+        # mask
+
+
         # crf
         viterbi, _ = self.crf([logits, input_lengths])
         return tf.keras.backend.in_train_phase(logits, tf.one_hot(viterbi, self.num_labels), training=training)

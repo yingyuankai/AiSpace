@@ -532,7 +532,7 @@ class DuEERoleTransformer(BaseTransformer):
                 schema[s_event_type] = [f"B-{r['role']}" for r in s_roles] + [f"I-{r['role']}" for r in s_roles]
                 schema_raw[s_event_type] = "-".join([r['role'] for r in s_roles])
 
-        # label2ids = {l: idx for idx, l in enumerate(list(self._hparams.duee_role_ner_labels.keys()))}
+        label2ids = {l: idx for idx, l in enumerate(list(self._hparams.duee_role_ner_labels.keys()))}
 
         self.trigger_mapping, self.role_mapping = {}, {}
         with open(data_path, "r", encoding="utf8") as inf:
@@ -543,7 +543,7 @@ class DuEERoleTransformer(BaseTransformer):
                 if len(line) == 0: continue
                 line_json = json.loads(line)
                 if len(line_json) == 0: continue
-                features = self._build_feature(line_json)
+                features = self._build_featureV6(line_json, schema, label2ids)
                 if not features: continue
                 yield features
                 # features = self._build_featureV3(line_json, schema, label2ids)
@@ -733,7 +733,7 @@ class DuEERoleTransformer(BaseTransformer):
                 "labels": labels,
             }
 
-            yield feature
+            return feature
 
     def _build_featureV3(self, one_json, schema, label2ids):
         text = one_json.get("text")
@@ -1101,6 +1101,91 @@ class DuEERoleTransformer(BaseTransformer):
             }
 
             yield feature
+
+    def _build_featureV6(self, one_json, schema, label2ids):
+        text = one_json.get("text")
+        id = one_json.get("id")
+        for event in one_json.get("event_list"):
+            event_type = event.get("event_type")
+            trigger = event.get("trigger")
+            trigger_start_index = event.get("trigger_start_index")
+            arguments = event.get("arguments", [])
+            arguments.append({
+                "argument_start_index": trigger_start_index,
+                "role": "TRIGGER",
+                "argument": trigger,
+            })
+            arguments.sort(key=lambda s: s.get("argument_start_index"))
+            if len(arguments) == 0:
+                return {}
+
+            tokens = []
+            labels = []
+            pre_start = 0
+            trigger_span_start, trigger_span_end = 1, 1
+            for one_argument in arguments:
+                role = one_argument.get("role")
+                argument = one_argument.get("argument")
+                argument_start_index = one_argument.get("argument_start_index")
+                if role is None or not argument or argument_start_index is None:
+                    continue
+
+                span_start = argument_start_index
+                span_end = span_start + len(argument)
+
+                pre_tokens = self.tokenizer.tokenize(text[pre_start: span_start])
+                tokens.extend(pre_tokens)
+                labels.extend(["O"] * len(pre_tokens))
+
+                cur_tokens = self.tokenizer.tokenize(argument)
+                tokens.extend(cur_tokens)
+                if role != "TRIGGER":
+                    labels.extend([self._hparams.duee_role_ner_labels[f"B-{role}"]])
+                    labels.extend([self._hparams.duee_role_ner_labels[f"I-{role}"]] * (len(cur_tokens) - 1))
+                else:
+                    trigger_span_start = len(labels)
+                    labels.extend(["O"] * len(cur_tokens))
+                    trigger_span_end = len(labels)
+
+                pre_start = span_end
+
+            cur_tokens = self.tokenizer.tokenize(text[pre_start: len(text)])
+            tokens.extend(cur_tokens)
+            labels.extend(['O'] * len(cur_tokens))
+
+            # trigger 限制
+            query = f"{trigger}{event_type}"
+            query_tokens = self.tokenizer.tokenize(query)
+            if trigger_span_end > self.tokenizer.max_len - 3 - len(query_tokens):
+                continue
+
+            tokens = tokens[: self.tokenizer.max_len - 3 - len(query_tokens)]
+            labels = labels[: self.tokenizer.max_len - 3 - len(query_tokens)]
+            labels = ["O"] + labels + ['O'] * (self.tokenizer.max_len - len(labels) - 1)
+
+            position_ids = list(range(0, 1 + len(tokens) + 1)) + \
+                           list(range(trigger_span_start + 1, trigger_span_end + 1)) + list(
+                range(len(tokens) + trigger_span_end - trigger_span_start + 1 + 2, self.tokenizer.max_len))
+            output = self.tokenizer.encode(tokens, query_tokens)
+
+            # label mask
+            mask = [0] * len(self._hparams.duee_role_ner_labels)
+            mask[0] = 1
+            for r in schema[event_type]:
+                mask[label2ids[r]] = 1
+
+            feature = {
+                "id": id,
+                "input_ids": output['input_ids'],
+                "token_type_ids": output['segment_ids'],
+                "attention_mask": output['input_mask'],
+                "position_ids": position_ids,
+                "label_mask": mask,
+                "labels": labels,
+            }
+
+            return feature
+
 
     # read labels from file
     def duee_role_ner_labels(self, url, name=""):

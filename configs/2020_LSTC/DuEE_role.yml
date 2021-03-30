@@ -44,10 +44,14 @@ dataset:
       column: attention_mask
       type: LIST_OF_INT
       max_len: 100
-    - name: trigger_span
-      column: trigger_span
+    - name: position_ids
+      column: position_ids
       type: LIST_OF_INT
-      max_len: 2
+      max_len: 100
+    - name: label_mask
+      column: label_mask
+      type: LIST_OF_INT
+      max_len: 243
 
   outputs:
     - name: output_1
