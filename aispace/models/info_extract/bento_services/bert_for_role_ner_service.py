@@ -35,7 +35,7 @@ class RoleBertNerService(BentoService):
     def preprocessing(self, itm):
         context = itm.get("text")
         span_start, span_end = itm.get("trigger_start"), itm.get("trigger_end")
-        event_type = itm.get('entity_type')
+        event_type = itm.get('event_type')
         trigger = itm.get("trigger")
 
         tokens = []
@@ -62,8 +62,8 @@ class RoleBertNerService(BentoService):
         # label mask
         mask = [0] * len(self.artifacts.hparams.duee_role_ner_labels)
         mask[0] = 1
-        for r in self.artifacts.schema[event_type]:
-            mask[self.artifacts.label2ids[r]] = 1
+        for r in self.artifacts.hparams.schema[event_type]:
+            mask[self.artifacts.hparams.label2id[r]] = 1
 
         input_ids, token_type_ids, attention_mask = output['input_ids'], output['segment_ids'], output['input_mask']
         return input_ids, token_type_ids, attention_mask, position_ids, mask, context
@@ -134,7 +134,7 @@ class RoleBertNerService(BentoService):
         return ret
 
     def decode_label_idx(self, idx):
-        return self.artifacts.hparams.dataset.outputs[0].labels[idx]
+        return self.artifacts.hparams.duee_role_ner_labels_r.get(self.artifacts.hparams.dataset.outputs[0].labels[idx], "NONE")
 
     def decode_token_idx(self, idx):
         return self.artifacts.tokenizer.decode(idx)
@@ -180,3 +180,12 @@ class RoleBertNerService(BentoService):
             new_ret = self.postprocessing(cur_tokens, cur_labels)
             ret.append(new_ret)
         return ret
+
+
+# {
+#     "text": "900名被裁员工正式告别甲骨文，那些离开外企的人都去哪了？",
+#     "event_type": "组织关系-裁员",
+#     "trigger": "裁员",
+#     "trigger_start": 5,
+#     "trigger_end": 7
+# }

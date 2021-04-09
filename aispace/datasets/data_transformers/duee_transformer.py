@@ -522,7 +522,9 @@ class DuEERoleTransformer(BaseTransformer):
         output_path = os.path.join(output_path_base, f"{split}.json")
 
         # read schema and build entity_type to role mask
+
         schema = {}
+        schema_r = {}
         schema_raw = {}
         with open(self.schema_file, "r", encoding="utf8") as inf:
             for line in inf:
@@ -532,10 +534,12 @@ class DuEERoleTransformer(BaseTransformer):
                 schema[s_event_type] = [f"B-{r['role']}" for r in s_roles] + [f"I-{r['role']}" for r in s_roles]
                 schema_raw[s_event_type] = "-".join([r['role'] for r in s_roles])
 
-        label2ids = {l: idx for idx, l in enumerate(list(self._hparams.duee_role_ner_labels.keys()))}
+        label2id = {l: idx for idx, l in enumerate(list(self._hparams.duee_role_ner_labels.keys()))}
+        duee_role_ner_labels_r = {v: k for k, v in self._hparams.duee_role_ner_labels.items()}
 
         self._hparams.cascade_set("schema", schema)
-        self._hparams.cascade_set("label2ids", label2ids)
+        self._hparams.cascade_set("duee_role_ner_labels_r", duee_role_ner_labels_r)
+        self._hparams.cascade_set("label2id", label2id)
 
         self.trigger_mapping, self.role_mapping = {}, {}
         with open(data_path, "r", encoding="utf8") as inf:
@@ -546,7 +550,7 @@ class DuEERoleTransformer(BaseTransformer):
                 if len(line) == 0: continue
                 line_json = json.loads(line)
                 if len(line_json) == 0: continue
-                features = self._build_featureV6(line_json, schema, label2ids)
+                features = self._build_featureV6(line_json, schema, label2id)
                 if not features: continue
                 yield features
                 # features = self._build_featureV3(line_json, schema, label2ids)
