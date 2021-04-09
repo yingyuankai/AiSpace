@@ -454,7 +454,6 @@ def mask_logits(logits, mask):
     if len(logits.shape.as_list()) != len(mask.shape.as_list()):
         mask = tf.sequence_mask(mask, tf.shape(logits)[1], dtype=tf.float32)
     mask = tf.cast(mask, tf.float32)
-
     return logits * mask + (1.0 - mask) * tf.float32.min
 
 

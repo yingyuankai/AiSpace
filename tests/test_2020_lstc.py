@@ -43,7 +43,7 @@ class TestLSTC(unittest.TestCase):
             #         break
             print(itm)
             print()
-            print(tokenizer.decode([int(t) for t in itm["input_ids"].numpy().tolist()]))
+            # print(tokenizer.decode([int(t) for t in itm["input_ids"].numpy().tolist()]))
             break
             # l = hparams.dataset.outputs[0].labels[tf.argmax(itm["output_1"], -1).numpy().tolist()]
             # print(id_to_label[l])

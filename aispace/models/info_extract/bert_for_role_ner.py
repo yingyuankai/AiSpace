@@ -11,7 +11,7 @@ from aispace.models.base_model import BaseModel
 from aispace.layers.pretrained.bert import Bert
 from aispace.layers.decoders import CRFLayer
 from aispace.layers.encoders import Bilstm
-from aispace.utils.tf_utils import get_initializer
+from aispace.utils.tf_utils import get_initializer, mask_logits
 from aispace.utils.tf_utils import get_sequence_length
 from aispace.layers import BaseLayer
 
@@ -59,7 +59,9 @@ class BertForRoleNer(BaseModel):
         logits = self.ner_output(project)
 
         # mask
-
+        label_mask = inputs['label_mask']
+        label_mask = tf.cast(tf.expand_dims(label_mask, 1), tf.float32)
+        logits * label_mask + (1.0 - label_mask) * tf.float32.min
 
         # crf
         viterbi, _ = self.crf([logits, input_lengths])

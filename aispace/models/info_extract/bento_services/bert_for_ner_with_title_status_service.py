@@ -155,7 +155,6 @@ class BertNerWithTitleStatusService(BentoService):
             input_data['token_type_ids'].append(pre_input_data[1])
             input_data['attention_mask'].append(pre_input_data[2])
             input_data['position_ids'].append(pre_input_data[3])
-            input_data['label_mask'].append(label_mask)
             seq_length.append(sum(pre_input_data[2]))
             passages.append(pre_input_data[-1])
         input_data['input_ids'] = tf.constant(input_data['input_ids'], name="input_ids")
@@ -167,7 +166,6 @@ class BertNerWithTitleStatusService(BentoService):
         ret = []
         for idx, token_ids, seq_len, passage in zip(prediction_idx, input_data["input_ids"].numpy().tolist(), seq_length, passages):
             cur_labels = list(map(self.decode_label_idx, idx[1: seq_len - 1]))
-            # cur_tokens = self.decode_token_idx(token_ids[1:seq_len - 1])
             raw_tokens, _, align_mapping = self.artifacts.tokenizer.tokenize(passage, True)
             cur_tokens, cur_labels = self._align_raw_text(cur_labels, raw_tokens, align_mapping)
             new_ret = self.postprocessing(cur_tokens, cur_labels)

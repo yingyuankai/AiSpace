@@ -534,6 +534,9 @@ class DuEERoleTransformer(BaseTransformer):
 
         label2ids = {l: idx for idx, l in enumerate(list(self._hparams.duee_role_ner_labels.keys()))}
 
+        self._hparams.cascade_set("schema", schema)
+        self._hparams.cascade_set("label2ids", label2ids)
+
         self.trigger_mapping, self.role_mapping = {}, {}
         with open(data_path, "r", encoding="utf8") as inf:
             # with open(output_path, "w", encoding="utf8") as ouf:
@@ -1155,6 +1158,7 @@ class DuEERoleTransformer(BaseTransformer):
 
             # trigger 限制
             query = f"{trigger}{event_type}"
+            # query = f"{trigger}"
             query_tokens = self.tokenizer.tokenize(query)
             if trigger_span_end > self.tokenizer.max_len - 3 - len(query_tokens):
                 continue
@@ -1165,7 +1169,7 @@ class DuEERoleTransformer(BaseTransformer):
 
             position_ids = list(range(0, 1 + len(tokens) + 1)) + \
                            list(range(trigger_span_start + 1, trigger_span_end + 1)) + list(
-                range(len(tokens) + trigger_span_end - trigger_span_start + 1 + 2, self.tokenizer.max_len))
+                range(len(tokens) + trigger_span_end - trigger_span_start + 2, self.tokenizer.max_len))
             output = self.tokenizer.encode(tokens, query_tokens)
 
             # label mask
