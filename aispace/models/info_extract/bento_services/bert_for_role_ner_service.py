@@ -10,6 +10,7 @@ __all__ = [
 
 import os, sys
 import tensorflow as tf
+from functools import partial
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../" * 4)))
 
@@ -66,7 +67,7 @@ class RoleBertNerService(BentoService):
             mask[self.artifacts.hparams.label2id[r]] = 1
 
         input_ids, token_type_ids, attention_mask = output['input_ids'], output['segment_ids'], output['input_mask']
-        return input_ids, token_type_ids, attention_mask, position_ids, mask, context
+        return input_ids, token_type_ids, attention_mask, position_ids, mask, event_type, context
 
     def _align_raw_text(self, tags, raw_tokens, align_mapping):
         new_tokens, new_tags = [], []
@@ -133,8 +134,12 @@ class RoleBertNerService(BentoService):
         ret["passage"] = text
         return ret
 
-    def decode_label_idx(self, idx):
-        return self.artifacts.hparams.duee_role_ner_labels_r.get(self.artifacts.hparams.dataset.outputs[0].labels[idx], "NONE")
+    def decode_label_idx(self, event_type, idx):
+        tmp_label = self.artifacts.hparams.duee_role_ner_labels_r.get(self.artifacts.hparams.dataset.outputs[0].labels[idx], "O")
+        if tmp_label in self.artifacts.hparams.schema[event_type]:
+            return tmp_label
+        else:
+            return "O"
 
     def decode_token_idx(self, idx):
         return self.artifacts.tokenizer.decode(idx)
@@ -146,6 +151,7 @@ class RoleBertNerService(BentoService):
         }
         seq_length = []
         passages = []
+        event_types = []
         if isinstance(parsed_json, (list, tuple)):
             pre_input_data = list(zip(*list(map(self.preprocessing, parsed_json))))
             input_data['input_ids'].extend(pre_input_data[0])
@@ -153,6 +159,7 @@ class RoleBertNerService(BentoService):
             input_data['attention_mask'].extend(pre_input_data[2])
             input_data['position_ids'].extend(pre_input_data[3])
             input_data['label_mask'].extend(pre_input_data[4])
+            event_types.extend(pre_input_data[5])
             seq_length.extend(list(map(sum, pre_input_data[2])))
             passages.extend(pre_input_data[-1])
         else:  # expecting type(parsed_json) == dict:
@@ -162,6 +169,7 @@ class RoleBertNerService(BentoService):
             input_data['attention_mask'].append(pre_input_data[2])
             input_data['position_ids'].append(pre_input_data[3])
             input_data['label_mask'].append(pre_input_data[4])
+            event_types.append(pre_input_data[5])
             seq_length.append(sum(pre_input_data[2]))
             passages.append(pre_input_data[-1])
         input_data['input_ids'] = tf.constant(input_data['input_ids'], name="input_ids")
@@ -172,9 +180,10 @@ class RoleBertNerService(BentoService):
         prediction = self.artifacts.model(input_data, training=False)
         prediction_idx = np.argmax(prediction, -1).tolist()
         ret = []
-        for idx, token_ids, seq_len, passage in zip(prediction_idx, input_data["input_ids"].numpy().tolist(),
-                                                    seq_length, passages):
-            cur_labels = list(map(self.decode_label_idx, idx[1: seq_len - 1]))
+        for idx, token_ids, seq_len, passage, event_type in zip(prediction_idx, input_data["input_ids"].numpy().tolist(),
+                                                    seq_length, passages, event_types):
+            decode_label_idx_with_event_type = partial(self.decode_label_idx, event_type)
+            cur_labels = list(map(decode_label_idx_with_event_type, idx[1: seq_len - 1]))
             raw_tokens, _, align_mapping = self.artifacts.tokenizer.tokenize(passage, True)
             cur_tokens, cur_labels = self._align_raw_text(cur_labels, raw_tokens, align_mapping)
             new_ret = self.postprocessing(cur_tokens, cur_labels)

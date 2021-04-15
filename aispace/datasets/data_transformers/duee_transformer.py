@@ -506,6 +506,7 @@ class DuEETriggerAsClassifierTransformer(BaseTransformer):
 
 @BaseTransformer.register("lstc_2020/DuEE_role")
 class DuEERoleTransformer(BaseTransformer):
+
     def __init__(self, hparams, **kwargs):
         super(DuEERoleTransformer, self).__init__(hparams, **kwargs)
 
@@ -1193,7 +1194,6 @@ class DuEERoleTransformer(BaseTransformer):
             }
 
             return feature
-
 
     # read labels from file
     def duee_role_ner_labels(self, url, name=""):
