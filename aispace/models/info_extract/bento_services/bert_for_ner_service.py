@@ -41,16 +41,16 @@ class BertNerService(BentoService):
     def _align_raw_text(self, tags, raw_tokens, align_mapping):
         new_tokens, new_tags = [], []
         i, j = 0, 0
-        while i <= j < len(tags):
-            if align_mapping[i] == align_mapping[j]:
+        while i <= j < min(min(len(tags), len(raw_tokens)), len(align_mapping)):
+            if i == j:
                 j += 1
             else:
-                new_tokens.append(raw_tokens[align_mapping[i]])
-                new_tags.append(tags[i])
+                new_tokens.extend(raw_tokens[align_mapping[i]: align_mapping[j]])
+                new_tags.extend(tags[align_mapping[i]: align_mapping[j]])
                 i = j
         if i < j:
             new_tokens.append(raw_tokens[align_mapping[i]])
-            new_tags.append(tags[i])
+            new_tags.append(tags[align_mapping[i]])
         return new_tokens, new_tags
 
     def postprocessing(self, tokens, tags):
