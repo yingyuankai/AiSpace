@@ -31,25 +31,25 @@ dataset:
     test: "validation[-50%:]"
 
   tokenizer:
-    max_len: 80
+    max_len: 100
 
   inputs:
     - name: input_ids
       column: input_ids
       type: LIST_OF_INT
-      max_len: 80
+      max_len: 100
     - name: token_type_ids
       column: token_type_ids
       type: LIST_OF_INT
-      max_len: 80
+      max_len: 100
     - name: attention_mask
       column: attention_mask
       type: LIST_OF_INT
-      max_len: 80
+      max_len: 100
     - name: position_ids
       column: position_ids
       type: LIST_OF_INT
-      max_len: 80
+      max_len: 100
     - name: label_mask
       column: label_mask
       type: LIST_OF_INT
