@@ -52,11 +52,11 @@ class QALayerSimple(tf.keras.layers.Layer):
 
         start_feature = self.start_project(seq_output)  # [b, l, h] --> [b, l, 1]
         start_feature = tf.squeeze(start_feature, axis=-1)  # [b, l, 1] --> [b, l]
-        start_log_probs = masked_softmax(start_feature, passage_mask)  # [b, l]
+        start_log_probs = masked_softmax(start_feature, passage_mask, is_training)  # [b, l]
 
         end_feature = self.end_project(seq_output)  # [b, l, h] --> [b, l, 1]
         end_feature = tf.squeeze(end_feature, axis=-1)  # [b, l, 1] --> [b, l]
-        end_log_probs = masked_softmax(end_feature, passage_mask)  # [b, l]
+        end_log_probs = masked_softmax(end_feature, passage_mask, is_training)  # [b, l]
 
         start_top_log_prob, start_top_index, end_top_log_prob, end_top_index = [None] * 4
         # end
