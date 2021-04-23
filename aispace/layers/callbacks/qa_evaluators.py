@@ -179,13 +179,15 @@ class EvaluatorForQaSimple(tf.keras.callbacks.Callback):
             for example_predict in example_all_predicts:
                 if len(example_top_predicts) >= self.n_best_size:
                     break
-
                 example_feature = unique_id_to_examples[example_predict['unique_id']]
-                predict_start = example_feature['doc_token2char_raw_start_index'][
-                    example_predict['start_index'] - example_feature['offset']]
-                predict_end = example_feature['doc_token2char_raw_end_index'][
-                    example_predict['end_index'] - example_feature['offset']]
-                predict_text = example_feature['context_text'][predict_start: predict_end + 1].strip()
+                if example_predict['start_index'] - example_feature['offset'] < 0 or example_predict['end_index'] - example_feature['offset'] < 0:
+                    predict_text = ""
+                else:
+                    predict_start = example_feature['doc_token2char_raw_start_index'][
+                        example_predict['start_index'] - example_feature['offset']]
+                    predict_end = example_feature['doc_token2char_raw_end_index'][
+                        example_predict['end_index'] - example_feature['offset']]
+                    predict_text = example_feature['context_text'][predict_start: predict_end + 1].strip()
 
                 if predict_text in is_visited:
                     continue

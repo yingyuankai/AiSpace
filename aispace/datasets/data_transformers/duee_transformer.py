@@ -1934,6 +1934,33 @@ class DuEERoleAsQATransformer2(BaseTransformer):
         self.max_query_length = self._hparams.dataset.tokenizer.max_query_length
         self.doc_stride = self._hparams.dataset.tokenizer.doc_stride
 
+        schema_file = self.get_schema_file(self._hparams.schema_url, self._hparams.schema_name)
+        self.schema = {}
+        with open(schema_file, "r", encoding="utf8") as inf:
+            for line in inf:
+                one_json = json.loads(line)
+                s_event_type = one_json.get("event_type")
+                s_roles = one_json.get("role_list")
+                self.schema[s_event_type] = [r['role'] for r in s_roles]
+
+    def get_schema_file(self, url, name=""):
+        from collections import OrderedDict
+        if url.startswith("http"):
+            filename = "event_schema/event_schema.json"
+            cache_path = default_download_dir(name)
+            file_path = cache_path / filename
+            if not file_path.exists():
+                try:
+                    maybe_download(url, str(cache_path), extract=True)
+                except Exception as e:
+                    logger.error(f"Download from {url} failure!", exc_info=True)
+                    raise e
+        else:  # when specify paths of resource which have downloaded.
+            file_path = Path(url)
+
+        return file_path
+
+
     def transform(self, data_path, split="train"):
         """
         ref: https://github.com/stevezheng23/xlnet_extension_tf/blob/master/run_squad.py
@@ -1954,10 +1981,22 @@ class DuEERoleAsQATransformer2(BaseTransformer):
             #     break
             # if example['qas_id'] != "TRAIN_1756_QUERY_3":
             #     continue
-            question_text = example['question_text']
+            # question_text = example['question_text']
+            trigger = example['trigger']
+            role = example['role']
+            event_type = example['event_type']
             if self._hparams.dataset.tokenizer.do_lower_case:
-                question_text = question_text.lower()
-            query_tokens = self.tokenizer.tokenize(question_text)
+                # question_text = question_text.lower()
+                trigger = trigger.lower()
+                role = role.lower()
+                event_type = event_type.lower()
+            # query_tokens = self.tokenizer.tokenize(question_text)
+            trigger_tokens = self.tokenizer.tokenize(trigger)
+            role_tokens = self.tokenizer.tokenize(role)
+            event_type_tokens = self.tokenizer.tokenize(event_type)
+            # query_tokens = query_tokens[: self.max_query_length]
+            query_tokens = trigger_tokens + [self.tokenizer.vocab.sep_token] + \
+                           role_tokens + [self.tokenizer.vocab.sep_token] + event_type_tokens
             query_tokens = query_tokens[: self.max_query_length]
 
             para_text = example['paragraph_text']
@@ -2113,7 +2152,7 @@ class DuEERoleAsQATransformer2(BaseTransformer):
                 input_ids, segment_ids, input_mask, p_mask, q_mask, offset, cls_idx = \
                     encode_info['input_ids'], encode_info['segment_ids'], encode_info['input_mask'], \
                     encode_info['b_mask'], encode_info['a_mask'], encode_info['b_offset'], encode_info['cls_index']
-
+                # p_mask[cls_idx] = 1
                 # p_mask[offset - 1] = 1
                 start_position = None
                 end_position = None
@@ -2139,7 +2178,7 @@ class DuEERoleAsQATransformer2(BaseTransformer):
                 item = {
                     "unique_id": unique_id,
                     "qas_id": example['qas_id'],
-                    "question_text": question_text,
+                    "question_text": self.tokenizer.detokenizer(query_tokens),
                     "context_text": para_text,
                     "answer_text": example["orig_answer_text"],
                     "all_answers": json.dumps(example["all_answers"]),
@@ -2160,7 +2199,7 @@ class DuEERoleAsQATransformer2(BaseTransformer):
                     logger.info("*** Example ***")
                     logger.info(f"qas_id: {example['qas_id']}")
                     logger.info(f"unique_id: {unique_id}")
-                    logger.info(f"question: {question_text}")
+                    logger.info(f"question: {query_tokens}")
                     logger.info(f"context: {para_text}")
                     logger.info(f"answer: {example['orig_answer_text']}")
                     logger.info(f"qas_id: {example['qas_id']}")
@@ -2177,10 +2216,10 @@ class DuEERoleAsQATransformer2(BaseTransformer):
                     logger.info(f"end_position: {end_position}")
                     logger.info(f"is_impossible: {is_impossible}")
 
-                if start_position != 0 and end_position != 0 and split != 'test':
-                    ccc = para_text[raw_start_char_pos: raw_end_char_pos + 1]
-                    bbb = tokenized_para_text[tokenized_start_char_pos: tokenized_end_char_pos + 1]
-                    aaa = para_tokens[tokenized_start_token_pos: tokenized_end_token_pos + 1]
+                if start_position != cls_idx and end_position != cls_idx and split != 'test':
+                    # ccc = para_text[raw_start_char_pos: raw_end_char_pos + 1]
+                    # bbb = tokenized_para_text[tokenized_start_char_pos: tokenized_end_char_pos + 1]
+                    # aaa = para_tokens[tokenized_start_token_pos: tokenized_end_token_pos + 1]
                     ck_sp = start_position - offset
                     ck_ep = end_position - offset
                     raw_sp = doc_token2char_raw_start_index[ck_sp]
@@ -2215,27 +2254,41 @@ class DuEERoleAsQATransformer2(BaseTransformer):
                     trigger = event.get("trigger")
                     trigger_start_index = event.get("trigger_start_index")
                     arguments = event.get("arguments", [])
-                    for one_argument in arguments:
-                        role = one_argument.get("role")
-                        argument = one_argument.get("argument")
-                        argument_start_index = one_argument.get("argument_start_index")
+                    arguments_map = {arg['role']: arg for arg in arguments}
+                    for one_role in self.schema[event_type]:
+                        role = one_role
+                        one_argument = arguments_map.get(one_role)
+                        if one_argument is not None:
+                            # role = one_argument.get("role")
+                            argument = one_argument.get("argument")
+                            argument_start_index = one_argument.get("argument_start_index")
+                            is_impossible = False
+
+                        else:
+                            is_impossible = True
+                            argument = ""
+                            argument_start_index = -1
 
                         question_text = f"{trigger}{role}{event_type}"
                         orig_answer_text = argument
                         start_position = argument_start_index
-                        is_impossible = False
+
                         all_answers = [orig_answer_text]
                         qas_id = compute_md5_hash(f"{paragraph_text}{question_text}{argument_start_index}")
 
                         example = {
                             "qas_id": qas_id,
                             "question_text": question_text,
+                            "trigger": trigger,
+                            "role": role,
+                            "event_type": event_type,
                             "paragraph_text": paragraph_text,
                             "orig_answer_text": orig_answer_text,
                             "start_position": start_position,
                             "is_impossible": is_impossible,
                             "all_answers": all_answers
                         }
+
                         yield example
 
 

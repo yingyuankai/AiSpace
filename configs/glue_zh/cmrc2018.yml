@@ -1,5 +1,6 @@
 includes:
-  - "../pretrain/bert_huggingface.yml"
+#  - "../pretrain/bert_huggingface.yml"
+  - "../pretrain/ernie.yml"
 
 model_name: bert_for_qa
 
@@ -19,7 +20,7 @@ training:
 #      k: 5
   learning_rate: 1e-5
   max_epochs: 30
-  batch_size: 20
+  batch_size: 64
 #  steps_per_epoch: 5
   do_eval: false       # using callback doing evaluation instead of default eval because of different outputs of training stages.
 #  validation_steps: 5
@@ -74,6 +75,7 @@ dataset:
     max_query_length: 64
     max_answer_length: 64
     doc_stride: 128
+    max_len: 200
 
   inputs:
     - name: unique_id
@@ -119,23 +121,23 @@ dataset:
     - name: input_ids
       column: input_ids
       type: LIST_OF_INT
-      max_len: 512
+      max_len: 200
     - name: token_type_ids
       column: token_type_ids
       type: LIST_OF_INT
-      max_len: 512
+      max_len: 200
     - name: attention_mask
       column: attention_mask
       type: LIST_OF_INT
-      max_len: 512
+      max_len: 200
     - name: p_mask
       column: p_mask
       type: LIST_OF_INT
-      max_len: 512
+      max_len: 200
     - name: start_position
       column: start_position
       type: CLASSLABEL
-      num: 512
+      num: 200
       labels: use_num
     - name: is_impossible
       column: is_impossible
@@ -146,7 +148,7 @@ dataset:
     - name: output_1
       column: start_position
       type: CLASSLABEL
-      num: 512
+      num: 200
       labels: use_num
       weight: 0.5
       loss:
@@ -157,18 +159,18 @@ dataset:
         - name: sparse_recall
           config:
             name: "macro_recall"
-            num_classes: 512
+            num_classes: 200
             average: "macro"
 #        - name: sparse_categorical_accuracy
 #        - name: sparse_f1_score
 #          config:
 #            name: "macro_f1"
-#            num_classes: 512
+#            num_classes: 200
 #            average: "macro"
     - name: output_2
       column: end_position
       type: CLASSLABEL
-      num: 512
+      num: 200
       labels: use_num
       weight: 0.5
       loss:
@@ -179,13 +181,13 @@ dataset:
         - name: sparse_recall
           config:
             name: "macro_recall"
-            num_classes: 512
+            num_classes: 200
             average: "macro"
 #        - name: sparse_categorical_accuracy
 #        - name: sparse_f1_score
 #          config:
 #            name: "macro_f1"
-#            num_classes: 512
+#            num_classes: 200
 #            average: "macro"
 #    - name: output_3
 #      column: is_impossible
@@ -197,7 +199,8 @@ dataset:
 #        - name: binary_accuracy
 
 pretrained:
-    name: bert-base-chinese-huggingface
+#    name: bert-base-chinese-huggingface
+    name: ERNIE_1.0_max-len-512
     init_from_pretrained: true
 
 
