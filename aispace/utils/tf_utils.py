@@ -433,14 +433,13 @@ def weighted_sum(seq, prob):
     return tf.reduce_sum(seq * tf.expand_dims(prob, axis=2), axis=1)
 
 
-def masked_softmax(logits, mask):
+def masked_softmax(logits, mask, is_training):
     # if is_training:
     #     return tf.nn.softmax(logits, axis=-1)
     if len(logits.shape.as_list()) != len(mask.shape.as_list()):
         mask = tf.sequence_mask(mask, tf.shape(logits)[1], dtype=tf.float32)
     mask = tf.cast(mask, tf.float32)
 
-    # return tf.nn.softmax(logits * mask + (1.0 - mask) * tf.float32.min, axis=-1)
     return tf.nn.softmax(logits * mask + (1.0 - mask) * tf.float32.min, axis=-1)
 
 

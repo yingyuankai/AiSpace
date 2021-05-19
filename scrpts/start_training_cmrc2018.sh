@@ -9,7 +9,7 @@ nohup python -u aispace/trainer.py \
     --config_name cmrc2018 \
     --config_dir ./configs/glue_zh \
     --gpus 0 1 2 3 \
-    > err.log 2>&1 &
+    > cmrc2018_err.log 2>&1 &
 
 
 #nohup python -u aispace/trainer.py \

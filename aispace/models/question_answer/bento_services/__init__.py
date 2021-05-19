@@ -5,3 +5,4 @@
 # @File    : __init__.py
 
 from .bert_for_qa_service import *
+from .bert_for_qa_with_impossible_service import *

@@ -54,7 +54,7 @@ class BertForQA(BaseModel):
         if is_training:
             start_position = inputs['start_position']
         else:
-            start_position = tf.constant(0)
+            start_position = tf.zeros_like(tf.reshape(tf.slice(inputs['input_ids'], [0, 0], [-1, 1]), [-1]))
 
         outputs = self.qa_layer([seq_output, cls_output, passage_mask, start_position], training=is_training)
 
@@ -62,7 +62,7 @@ class BertForQA(BaseModel):
 
     def deploy(self):
         from aispace.datasets.tokenizer import BaseTokenizer
-        from .bento_services import BertQAService
+        from .bento_services import BertQAWithImpossibleService as BertQAService
         # tokenizer = BertTokenizer(self._hparams.dataset.tokenizer)
         tokenizer = BaseTokenizer.by_name(self._hparams.dataset.tokenizer.name)(self._hparams.dataset.tokenizer)
         bento_service = BertQAService()

@@ -16,6 +16,7 @@ from collections import defaultdict
 from aispace.utils.eval_utils import calc_em_score, calc_f1_score
 from aispace.utils.io_utils import save_json
 from aispace.utils.print_utils import print_boxed
+from aispace.utils.metrics_utils import ConfusionMatrix
 
 __all__ = [
     'EvaluatorForQaSimple',
@@ -219,14 +220,14 @@ class EvaluatorForQaSimple(tf.keras.callbacks.Callback):
             f1 += cur_f1
             em += cur_em
             # debug
-            # if cur_f1 != 0 or cur_em != 0:
-            #     example_output = {}
-            #     example_output.update(example_best_predict)
-            #     example_output['question'] = examples[0]['question_text']
-            #     example_output['answer'] = answers
-            #     example_output['f1'] = cur_f1
-            #     example_output['em'] = cur_em
-            #     print(example_output)
+            if cur_f1 == 0 or cur_em == 0:
+                example_output = {}
+                example_output.update(example_best_predict)
+                example_output['question'] = examples[0]['question_text']
+                example_output['answer'] = answers
+                example_output['f1'] = cur_f1
+                example_output['em'] = cur_em
+                print(example_output)
 
         # total_count = len(qas_id_to_examples)
         f1_score = f1 / total_count
@@ -246,7 +247,8 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
     ref: https://keras.io/examples/nlp/text_extraction_with_bert/
     """
 
-    def __init__(self, validation_dataset, validation_steps, test_dataset, test_steps, report_dir, max_answer_length=64, n_best_size=5):
+    def __init__(self, validation_dataset, validation_steps, test_dataset, test_steps,
+                 report_dir, max_answer_length=64, n_best_size=5, is_impossible_threshold=0.5, weights=[1., 1., 1.]):
         self.validation_dataset = validation_dataset
         self.validation_steps = validation_steps
         self.test_dataset = test_dataset
@@ -254,13 +256,18 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
         self.max_answer_length = max_answer_length
         self.n_best_size = n_best_size
         self.report_dir = report_dir
+        self.is_impossible_threshold = is_impossible_threshold
+        self.weights = weights
 
     def on_epoch_end(self, epoch, logs=None):
         new_logs = self.eval_process(self.validation_dataset, self.validation_steps)
         logs = logs or {}
         logs.update(new_logs)
-        print(f"\nEpoch: {epoch + 1}, val_f1_score: {logs['val_f1_score']:.4f}, val_em_score: {logs['val_em_score']:.4f}, "
-                    f"val_f1_em_avg_score: {logs['val_f1_em_avg_score']:.4f}")
+        print(f"\nEpoch: {epoch + 1}, val_f1_score: {logs['val_f1_score']:.4f}, "
+              f"val_em_score: {logs['val_em_score']:.4f}, "
+              f"val_f1_em_avg_score: {logs['val_f1_em_avg_score']:.4f},"
+              f" val_f1_for_impossible: {logs['val_f1_for_impossible']:.4f},"
+              f" val_f1_avg_score: {logs['val_f1_avg_score']:.4f},")
 
     def on_train_end(self, logs=None):
         logger.info("Start Evaluate.")
@@ -334,6 +341,7 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
                 unique_id_to_examples[unique_ids[t]] = itm
                 qas_id_to_examples[qas_ids[t]].append(itm)
 
+        ground_truth_for_impossible, predictions_for_impossible = [], []
         for qas_id, examples in qas_id_to_examples.items():
             example_all_predicts = []
             answers = set()
@@ -341,8 +349,7 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
                 cur_unique_id = example['unique_id']
                 if cur_unique_id not in results:
                     continue
-                if example['is_impossible'] == 1:
-                    continue
+
                 # if example['answer_text'] not in answers:
                 #     answers.append(example['answer_text'])
                 answers |= set(example['all_answers'])
@@ -352,6 +359,12 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
 
                 cur_end_top_log_prob = cur_result['end_top_log_prob']
                 cur_end_top_index = cur_result['end_top_index']
+
+                ground_truth_for_impossible.append(example['is_impossible'])
+                predictions_for_impossible.append(int(cur_result['is_impossible_prob'] >= self.is_impossible_threshold))
+
+                if example['is_impossible'] == 1:
+                    continue
 
                 cur_p_mask = example['p_mask']
                 for i in range(start_n_top):
@@ -378,11 +391,11 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
                             'start_index': start_index,
                             'end_prob': end_prob,
                             'end_index': end_index,
-                            'predict_score': np.log(start_prob) + np.log(end_prob)
+                            'predict_score': np.log(end_prob)
                         }
                         example_all_predicts.append(itm)
 
-            if len(answers) != 0:
+            if len(answers) != 0 and "" not in answers:
                 total_count += 1
             else:
                 skip_count += 1
@@ -397,11 +410,14 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
                     break
 
                 example_feature = unique_id_to_examples[example_predict['unique_id']]
-                predict_start = example_feature['doc_token2char_raw_start_index'][
-                    example_predict['start_index'] - example_feature['offset']]
-                predict_end = example_feature['doc_token2char_raw_end_index'][
-                    example_predict['end_index'] - example_feature['offset']]
-                predict_text = example_feature['context_text'][predict_start: predict_end + 1].strip()
+                if example_predict['start_index'] - example_feature['offset'] < 0 or example_predict['end_index'] - example_feature['offset'] < 0:
+                    predict_text = ""
+                else:
+                    predict_start = example_feature['doc_token2char_raw_start_index'][
+                        example_predict['start_index'] - example_feature['offset']]
+                    predict_end = example_feature['doc_token2char_raw_end_index'][
+                        example_predict['end_index'] - example_feature['offset']]
+                    predict_text = example_feature['context_text'][predict_start: predict_end + 1].strip()
 
                 if predict_text in is_visited:
                     continue
@@ -433,25 +449,31 @@ class EvaluatorForQaWithImpossible(tf.keras.callbacks.Callback):
             f1 += cur_f1
             em += cur_em
             # debug
-            # if cur_f1 != 0 or cur_em != 0:
-            #     example_output = {}
-            #     example_output.update(example_best_predict)
-            #     example_output['question'] = examples[0]['question_text']
-            #     example_output['answer'] = answers
-            #     example_output['f1'] = cur_f1
-            #     example_output['em'] = cur_em
-            #     print(example_output)
+            if cur_f1 == 0 or cur_em == 0:
+                example_output = {}
+                example_output.update(example_best_predict)
+                example_output['question'] = examples[0]['question_text']
+                example_output['answer'] = answers
+                example_output['f1'] = cur_f1
+                example_output['em'] = cur_em
+                print(example_output)
 
         # total_count = len(qas_id_to_examples)
         f1_score = f1 / total_count
         em_score = em / total_count
+
+        cm = ConfusionMatrix(ground_truth_for_impossible, predictions_for_impossible)
 
         logs = {}
         logs['skip_count'] = skip_count
         logs['total'] = total_count
         logs['val_f1_score'] = f1_score
         logs['val_em_score'] = em_score
-        logs['val_f1_em_avg_score'] = (em_score + f1_score) / 2.
+        logs['val_f1_em_avg_score'] = (em_score * self.weights[0] + f1_score * self.weights[1]) / sum(self.weights[:2])
+        logs['val_f1_for_impossible'] = cm.avg_f1_score(average='macro')
+        logs['val_accuracy_for_impossible'] = cm.overall_accuracy()
+        logs['val_f1_avg_score'] = (em_score * self.weights[0] + f1_score * self.weights[1] +
+                                    logs['val_f1_for_impossible'] * self.weights[2]) / sum(self.weights)
 
         return logs
 

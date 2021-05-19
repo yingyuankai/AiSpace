@@ -25,6 +25,7 @@ LOGO_STR = '\n'.join(
 
 TRAIN_STAGE = "train"
 TEST_STAGE = "test"
+DEPLOY_STAGE = "deploy"
 
 # Some names
 LOGGER_NAME = 'aispace_logger'
