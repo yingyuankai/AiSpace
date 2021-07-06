@@ -2471,3 +2471,98 @@ class DuEERoleAsQATransformer2(BaseTransformer):
                 flag = False
                 break
         return flag
+
+
+@BaseTransformer.register("lstc_2020/DuEE_keyphrase")
+class DuEEKeyphraseTransformer(BaseTransformer):
+
+    def __init__(self, hparams, **kwargs):
+        super(DuEEKeyphraseTransformer, self).__init__(hparams, **kwargs)
+
+        # tokenizer
+        self.tokenizer = \
+            BaseTokenizer. \
+                by_name(self._hparams.dataset.tokenizer.name) \
+                (self._hparams.dataset.tokenizer)
+
+    def transform(self, data_path, split="train"):
+        from pprint import pprint
+        if split == "train":
+            data_paths = [data_path, "/search/odin/yyk/workspace/gov_title_preprocess/event_keyphrase.txt"]
+        else:
+            data_paths = [data_path]
+        for data_path in data_paths:
+            with open(data_path, "r", encoding="utf8") as inf:
+                for i, line in tqdm(enumerate(inf)):
+                    if not line: continue
+                    line = line.strip()
+                    if len(line) == 0: continue
+                    line_json = json.loads(line)
+                    if len(line_json) == 0: continue
+                    features = self._build_feature(line_json)
+                    if not features: continue
+                    if i == 0:
+                        pprint(features)
+                    yield features
+
+    def _build_feature(self, one_json):
+        text = one_json.get("text")
+        id = one_json.get("id")
+        arguments = []
+        for event in one_json.get("event_list"):
+            event_type = event.get("event_type")
+            trigger = event.get("trigger")
+            trigger_start_index = event.get("trigger_start_index")
+            arguments.extend(event.get("arguments", []))
+            if trigger is None:
+                continue
+            arguments.append({
+                "argument_start_index": trigger_start_index,
+                "role": "TRIGGER",
+                "argument": trigger,
+            })
+        arguments.sort(key=lambda s: s.get("argument_start_index"))
+        if len(arguments) == 0:
+            return {}
+
+        tokens = []
+        labels = []
+        pre_start = 0
+        for one_argument in arguments:
+            role = one_argument.get("role")
+            argument = one_argument.get("argument")
+            argument_start_index = one_argument.get("argument_start_index")
+            if role is None or not argument or argument_start_index is None:
+                continue
+
+            span_start = argument_start_index
+            span_end = span_start + len(argument)
+
+            pre_tokens = self.tokenizer.tokenize(text[pre_start: span_start])
+            tokens.extend(pre_tokens)
+            labels.extend(["O"] * len(pre_tokens))
+
+            cur_tokens = self.tokenizer.tokenize(argument)
+            tokens.extend(cur_tokens)
+            labels.extend(["B-keyphrase"] + ["I-keyphrase"] * (len(cur_tokens) - 1))
+
+            pre_start = span_end
+
+        cur_tokens = self.tokenizer.tokenize(text[pre_start: len(text)])
+        tokens.extend(cur_tokens)
+        labels.extend(['O'] * len(cur_tokens))
+
+        tokens = tokens[: self.tokenizer.max_len - 2]
+        labels = labels[: self.tokenizer.max_len - 2]
+        labels = ["O"] + labels + ['O'] * (self.tokenizer.max_len - len(labels) - 1)
+
+        output = self.tokenizer.encode(tokens)
+
+        feature = {
+            "input_ids": output['input_ids'],
+            "token_type_ids": output['segment_ids'],
+            "attention_mask": output['input_mask'],
+            "labels": labels,
+        }
+
+        return feature
