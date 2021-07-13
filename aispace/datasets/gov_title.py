@@ -5,7 +5,7 @@
 # @File    : glue_zh.py
 
 
-__all__ = ["LSTC_2020"]
+__all__ = ["GovTitle"]
 
 import os
 import six
@@ -167,11 +167,12 @@ class GovTitle(BaseDataset):
         return features
 
     def _split_generators(self, dl_manager):
-        if self.builder_config.name == "trigger":
-            data_path = "/search/odin/yyk/workspace/AiSpace/data/downloads/extracted/gov_title/gov_title_trigger.txt"
-            # data_path = "/search/odin/yyk/workspace/AiSpace/data/downloads/extracted/gov_title/gov_title_trigger_huge.txt"
-        else:
-            data_path = "/search/odin/yyk/workspace/AiSpace/data/downloads/extracted/gov_title/gov_title_event.txt"
+        # if self.builder_config.name == "trigger":
+        #     "/search/odin/yyk/workspace/AiSpace/data/downloads/extracted/gov_title/gov_title_trigger.txt"
+        #     # data_path = "/search/odin/yyk/workspace/AiSpace/data/downloads/extracted/gov_title/gov_title_trigger_huge.txt"
+        # else:
+        #     data_path = "/search/odin/yyk/workspace/AiSpace/data/downloads/extracted/gov_title/gov_title_event.txt"
+        data_path = self.hparams.dataset.data_path
 
         return [
             tfds.core.SplitGenerator(

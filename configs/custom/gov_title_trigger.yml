@@ -40,6 +40,7 @@ training:
 dataset:
   name: gov_title/trigger
   data_dir: "./data"
+  data_path: "./data/downloads/extracted/gov_title/gov_title_trigger.txt"
   transformer: "gov_title/trigger"
 
   source:

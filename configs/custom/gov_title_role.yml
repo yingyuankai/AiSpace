@@ -41,6 +41,7 @@ training:
 dataset:
   name: gov_title/role
   data_dir: "./data"
+  data_path: "./data/downloads/extracted/gov_title/gov_title_event.txt"
   transformer: "gov_title/role"
 
   source:
