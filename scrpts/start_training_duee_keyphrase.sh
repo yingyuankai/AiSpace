@@ -12,15 +12,15 @@ nohup python -u aispace/trainer.py \
 
 
 # Build deployment package
-#nohup python -u aispace/trainer.py \
-#    --experiment_name test \
-#    --model_name bert_for_ner \
-#    --schedule deploy \
-#    --model_resume_path /search/odin/yyk/workspace/AiSpace/save/keyphrase_bert_for_ner_lstc_2020__DuEE_role_119_13 \
-#    --config_name DuEE_role \
-#    --config_dir ./configs/2020_LSTC \
-#    --gpus 0 \
-#    > err.log 2>&1 &
+nohup python -u aispace/trainer.py \
+    --experiment_name test \
+    --model_name bert_for_ner \
+    --schedule deploy \
+    --model_resume_path /search/odin/yyk/workspace/AiSpace/save/keyphrase_bert_for_ner_lstc_2020__DuEE_role_119_13 \
+    --config_name DuEE_role \
+    --config_dir ./configs/2020_LSTC \
+    --gpus 0 \
+    > err.log 2>&1 &
 
 # Deploy using bentoml
 #DEPLOY_PATH=" /search/odin/yyk/workspace/AiSpace/save/keyphrase_bert_for_ner_lstc_2020__DuEE_role_119_13/deploy/BertNerService/20210701171400_6DB6C2"

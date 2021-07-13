@@ -5,12 +5,12 @@ nohup python -u aispace/trainer.py \
     --experiment_name role \
     --model_name bert_for_qa \
     --schedule train_and_eval \
-    --model_load_path save/test_bert_for_qa_glue_zh__cmrc2018_119_14 \
     --config_name DuEE_role_as_qa \
     --config_dir ./configs/2020_LSTC \
     --gpus 0 1 2 3 \
     > duee_role.log 2>&1 &
 
+#    --model_load_path save/test_bert_for_qa_glue_zh__cmrc2018_119_14 \
 
 
 # Build deployment package
