@@ -291,7 +291,7 @@ typeguard==2.9.1
 typing==3.6.4
 typing-extensions==3.7.4.3
 unicodecsv==0.14.1
-urllib3==1.22
+urllib3==1.26.5
 w3lib==1.22.0
 wasabi==0.4.2
 wcwidth==0.1.7
