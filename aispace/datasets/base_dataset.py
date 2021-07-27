@@ -41,7 +41,7 @@ class BaseDataset(Registry, tfds.core.GeneratorBasedBuilder):
             cur_labels = itm.get("labels")
             if "labels" in itm and not isinstance(cur_labels, (list, tuple)):
                 if "use_num" == cur_labels:
-                    logger.info(f"Construct labels from num {cur_labels}.")
+                    logger.info(f"Construct labels from num {itm['num']}.")
                     cur_labels = [str(i) for i in range(itm['num'])]
                 elif "url" in itm.get('labels', {}):
                     logger.info(f'Load labels from file: ${itm.get("labels", {}).get("url")}')
