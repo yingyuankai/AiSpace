@@ -1225,8 +1225,6 @@ class DuEERoleTransformer(BaseTransformer):
                 schema[s_event_type] = [f"B-{r['role']}" for r in s_roles] + [f"I-{r['role']}" for r in s_roles]
                 schema_raw[s_event_type] = "-".join([r['role'] for r in s_roles])
 
-        self._hparams.cascade_set("schema", schema)
-
         labels = OrderedDict()
         labels["O"] = "O"
         visited = set()
@@ -1242,6 +1240,13 @@ class DuEERoleTransformer(BaseTransformer):
                     visited.add(tmp)
                     labels[f"B-{tmp}"] = f"B-{cur_num}"
                     labels[f"I-{tmp}"] = f"I-{cur_num}"
+
+        label2id = {l: idx for idx, l in enumerate(list(labels.keys()))}
+        duee_role_ner_labels_r = {v: k for k, v in labels.items()}
+
+        self._hparams.cascade_set("schema", schema)
+        self._hparams.cascade_set("duee_role_ner_labels_r", duee_role_ner_labels_r)
+        self._hparams.cascade_set("label2id", label2id)
         return labels
 
     def prepare_labels(self, url, name=""):
