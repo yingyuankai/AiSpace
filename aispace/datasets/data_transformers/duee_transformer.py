@@ -1216,7 +1216,6 @@ class DuEERoleTransformer(BaseTransformer):
         self.schema_file = file_path
 
         schema = {}
-        schema_r = {}
         schema_raw = {}
         with open(self.schema_file, "r", encoding="utf8") as inf:
             for line in inf:
@@ -1226,12 +1225,7 @@ class DuEERoleTransformer(BaseTransformer):
                 schema[s_event_type] = [f"B-{r['role']}" for r in s_roles] + [f"I-{r['role']}" for r in s_roles]
                 schema_raw[s_event_type] = "-".join([r['role'] for r in s_roles])
 
-        label2id = {l: idx for idx, l in enumerate(list(self._hparams.duee_role_ner_labels.keys()))}
-        duee_role_ner_labels_r = {v: k for k, v in self._hparams.duee_role_ner_labels.items()}
-
         self._hparams.cascade_set("schema", schema)
-        self._hparams.cascade_set("duee_role_ner_labels_r", duee_role_ner_labels_r)
-        self._hparams.cascade_set("label2id", label2id)
 
         labels = OrderedDict()
         labels["O"] = "O"
