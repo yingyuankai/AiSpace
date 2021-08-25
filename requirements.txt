@@ -271,7 +271,7 @@ tensorboardX==2.1
 tensorflow-addons==0.9.1
 tensorflow-datasets==2.0.0
 tensorflow-estimator==2.1.0
-tensorflow-gpu==2.1.0
+tensorflow-gpu==2.5.1
 tensorflow-metadata==0.15.1
 termcolor==1.1.0
 terminado==0.8.1
