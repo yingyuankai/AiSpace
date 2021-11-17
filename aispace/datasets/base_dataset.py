@@ -41,7 +41,7 @@ class BaseDataset(Registry, tfds.core.GeneratorBasedBuilder):
             cur_labels = itm.get("labels")
             if "labels" in itm and not isinstance(cur_labels, (list, tuple)):
                 if "use_num" == cur_labels:
-                    logger.info(f"Construct labels from num {cur_labels}.")
+                    logger.info(f"Construct labels from num {itm['num']}.")
                     cur_labels = [str(i) for i in range(itm['num'])]
                 elif "url" in itm.get('labels', {}):
                     logger.info(f'Load labels from file: ${itm.get("labels", {}).get("url")}')
@@ -52,6 +52,21 @@ class BaseDataset(Registry, tfds.core.GeneratorBasedBuilder):
                     # For convenience, keep this vocab on the first level
                     self.hparams.cascade_set(itm.get("labels", {}).get("name", "label_vocab"), cur_label_map)
                     cur_labels = list(cur_label_map.values())
+                elif cur_labels.strip().lower().startswith("vocab"):
+                    logger.info(f"Construct labels from vocabulary.")
+                    cur_transformer = getattr(self, "transformer")
+                    if cur_transformer is None:
+                        logger.warning(f"Does not has transformer attribute in this dataset.")
+                        raise AttributeError(f"Does not has transformer attribute in this dataset.")
+                    cur_tokenizer = getattr(cur_transformer, "tokenizer")
+                    if cur_tokenizer is None:
+                        logger.warning(f"Does not has tokenizer attribute in this dataset transformer.")
+                        raise AttributeError(f"Does not has tokenizer attribute in this dataset transformer.")
+                    cur_vocab = getattr(cur_tokenizer, "_vocab")
+                    if cur_vocab is None:
+                        logger.warning(f"Does not has _vocab attribute in the tokenizer.")
+                        raise AttributeError(f"Does not has _vocab attribute in the tokenizer.")
+                    cur_labels = [cur_vocab._id_to_token_dict[i] for i in range(len(cur_vocab._id_to_token_dict))]
                 else:
                     raise NotImplementedError("Do not implement the label construct method!")
                 itm.cascade_set("labels", cur_labels)

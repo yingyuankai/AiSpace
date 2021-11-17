@@ -9,3 +9,4 @@ from .bert import *
 from .albert import *
 from .xlnet import *
 from .electra import *
+from .gpt2 import *

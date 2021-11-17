@@ -1,0 +1,198 @@
+includes:
+  - "../pretrain/ernie.yml"
+
+model_name: bert_for_qa
+
+model_attributes:
+    hidden_dropout_prob: 0.5
+    initializer_range: 0.02
+    hidden_size: 798
+    start_n_top: 5
+    layer_norm_eps: 1e-12
+#    qa_layer_name: "qa_with_impossible"
+    qa_layer_name: "qa_simple"
+
+training:
+#  policy:
+#    name: "k-fold"
+#    config:
+#      k: 5
+  learning_rate: 1e-5
+  max_epochs: 30
+  batch_size: 20
+#  steps_per_epoch: 5
+  do_eval: false       # using callback doing evaluation instead of default eval because of different outputs of training stages.
+#  validation_steps: 5
+
+  callbacks:
+    # callback name
+    early_stopping:
+      switch: true
+      config:
+        monitor: "val_f1_em_avg_score"
+        mode: "max"
+        patience: 2
+#    evaluator_for_qa_with_impossible:
+    evaluator_for_qa_simple:
+      switch: true
+      priority: 2
+      config:
+        validation_dataset: null
+        test_dataset: null
+        validation_steps: null
+        report_dir: null
+        max_answer_length: 64
+        n_best_size: 5
+#    lr_finder:
+#      switch: true
+#
+#  optimizer:
+#    name: adam
+
+  optimizer_wrappers:
+    swa:
+      switch: false
+      config:
+        start_epoch: 5
+
+dataset:
+  name: glue_zh/drcd
+  data_dir: "./data"
+  transformer: "glue_zh/drcd"
+
+  source:
+    train: "train"
+    validation: 'validation[:50%]'
+    test: "validation[-50%:]"
+
+  tokenizer:
+    max_query_length: 64
+    max_answer_length: 64
+    doc_stride: 128
+
+  inputs:
+    - name: unique_id
+      column: unique_id
+      type: INT
+      model_input: True
+    - name: qas_id
+      column: qas_id
+      type: STRING
+      model_input: False
+    - name: question_text
+      column: question_text
+      type: STRING
+      model_input: False
+    - name: context_text
+      column: context_text
+      type: STRING
+      model_input: False
+    - name: answer_text
+      column: answer_text
+      type: STRING
+      model_input: False
+    - name: all_answers
+      column: all_answers
+      type: STRING
+      model_input: False
+    - name: doc_token2char_raw_start_index
+      column: doc_token2char_raw_start_index
+      type: STRING
+      model_input: False
+    - name: doc_token2char_raw_end_index
+      column: doc_token2char_raw_end_index
+      type: STRING
+      model_input: False
+    - name: doc_token2doc_index
+      column: doc_token2doc_index
+      type: STRING
+      model_input: False
+    - name: offset
+      column: offset
+      type: INT
+      model_input: False
+    - name: input_ids
+      column: input_ids
+      type: LIST_OF_INT
+      max_len: 512
+    - name: token_type_ids
+      column: token_type_ids
+      type: LIST_OF_INT
+      max_len: 512
+    - name: attention_mask
+      column: attention_mask
+      type: LIST_OF_INT
+      max_len: 512
+    - name: p_mask
+      column: p_mask
+      type: LIST_OF_INT
+      max_len: 512
+    - name: start_position
+      column: start_position
+      type: CLASSLABEL
+      num: 512
+      labels: use_num
+    - name: is_impossible
+      column: is_impossible
+      type: INT
+      model_input: False
+
+  outputs:
+    - name: output_1
+      column: start_position
+      type: CLASSLABEL
+      num: 512
+      labels: use_num
+      weight: 0.5
+      loss:
+        name: sparse_categorical_crossentropy
+        config:
+          from_logits: true
+      metrics:
+        - name: sparse_recall
+          config:
+            name: "macro_recall"
+            num_classes: 512
+            average: "macro"
+#        - name: sparse_categorical_accuracy
+#        - name: sparse_f1_score
+#          config:
+#            name: "macro_f1"
+#            num_classes: 512
+#            average: "macro"
+    - name: output_2
+      column: end_position
+      type: CLASSLABEL
+      num: 512
+      labels: use_num
+      weight: 0.5
+      loss:
+        name: sparse_categorical_crossentropy
+        config:
+          from_logits: true
+      metrics:
+        - name: sparse_recall
+          config:
+            name: "macro_recall"
+            num_classes: 512
+            average: "macro"
+#        - name: sparse_categorical_accuracy
+#        - name: sparse_f1_score
+#          config:
+#            name: "macro_f1"
+#            num_classes: 512
+#            average: "macro"
+#    - name: output_3
+#      column: is_impossible
+#      type: INT
+#      weight: 1.0
+#      loss:
+#        name: sigmoid_cross_entropy
+#      metrics:
+#        - name: binary_accuracy
+
+pretrained:
+    name: ERNIE_1.0_max-len-512
+    init_from_pretrained: true
+
+

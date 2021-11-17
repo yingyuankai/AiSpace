@@ -11,7 +11,6 @@ import tensorflow as tf
 
 from aispace.utils.hparams import Hparams
 from aispace.utils.file_utils import *
-from aispace.tasks.base_model import BaseModel
 
 logger = logging.getLogger(__name__)
 

@@ -64,7 +64,7 @@ class GlueConfig(tfds.core.BuilderConfig):
         # 0.0.1: Initial version.
         super(GlueConfig, self).__init__(
             version=tfds.core.Version(
-                "2.0.0",
+                "9.0.0",
                 # experiments={tfds.core.Experiment.S3: False}
             ),
             # supported_versions=[
@@ -157,10 +157,9 @@ class LSTC_2020(BaseDataset):
             features = self._base_feature_dict()
 
         metadata = None
-        if "dataset" in self.hparams and \
-                "tokenizer" in self.hparams.dataset and \
-                "name" in self.hparams.dataset.tokenizer:
-            metadata = tfds.core.MetadataDict({"tokenizer": self.hparams.dataset.tokenizer.name})
+        if "dataset" in self.hparams and "tokenizer" in self.hparams.dataset and "name" in self.hparams.dataset.tokenizer:
+            metadata = tfds.core.MetadataDict({"tokenizer": self.hparams.dataset.tokenizer.name,
+                                               "vocab_size": self.hparams.pretrained.config.vocab_size})
 
         return tfds.core.DatasetInfo(
             builder=self,
@@ -211,11 +210,11 @@ class LSTC_2020(BaseDataset):
             os.path.join(train_dl_dir, "train_data/train.json"), \
             os.path.join(dev_dl_dir, "dev_data/dev.json"), \
 
-        if "dataset" in self.hparams and \
-                "transformer" in self.hparams.dataset and \
-                self.hparams.dataset.transformer is not None:
-            data_train_json = self.transformer.transform(data_train_json, split="train")
-            data_validation_json = self.transformer.transform(data_validation_json, split="validation")
+        # if "dataset" in self.hparams and \
+        #         "transformer" in self.hparams.dataset and \
+        #         self.hparams.dataset.transformer is not None:
+        #     data_train_json = self.transformer.transform(data_train_json, split="train")
+        #     data_validation_json = self.transformer.transform(data_validation_json, split="validation")
             # data_test_json = self.transformer.transform(data_test_json, split="test")
 
         return [

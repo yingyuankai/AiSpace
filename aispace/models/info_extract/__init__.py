@@ -8,3 +8,4 @@
 from .bert_for_ner import BertForNer
 from .bert_for_role_ner import BertForRoleNer
 from .bert_dgcnn_for_ner import BertDgcnnForNer
+from .bert_for_relation_extract import BertForRelationExtract

@@ -39,12 +39,17 @@ class BertQAService(BentoService):
         unique_id = 100000
         for one_json in parsed_json:
             n_best_size = one_json.get('n_best_size', 5)
+            threshold = one_json.get('threshold', 0.7)
             max_answer_length = one_json.get("max_answer_length", 64)
             max_query_length = one_json.get("max_query_length", 64)
             doc_stride = one_json.get("doc_stride", 128)
-            question_text = one_json.get("query", "")
+            question_text = one_json.get("question_text", "")
+            trigger = one_json.get("trigger", "")
+            role = one_json.get("role", "")
+            event_type = one_json.get("event_type", "")
             para_text = one_json.get("context", "")
-            if question_text == "" or para_text == "":
+            # if question_text == "" or para_text == "":
+            if trigger == "" or role == "" or event_type == "" or para_text == "":
                 # unique_id = uuid_maker()
                 print("[WARRING] query or context is empty!")
                 item = {
@@ -53,14 +58,24 @@ class BertQAService(BentoService):
                     "question_text": question_text,
                     "context_text": para_text,
                     'n_best_size': n_best_size,
-                    'max_answer_length': max_answer_length
+                    'max_answer_length': max_answer_length,
+                    'threshold': threshold
                 }
                 yield item
 
             qas_id = one_json.get('qas_id', compute_md5_hash(question_text + para_text))
             if self.artifacts.hparams.dataset.tokenizer.do_lower_case:
-                question_text = question_text.lower()
-            query_tokens = self.artifacts.tokenizer.tokenize(question_text)
+                # question_text = question_text.lower()
+                trigger = trigger.lower()
+                role = role.lower()
+                event_type = event_type.lower()
+            # query_tokens = self.artifacts.tokenizer.tokenize(question_text)
+            # query_tokens = query_tokens[: max_query_length]
+            trigger_tokens = self.artifacts.tokenizer.tokenize(trigger)
+            role_tokens = self.artifacts.tokenizer.tokenize(role)
+            event_type_tokens = self.artifacts.tokenizer.tokenize(event_type)
+            query_tokens = trigger_tokens + [self.artifacts.tokenizer.vocab.sep_token] + \
+                           role_tokens + [self.artifacts.tokenizer.vocab.sep_token] + event_type_tokens
             query_tokens = query_tokens[: max_query_length]
 
             if self.artifacts.hparams.dataset.tokenizer.do_lower_case:
@@ -127,7 +142,8 @@ class BertQAService(BentoService):
                     "question_text": question_text,
                     "context_text": para_text,
                     'n_best_size': n_best_size,
-                    'max_answer_length': max_answer_length
+                    'max_answer_length': max_answer_length,
+                    'threshold': threshold
                 }
                 yield item
 
@@ -197,6 +213,7 @@ class BertQAService(BentoService):
                     encode_info['input_ids'], encode_info['segment_ids'], encode_info['input_mask'], \
                     encode_info['b_mask'], encode_info['a_mask'], encode_info['b_offset'], encode_info['cls_index']
                 # unique_id = uuid_maker()
+                p_mask[cls_idx] = 1
 
                 item = {
                     "unique_id": unique_id,
@@ -212,7 +229,9 @@ class BertQAService(BentoService):
                     "p_mask": p_mask,
                     'offset': offset,
                     'n_best_size': n_best_size,
-                    'max_answer_length': max_answer_length
+                    'max_answer_length': max_answer_length,
+                    'cls_idx': cls_idx,
+                    'threshold': threshold
                 }
                 unique_id += 1
                 yield item
@@ -281,9 +300,9 @@ class BertQAService(BentoService):
 
         no_answer_response = {
                         'predict_text': "",
-                        'span_start': 0,
+                        'span_start': -1,
                         'start_prob': 0.,
-                        'span_end': 0,
+                        'span_end': -1,
                         'end_prob': 0.,
                         'predict_score': 0.
                     }
@@ -293,7 +312,10 @@ class BertQAService(BentoService):
             if not examples:
                 answers.append(no_answer_response)
                 continue
-            max_answer_length, n_best_size = examples[0].get('max_answer_length'), examples[0].get('n_best_size')
+            max_answer_length, n_best_size, threshold \
+                = examples[0].get('max_answer_length'), \
+                  examples[0].get('n_best_size'), \
+                  examples[0].get('threshold')
             example_all_predicts = []
             for example in examples:
                 cur_unique_id = example['unique_id']
@@ -331,7 +353,8 @@ class BertQAService(BentoService):
                             'start_index': start_index,
                             'end_prob': end_prob,
                             'end_index': end_index,
-                            'predict_score': np.log(start_prob) + np.log(end_prob)
+                            'predict_score': np.log(start_prob) + np.log(end_prob),
+                            'cls_idx': example['cls_idx']
                         }
                         example_all_predicts.append(itm)
 
@@ -342,12 +365,17 @@ class BertQAService(BentoService):
             for example_predict in example_all_predicts:
                 if len(example_top_predicts) >= n_best_size:
                     break
-                example_feature = unique_id_to_example[example_predict['unique_id']]
-                predict_start = example_feature['doc_token2char_raw_start_index'][
-                    example_predict['start_index'] - example_feature['offset']]
-                predict_end = example_feature['doc_token2char_raw_end_index'][
-                    example_predict['end_index'] - example_feature['offset']]
-                predict_text = example_feature['context_text'][predict_start: predict_end + 1].strip()
+                if example_predict['start_prob'] < threshold or example_predict['end_prob'] < threshold:
+                    predict_text = ""
+                    predict_start = -1
+                    predict_end = -1
+                else:
+                    example_feature = unique_id_to_example[example_predict['unique_id']]
+                    predict_start = example_feature['doc_token2char_raw_start_index'][
+                        example_predict['start_index'] - example_feature['offset']]
+                    predict_end = example_feature['doc_token2char_raw_end_index'][
+                        example_predict['end_index'] - example_feature['offset']]
+                    predict_text = example_feature['context_text'][predict_start: predict_end + 1].strip()
 
                 if predict_text in is_visited:
                     continue

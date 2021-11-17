@@ -7,3 +7,4 @@
 from .bert_tokenizer import BertTokenizer
 from .tokenizer_base import BaseTokenizer
 from .xlnet_tokenizer import XlnetTokenizer
+from .gpt_tokenizer import CPMTokenizer

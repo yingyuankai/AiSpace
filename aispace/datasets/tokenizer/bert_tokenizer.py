@@ -87,10 +87,11 @@ class BertTokenizer(BaseTokenizer):
         return out_string
 
     def encode(self,
-               text_a: str,
-               text_b: Optional[str] = None,
+               text_a,
+               text_b=None,
                max_seq_length: Optional[int] = None,
-               return_mask=False, return_offset=False,
+               return_mask=False,
+               return_offset=False,
                return_cls_index=False):
         """Adds special tokens to a sequence or sequence pair and computes the
         corresponding segment ids and input mask for BERT specific tasks.

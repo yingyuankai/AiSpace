@@ -42,7 +42,7 @@ class SequenceSummary(tf.keras.layers.Layer):
 
         self.has_summary = 'summary_use_proj' in config and config.summary_use_proj
         if self.has_summary:
-            if 'summary_proj_to_labels' in config and config.summary_proj_to_labels and config.num_labels > 0:
+            if 'summary_proj_to_labels' in config and "num_labels" in config and config.summary_proj_to_labels and config.num_labels > 0:
                 num_classes = config.num_labels
             else:
                 num_classes = config.hidden_size

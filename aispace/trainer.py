@@ -181,7 +181,8 @@ def deploy(hparams: Hparams):
     hparams.reuse_saved_json_hparam()
     hparams.cascade_set("model_resume_path", model_resume_path)
     # build model
-    (model,) = build_model(hparams, return_losses=False, return_metrics=False, return_optimizer=False)
+    (model,) = build_model(hparams, return_losses=False, return_metrics=False,
+                           return_optimizer=False)
     logger.info("Export model to deployment.")
     saved_path = model.deploy()
     logger.info(f"Save bento Service in {saved_path}")

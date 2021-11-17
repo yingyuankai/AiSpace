@@ -18,19 +18,13 @@ model_attributes:
       - 100
 
 training:
-#  policy:
-#    name: "k-fold"
-#    config:
-#      k: 5
+  policy:
+    name: "k-fold"
+    config:
+      k: 5
   learning_rate: 1e-3
   max_epochs: 3
   batch_size: 128
-
-  optimizer:
-    name: adam
-
-#  optimizer_wrapper:
-#    switch: true
 
   callbacks:
     # callback name

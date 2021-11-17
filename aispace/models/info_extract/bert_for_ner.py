@@ -69,16 +69,25 @@ class BertForNer(BaseModel):
     def crf_loss(self, config):
         return self.crf.loss
 
+    # def deploy(self):
+    #     from aispace.datasets.tokenizer import BertTokenizer
+    #     from .bento_services import BertNerWithTitleStatusService as BertNerService
+    #     tokenizer = BertTokenizer(self._hparams.dataset.tokenizer)
+    #     bento_service = BertNerService()
+    #     bento_service.pack("model", self)
+    #     bento_service.pack("tokenizer", tokenizer)
+    #     bento_service.pack("hparams", self._hparams)
+    #     saved_path = bento_service.save(self._hparams.get_deploy_dir())
+    #     return saved_path
+
     def deploy(self):
-        from aispace.datasets.tokenizer import BertTokenizer
+        from aispace.datasets.tokenizer import BaseTokenizer
         from .bento_services import BertNerService
-        tokenizer = BertTokenizer(self._hparams.dataset.tokenizer)
-        bento_service = \
-            BertNerService.pack(
-                model=self,
-                tokenizer=tokenizer,
-                hparams=self._hparams,
-            )
+        # from .bento_services import BertNerWithTitleStatusService as BertNerService
+        tokenizer = BaseTokenizer.by_name(self._hparams.dataset.tokenizer.name)(self._hparams.dataset.tokenizer)
+        bento_service = BertNerService()
+        bento_service.pack("model", self)
+        bento_service.pack("tokenizer", tokenizer)
+        bento_service.pack("hparams", self._hparams)
         saved_path = bento_service.save(self._hparams.get_deploy_dir())
         return saved_path
-

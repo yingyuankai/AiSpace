@@ -32,12 +32,12 @@ class BertDgcnnForNer(BaseModel):
         self.pos_num = hparams.dataset.inputs[-1].num
         self.initializer_range = model_hparams.initializer_range
 
-        self.pos_embeddings = tf.keras.layers.Embedding(
-            self.pos_num,
-            32,
-            embeddings_initializer=get_initializer(model_hparams.initializer_range),
-            name="pos_embedding"
-        )
+        # self.pos_embeddings = tf.keras.layers.Embedding(
+        #     self.pos_num,
+        #     32,
+        #     embeddings_initializer=get_initializer(model_hparams.initializer_range),
+        #     name="pos_embedding"
+        # )
 
         self.bert = BaseLayer.by_name(pretrained_hparams.norm_name)(pretrained_hparams)
         self.dropout = tf.keras.layers.Dropout(
@@ -69,13 +69,13 @@ class BertDgcnnForNer(BaseModel):
         seq_output = bert_encode[0]
 
         # pos encode
-        pos_ids = inputs["pos"]
-        pos_repr = self.pos_embeddings(pos_ids)
-        pos_repr = self.dropout(pos_repr, training=training)
+        # pos_ids = inputs["pos"]
+        # pos_repr = self.pos_embeddings(pos_ids)
+        # pos_repr = self.dropout(pos_repr, training=training)
 
         # feature fusion
-        feature_fusion = tf.concat([seq_output, pos_repr], -1)
-        # feature_fusion = seq_output
+        # feature_fusion = tf.concat([seq_output, pos_repr], -1)
+        feature_fusion = seq_output
         feature_fusion = self.fusion_project(feature_fusion)
         feature_fusion = self.dropout(feature_fusion, training=training)
 
@@ -93,15 +93,12 @@ class BertDgcnnForNer(BaseModel):
         return self.crf.loss
 
     def deploy(self):
-        from aispace.datasets.tokenizer import BertTokenizer
+        from aispace.datasets.tokenizer import BaseTokenizer
         from .bento_services import BertNerService
-        tokenizer = BertTokenizer(self._hparams.dataset.tokenizer)
-        bento_service = \
-            BertNerService.pack(
-                model=self,
-                tokenizer=tokenizer,
-                hparams=self._hparams,
-            )
+        tokenizer = BaseTokenizer.by_name(self._hparams.dataset.tokenizer.name)(self._hparams.dataset.tokenizer)
+        bento_service = BertNerService()
+        bento_service.pack("model", self)
+        bento_service.pack("tokenizer", tokenizer)
+        bento_service.pack("hparams", self._hparams)
         saved_path = bento_service.save(self._hparams.get_deploy_dir())
         return saved_path
-

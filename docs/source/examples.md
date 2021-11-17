@@ -72,8 +72,109 @@ python -u aispace/trainer.py \
 |ERNIE_stable-1.0.1|**83.835**|64.898|
 |ERNIE_1.0_max-len-512|83.363|**65.293**|
 |chinese_electra_small|72.172|46.314|
-|chinese_electra_base|70.673|43.894|
-|chinese_electra_large|||
+
+## glue_zh/csl
+
+```
+python -u aispace/trainer.py \
+    --experiment_name test \
+    --model_name bert_for_classification \
+    --schedule train_and_eval \
+    --config_name csl \
+    --config_dir ./configs/glue_zh \
+    --gpus 0 1 \
+    > csl_err.log 2>&1 &
+```
+
+|Model|Accuracy|Macro_precision|Macro_recall|Macro_f1|
+|---|---|---|---|---|
+|ERNIE_1.0_max-len-512|83.000|83.439|83.000|82.943|
+
+## glue_zh/drcd
+
+```
+python -u aispace/trainer.py \
+    --experiment_name test \
+    --model_name bert_for_qa \
+    --schedule train_and_eval \
+    --enable_xla False \
+    --config_name drcd \
+    --config_dir ./configs/glue_zh \
+    --gpus 0 1 \
+    > drcd_err.log 2>&1 &
+```
+
+|Model|F1|EM|
+|---|---|---|
+|ERNIE_1.0_max-len-512|85.657|75.433|
+
+## glue_zh/afqmc
+
+```
+python -u aispace/trainer.py \
+    --experiment_name test \
+    --model_name bert_for_classification \
+    --schedule train_and_eval \
+    --config_name afqmc \
+    --config_dir ./configs/glue_zh \
+    --gpus 0 1 \
+    > afqmc_err.log 2>&1 &
+```
+
+|Model|Accuracy|Macro_precision|Macro_recall|Macro_f1|
+|---|---|---|---|---|
+|ERNIE_1.0_max-len-512|72.405|67.489|66.750|67.071|
+
+## glue_zh/iflytek
+
+```
+python -u aispace/trainer.py \
+    --experiment_name test \
+    --model_name bert_for_classification \
+    --schedule train_and_eval \
+    --config_name iflytek \
+    --config_dir ./configs/glue_zh \
+    --gpus 0 1 \
+    > iflytek_err.log 2>&1 &
+```
+
+|Model|Accuracy|Macro_precision|Macro_recall|Macro_f1|
+|---|---|---|---|---|
+|ERNIE_1.0_max-len-512|58.753|30.406|32.275|28.965|
+
+## glue_zh/cmnli
+
+```
+python -u aispace/trainer.py \
+    --experiment_name test \
+    --model_name bert_for_classification \
+    --schedule train_and_eval \
+    --config_name cmnli \
+    --config_dir ./configs/glue_zh \
+    --gpus 0 1 \
+    > cmnli_err.log 2>&1 &
+```
+
+|Model|Accuracy|Macro_precision|Macro_recall|Macro_f1|
+|---|---|---|---|---|
+|ERNIE_1.0_max-len-512|78.759|78.750|78.679|78.593|
+
+## glue_zh/wsc
+
+```
+python -u aispace/trainer.py \
+    --experiment_name test \
+    --model_name bert_for_relation_extract \
+    --schedule train_and_eval \
+    --config_name wsc \
+    --config_dir ./configs/glue_zh \
+    --gpus 0 1 \
+    > wsc_err.log 2>&1 &
+```
+
+|Model|Accuracy|Macro_precision|Macro_recall|Macro_f1|
+|---|---|---|---|---|
+|ERNIE_1.0_max-len-512|59.615|58.507|55.969|54.117|
 
 ## dureader/robust
 

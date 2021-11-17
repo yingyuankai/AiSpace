@@ -1,6 +1,6 @@
 includes:
-  - "../pretrain/bert_wwm.yml"
-#  - "../pretrain/bert_huggingface.yml"
+#  - "../pretrain/bert_wwm.yml"
+  - "../pretrain/ernie.yml"
 
 model_name: bert_dgcnn_for_ner
 
@@ -50,13 +50,13 @@ dataset:
       column: attention_mask
       type: LIST_OF_INT
       max_len: 256
-    - name: pos
-      column: pos
-      type: LIST_OF_CLASSLABEL
-      labels:
-        url: ""
-        name: "hanlp_pos_labels"
-      max_len: 256
+#    - name: pos
+#      column: pos
+#      type: LIST_OF_CLASSLABEL
+#      labels:
+#        url: ""
+#        name: "hanlp_pos_labels"
+#      max_len: 256
 
   outputs:
     - name: output_1
@@ -112,7 +112,8 @@ dataset:
 #        - name: categorical_accuracy
 
 pretrained:
-    name: chinese_roberta_wwm_ext
+    name: ERNIE_1.0_max-len-512
+#    name: chinese_roberta_wwm_ext
 #    name: bert-base-chinese-huggingface
     init_from_pretrained: true
 

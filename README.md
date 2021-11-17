@@ -2,7 +2,7 @@
 
 <p align="center">
     <br>
-    <img src="https://raw.githubusercontent.com/yingyuankai/AiSpace/master/docs/resource/imgs/aispace_logo_name.png" width="400"/>
+    <img src="https://raw.githubusercontent.com/yingyuankai/AiSpace/master/docs/resource/imgs/aispace_logo.png" width="400"/>
     <br>
 <p>
 
@@ -25,7 +25,9 @@
 </p>
 
 AiSpace provides highly configurable framework for deep learning model development, deployment and 
-conveniently use of pre-trained models (bert, albert, opt, etc.). 
+conveniently use of pre-trained models (bert, albert, opt, etc.).
+
+![](https://raw.githubusercontent.com/yingyuankai/AiSpace/master/docs/resource/imgs/aispace_framework.png)
 
 Table of Contents
 =================
@@ -72,6 +74,62 @@ python -u aispace/trainer.py \
     [--gpus GPUS] 
 ```
 
+### Output file structure
+
+The default output path is ***save***, which may has multiple output directories under name as:
+
+```text
+{experiment_name}_{model_name}_{dataset_name}_{random_seed}_{id}
+```
+
+Where ***id*** indicates the sequence number of the experiment for the same task, increasing from 0.
+
+Take the text classification task as an example, the output file structure is similar to the following:
+
+```
+experiment_name: test
+
+model_name: bert_for_classification
+
+dataset_name: glue_zh/tnews
+
+random_seed: 119
+
+id: 0
+```
+
+```
+test_bert_for_classification_glue_zh__tnews_119_0
+├── checkpoint                  # 1. checkpoints
+│   ├── checkpoint
+│   ├── ckpt_1.data-00000-of-00002
+│   ├── ckpt_1.data-00001-of-00002
+│   ├── ckpt_1.index
+|   ...
+├── deploy                      # 2. Bentoml depolyment directory
+│   └── BertTextClassificationService
+│       └── 20191208180211_B6FC81
+├── hparams.json                # 3. Json file of all hyperparameters
+├── logs                        # 4. general or tensorboard log directory
+│   ├── errors.log              # error log file
+│   ├── info.log                # info log file
+│   ├── train                
+│   │   ├── events.out.tfevents.1574839601.jshd-60-31.179552.14276.v2
+│   │   ├── events.out.tfevents.1574839753.jshd-60-31.profile-empty
+│   └── validation
+│       └── events.out.tfevents.1574839787.jshd-60-31.179552.151385.v2
+├── model_saved                 # 5. last model saved
+│   ├── checkpoint
+│   ├── model.data-00000-of-00002
+│   ├── model.data-00001-of-00002
+│   └── model.index
+└── reports                     # 6. Eval reports for every output or task
+    └── output_1_classlabel     # For example, text classification task
+        ├── confusion_matrix.txt
+        ├── per_class_stats.json
+        └── stats.json
+```
+
 ### Training with resumed model
 
 ```
@@ -107,8 +165,7 @@ Then run training policy as base.
 
 Lastly, you can find **lr_finder.jpg** in you workspace.
 
-
-Ref to [keras-lr-multiplier](https://pypi.org/project/keras-lr-multiplier/).
+![](https://raw.githubusercontent.com/yingyuankai/AiSpace/master/docs/resource/imgs/lr_find.jpg)
 
 ### K-fold cross validation training
 
@@ -179,6 +236,26 @@ merge configuration of bert_huggingface into current.
 includes:
   - "../pretrain/bert_huggingface.yml"     # relative path
 ```
+
+## Datasets
+
+|Dataset|Info|Ref|
+|---|---|---|
+|glue_zh/afqmc|Ant Financial Question Matching Corpus(蚂蚁金融语义相似度)|https://github.com/CLUEbenchmark/CLUE|
+|glue_zh/tnews|TNEWS 今日头条中文新闻（短文）分类|https://github.com/CLUEbenchmark/CLUE|
+|glue_zh/iflytek|IFLYTEK' 长文本分类|https://github.com/CLUEbenchmark/CLUE|
+|glue_zh/cmnli|CMNLI 语言推理任务|https://github.com/CLUEbenchmark/CLUE|
+|glue_zh/copa|COPA 因果推断-中文版|https://github.com/CLUEbenchmark/CLUE|
+|glue_zh/wsc|WSC Winograd模式挑战中文版|https://github.com/CLUEbenchmark/CLUE|
+|glue_zh/csl|CSL 论文关键词识别|https://github.com/CLUEbenchmark/CLUE|
+|glue_zh/cmrc2018|Reading Comprehension for Simplified Chinese 简体中文阅读理解任务|https://github.com/CLUEbenchmark/CLUE|
+|glue_zh/drcd|繁体阅读理解任务|https://github.com/CLUEbenchmark/CLUE|
+|glue_zh/chid|成语阅读理解填空 Chinese IDiom Dataset for Cloze Test|https://github.com/CLUEbenchmark/CLUE|
+|glue_zh/c3|中文多选阅读理解|https://github.com/CLUEbenchmark/CLUE|
+|Dureader/robust|首个关注阅读理解模型鲁棒性的中文数据集|https://aistudio.baidu.com/aistudio/competition/detail/49|
+|Dureader/yesno|一个以观点极性判断为目标任务的数据集|https://aistudio.baidu.com/aistudio/competition/detail/49|
+|LSTC_2020/DuEE_trigger|从自然语言文本中抽取事件并识别事件类型|https://aistudio.baidu.com/aistudio/competition/detail/32|
+|LSTC_2020/DuEE_role|从自然语言文本中抽取事件元素|https://aistudio.baidu.com/aistudio/competition/detail/32|
 
 ## Pretrained
 
@@ -258,71 +335,6 @@ Specify different pretrained model, please change ***includes*** and ***pretrain
 |nezha-base|58.940|57.909|55.650|55.630|
 |nezha-base-wwm|58.800|60.060|54.859|55.831|
 
-## glue_zh/cmrc2018
-
-```
-python -u aispace/trainer.py \
-    --experiment_name test \
-    --model_name bert_for_qa \
-    --schedule train_and_eval \
-    --enable_xla False \
-    --config_name cmrc2018 \
-    --config_dir ./configs/glue_zh \
-    --gpus 0 1 2 3 \
-    > err.log 2>&1 &
-```
-
-|Model|F1|EM|
-|---|---|---|
-|bert-base-chinese-huggingface|71.718|44.419|
-|albert_base_zh|69.463|41.643|
-|albert_base_zh_google|68.538|39.320|
-|chinese_wwm|72.081|44.419|
-|chinese_roberta_wwm_ext|71.523|44.362|
-|ERNIE_stable-1.0.1|**83.835**|64.898|
-|ERNIE_1.0_max-len-512|83.363|**65.293**|
-|chinese_electra_small|72.172|46.314|
-
-## dureader/robust
-
-```
-python -u aispace/trainer.py \
-    --experiment_name test \
-    --model_name bert_for_qa \
-    --schedule train_and_eval \
-    --enable_xla False \
-    --config_name dureader_robust \
-    --config_dir ./configs/qa \
-    --gpus 0 1 \
-    > err.log 2>&1 &
-```
-|Model|F1|EM|
-|---|---|---|
-|bert-base-chinese-huggingface|66.624|51.856|
-|chinese_wwm|67.007|53.434|
-|chinese_roberta_wwm_ext|65.521|50.274|
-|ERNIE_stable-1.0.1|75.268|61.675|
-|ERNIE_1.0_max-len-512|**83.609**|**72.328**|
-
-## dureader/yesno
-
-```
-python -u aispace/trainer.py \
-    --experiment_name test \
-    --model_name bert_for_classification \
-    --schedule train_and_eval \
-    --enable_xla False \
-    --config_name dureader_yesno \
-    --config_dir ./configs/qa \
-    --gpus 0 1 \
-    > err.log 2>&1 &
-```
-
-|Model|Accuracy|Macro_precision|Macro_recall|Macro_f1|
-|---|---|---|---|---|
-|bert-base-chinese-huggingface|76.565|73.315|69.958|71.230|
-|ERNIE_stable-1.0.1|85.756|82.919|81.627|82.213|
-|ERNIE_1.0_max-len-512|86.122|83.847|80.636|81.965|
 
 **NOTE**: The hyper-parameters used here have not been fine-tuned.
 
@@ -335,6 +347,26 @@ python -u aispace/trainer.py \
 - Support Pytorch;
 - Improve the tokenizer to make it more versatile;
 - Build AiSpace server, make it can train and configure using UI.
+
+## Contact Author
+
+Mail: yingyuankai@aliyun.com
+
+Wechat: woshimoming1991
+
+
+## Citing
+
+```
+@misc{AiSpace,
+  author = {yuankai ying},
+  title = {AiSpace: Highly configurable framework for deep learning model development and deployment},
+  year = {2020},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/yingyuankai/AiSpace}},
+}
+```
 
 ## Refs
 

@@ -1,0 +1,77 @@
+includes:
+  - "../pretrain/ernie.yml"
+
+model_name: bert_for_ner
+
+model_attributes:
+    hidden_dropout_prob: 0.5
+    initializer_range: 0.02
+    hidden_size: 1024
+
+training:
+  learning_rate: 1e-4
+  max_epochs: 30
+  batch_size: 32
+  callbacks:
+    # callback name
+    early_stopping:
+      switch: true
+      config:
+        patience: 2
+
+dataset:
+  name: "lstc_2020/DuEE_role"
+  data_dir: "./data"
+  transformer: "lstc_2020/DuEE_keyphrase"
+
+  source:
+    train: "train"
+    validation: "validation[:50%]"
+    test: "validation[-50%:]"
+
+  tokenizer:
+    max_len: 102
+
+  inputs:
+    - name: input_ids
+      column: input_ids
+      type: LIST_OF_INT
+      max_len: 102
+    - name: token_type_ids
+      column: token_type_ids
+      type: LIST_OF_INT
+      max_len: 102
+    - name: attention_mask
+      column: attention_mask
+      type: LIST_OF_INT
+      max_len: 102
+
+  outputs:
+    - name: output_1
+      column: labels
+      type: LIST_OF_CLASSLABEL
+      task: NER
+      num: 3
+      labels: ["B-keyphrase", "I-keyphrase", "O"]
+      loss:
+        name: myself_crf_loss
+#        name: sparse_categorical_crossentropy
+#        config:
+#          from_logits: true
+      metrics:
+        - name: sparse_categorical_accuracy
+        - name: sparse_f1_score
+          config:
+            num_classes: 3
+            average: "macro"
+            name: "macro_f1"
+
+pretrained:
+    name: ERNIE_1.0_max-len-512
+    init_from_pretrained: true
+    config:
+      layers:
+        start: 0
+        end: 4
+        step: 1
+

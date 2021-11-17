@@ -67,7 +67,7 @@ We use [BentoML](https://github.com/bentoml/BentoML) as deploy tool, so your mus
 The default output path is ***save***, which may has multiple output directories under name as:
 
 ```text
-{experiment_name}_{model_name}_{random_seed}_{id}
+{experiment_name}_{model_name}_{dataset_name}_{random_seed}_{id}
 ```
 
 Where ***id*** indicates the sequence number of the experiment for the same task, increasing from 0.

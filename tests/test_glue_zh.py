@@ -20,7 +20,7 @@ from aispace.utils.builder_utils import load_dataset
 class TestGlue(unittest.TestCase):
     def test_glue_load(self):
         hparams = Hparams()
-        hparams.load_from_config_file("../configs/glue_zh/cmrc2018.yml")
+        hparams.load_from_config_file("../configs/custom/ewn.yml")
         hparams.stand_by()
         # checksum_dir = "../aispace/datasets/url_checksums"
         # tfds.download.add_checksums_dir(checksum_dir)
@@ -37,15 +37,17 @@ class TestGlue(unittest.TestCase):
 
         total, zero = 0, 0
         for itm in test_dataset:
-            tt = itm[0]['start_position'].numpy().tolist()
+            print(itm)
+            break
+            # tt = itm[0]['start_position'].numpy().tolist()
             # print(itm[0]['p_mask'].numpy().tolist())
             # print(itm[0]['start_position'].numpy().tolist())
             # print(itm[0]['end_position'].numpy().tolist())
             # break
-            total += len(tt)
-            zero += len([t for t in tt if t == 0])
-        print()
-        print(f"{zero}, {total}, {zero / float(total)}")
+            # total += len(tt)
+            # zero += len([t for t in tt if t == 0])
+        # print()
+        # print(f"{zero}, {total}, {zero / float(total)}")
 
 # python -u aispace/trainer.py \
 #    --experiment_name test \

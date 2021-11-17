@@ -124,14 +124,14 @@ class Bert(BaseLayer):
             token_type_ids = inputs[2] if len(inputs) > 2 else token_type_ids
             position_ids = inputs[3] if len(inputs) > 3 else position_ids
             head_mask = inputs[4] if len(inputs) > 4 else head_mask
-            assert len(inputs) <= 5, "Too many inputs."
+            # assert len(inputs) <= 5, "Too many inputs."
         elif isinstance(inputs, dict):
             input_ids = inputs.get('input_ids')
             attention_mask = inputs.get('attention_mask', attention_mask)
             token_type_ids = inputs.get('token_type_ids', token_type_ids)
             position_ids = inputs.get('position_ids', position_ids)
             head_mask = inputs.get('head_mask', head_mask)
-            assert len(inputs) <= 5, "Too many inputs."
+            # assert len(inputs) <= 5, "Too many inputs."
         else:
             input_ids = inputs
 

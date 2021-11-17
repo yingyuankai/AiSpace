@@ -9,12 +9,14 @@ import tensorflow as tf
 from aispace.utils.tf_utils import get_bias_initializer, get_initializer
 
 from aispace.layers.activations import ACT2FN
+from aispace.utils.tf_utils import get_shape
 
 __all__ = [
     "Dgcnn",
     "DgcnnBlock",
     "Textcnn",
-    "TextcnnBlock"
+    "TextcnnBlock",
+    "TFConv1D"
 ]
 
 
@@ -110,3 +112,43 @@ class TextcnnBlock(tf.keras.layers.Layer):
         outputs = [conv(input) for conv in self.convs]
         output = tf.concat(outputs, axis=-1)
         return output
+
+
+class TFConv1D(tf.keras.layers.Layer):
+    """
+    1D-convolutional layer as defined by Radford et al. for OpenAI GPT (and also used in GPT-2).
+
+    Basically works like a linear layer but the weights are transposed.
+
+    Args:
+        nf (:obj:`int`):
+            The number of output features.
+        nx (:obj:`int`):
+            The number of input features.
+        initializer_range (:obj:`float`, `optional`, defaults to 0.02):
+            The standard deviation to use to initialize the weights.
+        kwargs:
+            Additional keyword arguments passed along to the :obj:`__init__` of :obj:`tf.keras.layers.Layer`.
+    """
+
+    def __init__(self, nf, nx, initializer_range=0.02, **kwargs):
+        super().__init__(**kwargs)
+        self.nf = nf
+        self.nx = nx
+        self.initializer_range = initializer_range
+
+    def build(self, input_shape):
+        self.weight = self.add_weight(
+            "weight", shape=[self.nx, self.nf], initializer=get_initializer(self.initializer_range)
+        )
+        self.bias = self.add_weight("bias", shape=[1, self.nf], initializer=tf.zeros_initializer())
+
+    def call(self, x):
+        bz, sl = get_shape(x)[:2]
+
+        x = tf.reshape(x, [-1, self.nx])
+        x = tf.matmul(x, self.weight) + self.bias
+
+        x = tf.reshape(x, [bz, sl, self.nf])
+
+        return x

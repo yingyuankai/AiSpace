@@ -7,3 +7,5 @@
 
 from .bert_for_ner_service import BertNerService
 from .bert_for_role_ner_service import RoleBertNerService
+from .bert_for_relation_extract_service import BertRelationClassificationService
+from .bert_for_ner_with_title_status_service import BertNerWithTitleStatusService

@@ -25,7 +25,7 @@ pretrained:
     adapter: tf_huggingface_bert_adapter
     force_download: false
     init_from_pretrained: true
-    cache_dir: /search/data1/yyk/data/pretrained/bert # your path to save models
+    cache_dir: /search/odin/yyk/data/pretrained/bert # your path to save models
     model_path: null
     vocab_path: null
     config_path: null
@@ -38,19 +38,19 @@ pretrained:
         chinese_roberta_wwm_large_ext:
             model:
                 # your/path/to/chinese_roberta_wwm_large_ext
-                url: /search/data1/yyk/data/pretrained/bert/chinese_roberta_wwm_large_ext
+                url: /search/odin/yyk/data/pretrained/bert/chinese_roberta_wwm_large_ext
                 suffix: bert_model.ckpt
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/chinese_roberta_wwm_large_ext/vocab.txt
-                url: /search/data1/yyk/data/pretrained/bert/chinese_roberta_wwm_large_ext/vocab.txt
+                url: /search/odin/yyk/data/pretrained/bert/chinese_roberta_wwm_large_ext/vocab.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/chinese_roberta_wwm_large_ext/bert_config.json
-                url: /search/data1/yyk/data/pretrained/bert/chinese_roberta_wwm_large_ext/bert_config.json
+                url: /search/odin/yyk/data/pretrained/bert/chinese_roberta_wwm_large_ext/bert_config.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.
@@ -58,19 +58,19 @@ pretrained:
         chinese_roberta_wwm_ext:
             model:
                 # your/path/to/chinese_roberta_wwm_ext
-                url: /search/data1/yyk/data/pretrained/bert/chinese_roberta_wwm_ext
+                url: /search/odin/yyk/data/pretrained/bert/chinese_roberta_wwm_ext
                 suffix: bert_model.ckpt
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/chinese_roberta_wwm_ext/vocab.txt
-                url: /search/data1/yyk/data/pretrained/bert/chinese_roberta_wwm_ext/vocab.txt
+                url: /search/odin/yyk/data/pretrained/bert/chinese_roberta_wwm_ext/vocab.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/chinese_roberta_wwm_ext/bert_config.json
-                url: /search/data1/yyk/data/pretrained/bert/chinese_roberta_wwm_ext/bert_config.json
+                url: /search/odin/yyk/data/pretrained/bert/chinese_roberta_wwm_ext/bert_config.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.
@@ -78,19 +78,19 @@ pretrained:
         chinese_wwm_ext:
             model:
                 # your/path/to/chinese_wwm_ext
-                url: /search/data1/yyk/data/pretrained/bert/chinese_wwm_ext
+                url: /search/odin/yyk/data/pretrained/bert/chinese_wwm_ext
                 suffix: bert_model.ckpt
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/chinese_wwm_ext/vocab.txt
-                url: /search/data1/yyk/data/pretrained/bert/chinese_wwm_ext/vocab.txt
+                url: /search/odin/yyk/data/pretrained/bert/chinese_wwm_ext/vocab.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/chinese_wwm_ext/bert_config.json
-                url: /search/data1/yyk/data/pretrained/bert/chinese_wwm_ext/bert_config.json
+                url: /search/odin/yyk/data/pretrained/bert/chinese_wwm_ext/bert_config.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.
@@ -98,19 +98,19 @@ pretrained:
         chinese_wwm:
             model:
                 # your/path/to/chinese_wwm
-                url: /search/data1/yyk/data/pretrained/bert/chinese_wwm
+                url: /search/odin/yyk/data/pretrained/bert/chinese_wwm
                 suffix: bert_model.ckpt
                 to_insert_paths:
                     - pretrained.model_path
             vocab:
                 # your/path/to/chinese_wwm/vocab.txt
-                url: /search/data1/yyk/data/pretrained/bert/chinese_wwm/vocab.txt
+                url: /search/odin/yyk/data/pretrained/bert/chinese_wwm/vocab.txt
                 to_insert_paths:
                     - pretrained.vocab_path
                     - dataset.tokenizer.vocab.filename
             config:
                 # your/path/to/chinese_wwm/bert_config.json
-                url: /search/data1/yyk/data/pretrained/bert/chinese_wwm/bert_config.json
+                url: /search/odin/yyk/data/pretrained/bert/chinese_wwm/bert_config.json
                 to_insert_paths: # set the pretrained.config_path with saved path of this file.
                     - pretrained.config_path
                 to_replaces: # replace pretrained.config with the json content.

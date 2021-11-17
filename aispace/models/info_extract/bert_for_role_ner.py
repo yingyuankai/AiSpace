@@ -11,7 +11,7 @@ from aispace.models.base_model import BaseModel
 from aispace.layers.pretrained.bert import Bert
 from aispace.layers.decoders import CRFLayer
 from aispace.layers.encoders import Bilstm
-from aispace.utils.tf_utils import get_initializer
+from aispace.utils.tf_utils import get_initializer, mask_logits
 from aispace.utils.tf_utils import get_sequence_length
 from aispace.layers import BaseLayer
 
@@ -30,7 +30,6 @@ class BertForRoleNer(BaseModel):
         self.num_labels = hparams.dataset.outputs[0].num
         self.initializer_range = model_hparams.initializer_range
 
-        # self.bert = Bert(pretrained_hparams, name='bert')
         self.bert = BaseLayer.by_name(pretrained_hparams.norm_name)(pretrained_hparams)
         self.dropout = tf.keras.layers.Dropout(
             model_hparams.hidden_dropout_prob
@@ -58,6 +57,12 @@ class BertForRoleNer(BaseModel):
         project = self.project(seq_output)
         project = self.dropout(project, training=training)
         logits = self.ner_output(project)
+
+        # mask
+        label_mask = inputs['label_mask']
+        label_mask = tf.cast(tf.expand_dims(label_mask, 1), tf.float32)
+        logits * label_mask + (1.0 - label_mask) * tf.float32.min
+
         # crf
         viterbi, _ = self.crf([logits, input_lengths])
         return tf.keras.backend.in_train_phase(logits, tf.one_hot(viterbi, self.num_labels), training=training)
@@ -65,16 +70,27 @@ class BertForRoleNer(BaseModel):
     def crf_loss(self, config):
         return self.crf.loss
 
+    # def deploy(self):
+    #     from aispace.datasets.tokenizer import BertTokenizer
+    #     from .bento_services import RoleBertNerService
+    #     tokenizer = BertTokenizer(self._hparams.dataset.tokenizer)
+    #     bento_service = \
+    #         RoleBertNerService.pack(
+    #             model=self,
+    #             tokenizer=tokenizer,
+    #             hparams=self._hparams,
+    #         )
+    #     saved_path = bento_service.save(self._hparams.get_deploy_dir())
+    #     return saved_path
+
     def deploy(self):
-        from aispace.datasets.tokenizer import BertTokenizer
+        from aispace.datasets.tokenizer import BaseTokenizer
         from .bento_services import RoleBertNerService
-        tokenizer = BertTokenizer(self._hparams.dataset.tokenizer)
-        bento_service = \
-            RoleBertNerService.pack(
-                model=self,
-                tokenizer=tokenizer,
-                hparams=self._hparams,
-            )
+        tokenizer = BaseTokenizer.by_name(self._hparams.dataset.tokenizer.name)(self._hparams.dataset.tokenizer)
+        bento_service = RoleBertNerService()
+        bento_service.pack("model", self)
+        bento_service.pack("tokenizer", tokenizer)
+        bento_service.pack("hparams", self._hparams)
         saved_path = bento_service.save(self._hparams.get_deploy_dir())
         return saved_path
 

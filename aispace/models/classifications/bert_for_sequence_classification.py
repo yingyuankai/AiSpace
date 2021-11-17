@@ -55,15 +55,9 @@ class BertForSeqClassification(BaseModel):
         return outputs  # logits, (hidden_states), (attentions)
 
     def deploy(self):
-        from aispace.datasets.tokenizer import BertTokenizer
+        from aispace.datasets.tokenizer import BaseTokenizer
         from .bento_services import BertTextClassificationService
-        tokenizer = BertTokenizer(self._hparams.dataset.tokenizer)
-        # bento_service = \
-        #     BertTextClassificationService.pack(
-        #         model=self,
-        #         tokenizer=tokenizer,
-        #         hparams=self._hparams,
-        #     )
+        tokenizer = BaseTokenizer.by_name(self._hparams.dataset.tokenizer.name)(self._hparams.dataset.tokenizer)
         bento_service = BertTextClassificationService()
         bento_service.pack("model", self)
         bento_service.pack("tokenizer", tokenizer)

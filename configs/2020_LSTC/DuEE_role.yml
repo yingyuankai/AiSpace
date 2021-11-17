@@ -1,5 +1,6 @@
 includes:
-  - "../pretrain/bert_wwm.yml"
+#  - "../pretrain/bert_wwm.yml"
+  - "../pretrain/ernie.yml"
 
 model_name: bert_for_role_ner
 
@@ -9,13 +10,15 @@ model_attributes:
     hidden_size: 1024
 
 training:
-  learning_rate: 6e-5
+  learning_rate: 1e-4
   max_epochs: 30
   batch_size: 32
   callbacks:
     # callback name
     early_stopping:
       switch: true
+      config:
+        patience: 2
 
 dataset:
   name: "lstc_2020/DuEE_role"
@@ -43,10 +46,14 @@ dataset:
       column: attention_mask
       type: LIST_OF_INT
       max_len: 100
-    - name: trigger_span
-      column: trigger_span
+    - name: position_ids
+      column: position_ids
       type: LIST_OF_INT
-      max_len: 2
+      max_len: 100
+    - name: label_mask
+      column: label_mask
+      type: LIST_OF_INT
+      max_len: 243
 
   outputs:
     - name: output_1
@@ -56,16 +63,23 @@ dataset:
       num: 0
       labels:
         url: "https://ai.baidu.com/file/9C92719AF96D4DDB96477BFBE1435262"
-        name: "duee"
+        name: "duee_role_ner_labels"
       loss:
-        name: sparse_categorical_crossentropy
-        config:
-          from_logits: true
+        name: myself_crf_loss
+#        name: sparse_categorical_crossentropy
+#        config:
+#          from_logits: true
       metrics:
         - name: sparse_categorical_accuracy
+        - name: sparse_f1_score
+          config:
+            num_classes: 243
+            average: "macro"
+            name: "macro_f1"
 
 pretrained:
-    name: chinese_roberta_wwm_ext
+#    name: chinese_roberta_wwm_ext
+    name: ERNIE_1.0_max-len-512
     init_from_pretrained: true
 
 

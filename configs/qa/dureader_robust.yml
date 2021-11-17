@@ -64,11 +64,11 @@ training:
 
 dataset:
   name: "dureader/robust"
-  data_dir: "../data"
+  data_dir: "./data"
   transformer: "dureader/robust"
 
   source:
-    train: "train"
+    train: "train + validation"
     validation: 'validation[:50%]'
     test: "validation[-50%:]"
 

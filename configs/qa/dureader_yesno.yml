@@ -14,13 +14,13 @@ training:
 #    config:
 #      k: 5
   learning_rate: 1e-5
-  max_epochs: 30
+  max_epochs: 10
   batch_size: 32
 
   callbacks:
     # callback name
     early_stopping:
-      switch: true
+      switch: false
       config:
         patience: 2
 #    lr_finder:
@@ -31,7 +31,7 @@ training:
 
   optimizer_wrappers:
     swa:
-      switch: false
+      switch: true
       config:
         start_epoch: 5
     lr_multiplier:
@@ -46,7 +46,7 @@ dataset:
   transformer: "dureader/yesno"
 
   source:
-    train: "train"
+    train: "train + validation"
     validation: 'validation[:50%]'
     test: "validation[-50%:]"
 

@@ -1,5 +1,6 @@
 includes:
-  - "../pretrain/bert_huggingface.yml"
+#  - "../pretrain/bert_huggingface.yml"
+  - "../pretrain/ernie.yml"
 
 model_name: bert_for_qa
 
@@ -9,17 +10,17 @@ model_attributes:
     hidden_size: 798
     start_n_top: 5
     layer_norm_eps: 1e-12
-#    qa_layer_name: "qa_with_impossible"
-    qa_layer_name: "qa_simple"
+    qa_layer_name: "qa_with_impossible"
+#    qa_layer_name: "qa_simple"
 
 training:
 #  policy:
 #    name: "k-fold"
 #    config:
 #      k: 5
-  learning_rate: 1e-5
+  learning_rate: 1e-4
   max_epochs: 30
-  batch_size: 20
+  batch_size: 128
 #  steps_per_epoch: 5
   do_eval: false       # using callback doing evaluation instead of default eval because of different outputs of training stages.
 #  validation_steps: 5
@@ -29,11 +30,12 @@ training:
     early_stopping:
       switch: true
       config:
-        monitor: "val_f1_em_avg_score"
+        monitor: "val_f1_avg_score"
+#        monitor: "val_f1_em_avg_score"
         mode: "max"
         patience: 2
-#    evaluator_for_qa_with_impossible:
-    evaluator_for_qa_simple:
+    evaluator_for_qa_with_impossible:
+#    evaluator_for_qa_simple:
       switch: true
       priority: 2
       config:
@@ -43,6 +45,8 @@ training:
         report_dir: null
         max_answer_length: 64
         n_best_size: 5
+        is_impossible_threshold: 0.5
+        weights: [1, 1, 0.1]
 #    lr_finder:
 #      switch: true
 #
@@ -74,6 +78,7 @@ dataset:
     max_query_length: 64
     max_answer_length: 64
     doc_stride: 128
+    max_len: 200
 
   inputs:
     - name: unique_id
@@ -119,23 +124,23 @@ dataset:
     - name: input_ids
       column: input_ids
       type: LIST_OF_INT
-      max_len: 512
+      max_len: 200
     - name: token_type_ids
       column: token_type_ids
       type: LIST_OF_INT
-      max_len: 512
+      max_len: 200
     - name: attention_mask
       column: attention_mask
       type: LIST_OF_INT
-      max_len: 512
+      max_len: 200
     - name: p_mask
       column: p_mask
       type: LIST_OF_INT
-      max_len: 512
+      max_len: 200
     - name: start_position
       column: start_position
       type: CLASSLABEL
-      num: 512
+      num: 200
       labels: use_num
     - name: is_impossible
       column: is_impossible
@@ -146,58 +151,59 @@ dataset:
     - name: output_1
       column: start_position
       type: CLASSLABEL
-      num: 512
+      num: 200
       labels: use_num
-      weight: 0.5
+      weight: 1.0
       loss:
         name: sparse_categorical_crossentropy
         config:
           from_logits: true
       metrics:
-        - name: sparse_recall
-          config:
-            name: "macro_recall"
-            num_classes: 512
-            average: "macro"
-#        - name: sparse_categorical_accuracy
-#        - name: sparse_f1_score
+#        - name: sparse_recall
 #          config:
-#            name: "macro_f1"
-#            num_classes: 512
+#            name: "macro_recall"
+#            num_classes: 200
 #            average: "macro"
+#        - name: sparse_categorical_accuracy
+        - name: sparse_f1_score
+          config:
+            name: "macro_f1"
+            num_classes: 200
+            average: "macro"
     - name: output_2
       column: end_position
       type: CLASSLABEL
-      num: 512
+      num: 200
       labels: use_num
-      weight: 0.5
+      weight: 1.0
       loss:
         name: sparse_categorical_crossentropy
         config:
           from_logits: true
       metrics:
-        - name: sparse_recall
-          config:
-            name: "macro_recall"
-            num_classes: 512
-            average: "macro"
-#        - name: sparse_categorical_accuracy
-#        - name: sparse_f1_score
+#        - name: sparse_recall
 #          config:
-#            name: "macro_f1"
-#            num_classes: 512
+#            name: "macro_recall"
+#            num_classes: 200
 #            average: "macro"
-#    - name: output_3
-#      column: is_impossible
-#      type: INT
-#      weight: 1.0
-#      loss:
-#        name: sigmoid_cross_entropy
-#      metrics:
-#        - name: binary_accuracy
+#        - name: sparse_categorical_accuracy
+        - name: sparse_f1_score
+          config:
+            name: "macro_f1"
+            num_classes: 200
+            average: "macro"
+    - name: output_3
+      column: is_impossible
+      type: INT
+      weight: 0.1
+      loss:
+        name: sigmoid_cross_entropy
+      metrics:
+        - name: binary_accuracy
 
 pretrained:
-    name: bert-base-chinese-huggingface
+#    name: bert-base-chinese-huggingface
+    name: ERNIE_1.0_max-len-512
     init_from_pretrained: true
 
 
