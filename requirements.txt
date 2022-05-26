@@ -286,7 +286,7 @@ tornado==5.0.2
 tqdm==4.32.2
 traitlets==4.3.2
 transformers==2.9.1
-Twisted==20.3.0
+Twisted==22.4.0
 typeguard==2.9.1
 typing==3.6.4
 typing-extensions==3.7.4.3
