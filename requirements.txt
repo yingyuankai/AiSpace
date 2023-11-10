@@ -56,7 +56,7 @@ dataclasses==0.7
 datashape==0.5.4
 decorator==4.3.0
 dill==0.2.9
-distributed==1.21.8
+distributed==2021.10.0
 dm-tree==0.1.5
 docker==4.1.0
 docutils==0.14
